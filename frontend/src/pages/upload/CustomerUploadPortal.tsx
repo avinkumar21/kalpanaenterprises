@@ -265,7 +265,7 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
         context.font = 'bold 28px Arial, sans-serif';
         context.fillText('🌐 ಶಾಪ್ ವೈ-ಫೈ / 4G ಮೊಬೈಲ್ ಲಿಂಕ್ (Direct Portal URL):', 700, 1365);
 
-        const displayUrl = accessMode === 'wifi' ? portalUrl : accessMode === 'mobile_web' ? `${publicTunnelUrl}/prints?kiosk=true#upload` : shopEmail;
+        const displayUrl = typeof window !== 'undefined' ? `${window.location.origin}/prints?kiosk=true#upload` : '';
         context.fillStyle = '#0f172a';
         // Auto-adjust font size if URL is long so it NEVER clips or touches borders!
         const urlFontSize = displayUrl.length > 65 ? 23 : displayUrl.length > 55 ? 25 : displayUrl.length > 45 ? 28 : 32;
@@ -303,7 +303,7 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
   };
 
   const handlePrintA4Sign = () => {
-    const displayUrl = accessMode === 'wifi' ? portalUrl : accessMode === 'mobile_web' ? `${publicTunnelUrl}/prints?kiosk=true#upload` : shopEmail;
+    const displayUrl = typeof window !== 'undefined' ? `${window.location.origin}/prints?kiosk=true#upload` : '';
     const svgElement = document.querySelector('.qr-canvas-container svg') as SVGSVGElement | null;
     const svgContent = svgElement ? new XMLSerializer().serializeToString(svgElement) : '';
     
@@ -365,7 +365,7 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
   };
 
   const portSuffix = port && port !== '80' ? `:${port}` : '';
-  const portalUrl = `http://${shopLanIp}${portSuffix}/prints?kiosk=true#upload`;
+  const portalUrl = typeof window !== 'undefined' ? `${window.location.origin}/prints?kiosk=true#upload` : '';
 
   return (
     <div className="max-w-3xl mx-auto p-4 md:p-6 space-y-6 animate-in fade-in duration-300 text-white font-sans">
@@ -378,10 +378,10 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
           </div>
           <div>
             <h1 className="text-xl md:text-2xl font-black text-white tracking-tight uppercase flex items-center gap-2 flex-wrap">
-              <span>{isKioskMode ? '⚡ ಕಲ್ಪന ಎಂಟರ್ಪ್ರೈಸಸ್ • Express Document Intake' : 'ಕಲ್ಪನ ಎಂಟರ್ಪ್ರೈಸಸ್ • Kalpana Enterprises V2 Portal'}</span>
+              <span>{isKioskMode ? '⚡ ಕಲ್ಪന ಎಂಟರ್ಪ್ರೈಸಸ್ • Express Document Intake' : 'ಕಲ್ಪನ ಎಂಟರ್ಪ್ರೈಸಸ್ • Print Your Files Here'}</span>
             </h1>
             <p className="text-xs font-extrabold text-cyan-300">
-              {isKioskMode ? '📥 ಇಲ್ಲಿ ನಿಮ್ಮ ಡಾಕ್ಯುಮೆಂಟ್ ಅಥವಾ ಫೈಲ್ ಅಪ್‌ಲೋಡ್ ಮಾಡಿ • Instant File Drop & Automatic Print Engine' : '📱 Direct Counter QR Scan & Automated Spooler (ಕೌಂಟರ್ QR ಕೋಡ್ ಸಿಸ್ಟಮ್)'}
+              {isKioskMode ? '📥 ಇಲ್ಲಿ ನಿಮ್ಮ ಡಾಕ್ಯುಮೆಂಟ್ ಅಥವಾ ಫೈಲ್ ಅಪ್‌ಲೋಡ್ ಮಾಡಿ • Instant File Drop & Automatic Print Engine' : '📱 Scan QR to Upload Files (ಫೈಲ್ ಅಪ್‌ಲೋಡ್ ಮಾಡಲು QR ಸ್ಕ್ಯಾನ್ ಮಾಡಿ)'}
             </p>
           </div>
         </div>
@@ -394,7 +394,7 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
             className="px-4 py-2.5 rounded-xl font-black text-xs uppercase tracking-wide flex items-center gap-2 hover:opacity-90 transition shadow-lg cursor-pointer"
           >
             <QrCode className="w-4 h-4 text-emerald-400" />
-            <span>{showQrModal ? 'Close Counter Sign (ಮುಚ್ಚಿರಿ)' : '🖥️ Show Shop Counter QR Code (ಕೌಂಟರ್ QR)'}</span>
+            <span>{showQrModal ? 'Close Counter Sign (ಮುಚ್ಚಿರಿ)' : '🖥️ Show QR Code to Customer'}</span>
           </button>
         )}
       </div>
@@ -598,7 +598,7 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
               {/* Real QR Code Canvas Wrapper with High Contrast Pure White Background */}
               <div style={{ backgroundColor: '#ffffff', padding: '20px', borderRadius: '24px', border: '5px solid #10b981', boxShadow: '0 10px 25px rgba(0, 0, 0, 0.8)' }} className="qr-canvas-container flex items-center justify-center w-full max-w-[240px] aspect-square transition-transform hover:scale-105">
                 <QRCode
-                  value={accessMode === 'wifi' ? portalUrl : accessMode === 'mobile_web' ? `${publicTunnelUrl}/prints?kiosk=true#upload` : `mailto:${shopEmail}?subject=Print%20Document&body=Please%20find%20attached%20my%20file%20to%20print!`}
+                  value={portalUrl}
                   size={200}
                   style={{ height: "auto", maxWidth: "100%", width: "200px" }}
                   viewBox={`0 0 256 256`}
@@ -635,9 +635,9 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
                   <span className="text-[10px] uppercase font-black text-cyan-300 block mb-0.5">
                     {accessMode === 'wifi' ? 'Or Open Link on Shop Wi-Fi (ಲಿಂಕ್ ತೆರೆಯಿರಿ):' : accessMode === 'mobile_web' ? 'Or Open in 4G/5G Browser:' : 'Or Send File by Email To:'}
                   </span>
-                  <span className="text-xs md:text-sm font-mono font-black break-all select-all block leading-tight">
-                    {accessMode === 'wifi' ? portalUrl : accessMode === 'mobile_web' ? `${publicTunnelUrl}/prints?kiosk=true#upload` : shopEmail}
-                  </span>
+                  <div className="font-mono text-center break-all select-all selection:bg-emerald-500 selection:text-white" style={{ fontSize: '10px' }}>
+                    {portalUrl}
+                  </div>
                 </div>
                 <p style={{ color: '#cbd5e1' }} className="text-[11px] font-extrabold">
                   ⚡ Auto-Spooling via EPSON & HP Printers (ಆಟೋಮ್ಯಾಟಿಕ್ ಪ್ರಿಂಟಿಂಗ್)
