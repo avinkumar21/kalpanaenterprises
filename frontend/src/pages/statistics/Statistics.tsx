@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { api } from '../api/client';
+import { api } from '../../services/client';
 import { BarChart3, TrendingUp, CheckCircle2, AlertTriangle, FileText, Calendar } from 'lucide-react';
 
 export const Statistics: React.FC = () => {
@@ -111,3 +111,4 @@ export const Statistics: React.FC = () => {
     </div>
   );
 };
+

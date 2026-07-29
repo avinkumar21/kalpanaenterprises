@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { api } from '../api/client';
+import { api } from '../../services/client';
 import { Settings as SettingsIcon, Save, CheckCircle2, Shield, Folder, Sliders, RefreshCw, Mail, Check, AlertCircle } from 'lucide-react';
 
 export const Settings: React.FC = () => {
@@ -321,3 +321,4 @@ export const Settings: React.FC = () => {
     </div>
   );
 };
+

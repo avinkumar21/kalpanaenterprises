@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { api, QueueJob, PrinterInfo } from './api/client';
+import { api, QueueJob, PrinterInfo } from '../services/client';
 import { Printer, RotateCw, Trash2, CheckCircle2, Upload, FileText, AlertCircle, Wifi, Check, Scissors, Sun, Contrast, RefreshCw, ArrowUpDown, Sparkles } from 'lucide-react';
 
 const EPSON_NAME = 'EPSON L3110 Series';
@@ -1034,3 +1034,4 @@ export const CustomerPrintDashboard: React.FC = () => {
     </div>
   );
 };
+

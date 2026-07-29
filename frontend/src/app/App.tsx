@@ -4,8 +4,8 @@ import { Layout } from '../components/layout/Layout';
 import { Home } from '../modules/dashboard/Home';
 import { CategoryView } from '../modules/services/CategoryView';
 import { Admin } from '../modules/admin/Admin';
-import PrintsModule from '../../../modules/prints/frontend/index';
-import { CustomerUploadPortal } from '../../../modules/prints/frontend/upload/CustomerUploadPortal';
+import PrintsModule from '../pages/index';
+import { CustomerUploadPortal } from '../pages/upload/CustomerUploadPortal';
 
 function App() {
   const checkIsCustomerKiosk = () => {
@@ -63,3 +63,4 @@ function App() {
 }
 
 export default App;
+

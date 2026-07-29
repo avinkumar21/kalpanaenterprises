@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { api, SystemStatus } from '../api/client';
+import { api, SystemStatus } from '../../services/client';
 import { Activity, Printer, FolderCheck, CheckCircle2, AlertTriangle, Clock, Play, FileText, Wifi, ShieldCheck } from 'lucide-react';
 
 export const Dashboard: React.FC = () => {
@@ -170,3 +170,4 @@ export const Dashboard: React.FC = () => {
     </div>
   );
 };
+

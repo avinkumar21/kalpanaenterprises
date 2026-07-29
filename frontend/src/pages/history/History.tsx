@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { api, HistoryItem } from '../api/client';
+import { api, HistoryItem } from '../../services/client';
 import { History as HistoryIcon, Download, RotateCcw, Trash2, FileText, CheckCircle2, AlertTriangle, Printer } from 'lucide-react';
 
 export const History: React.FC = () => {
@@ -160,3 +160,4 @@ export const History: React.FC = () => {
     </div>
   );
 };
+

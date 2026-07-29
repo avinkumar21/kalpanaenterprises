@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { api, PrinterInfo } from '../api/client';
+import { api, PrinterInfo } from '../../services/client';
 import { Printer, RefreshCw, CheckCircle2, AlertTriangle, ShieldCheck, Play, Radio, Info } from 'lucide-react';
 
 export const Printers: React.FC = () => {
@@ -171,3 +171,4 @@ export const Printers: React.FC = () => {
     </div>
   );
 };
+

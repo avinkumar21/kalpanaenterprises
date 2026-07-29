@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { api } from '../api/client';
+import { api } from '../../services/client';
 import { Upload, FileText, CheckCircle2, AlertCircle, Printer, Sparkles, QrCode, Copy, RefreshCw, Layers, Palette, Monitor } from 'lucide-react';
 import QRCode from 'react-qr-code';
 
@@ -872,3 +872,4 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
     </div>
   );
 };
+

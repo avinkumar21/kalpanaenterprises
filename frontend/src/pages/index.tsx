@@ -5,7 +5,7 @@ import { Logs } from './logs/Logs';
 import { Printers } from './printers/Printers';
 import { CustomerUploadPortal } from './upload/CustomerUploadPortal';
 import { Printer, Settings as SettingsIcon, Sparkles, ChevronDown, ChevronUp, Layers, Terminal, Bell, X, CheckCircle2 } from 'lucide-react';
-import { api } from './api/client';
+import { api } from '../services/client';
 
 export const PrintsModule: React.FC = () => {
   const checkIsKiosk = () => {
@@ -335,3 +335,4 @@ export const PrintsModule: React.FC = () => {
 };
 
 export default PrintsModule;
+
