@@ -1,0 +1,1965 @@
+[
+  {
+    "id": "c1",
+    "serviceName": "Aadhaar (UIDAI)",
+    "currentUrl": "https://uidai.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "c1b",
+    "serviceName": "Aadhaar Update / PVC",
+    "currentUrl": "https://myaadhaar.uidai.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "c6",
+    "serviceName": "DigiLocker",
+    "currentUrl": "https://www.digilocker.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "c16",
+    "serviceName": "Voter ID Services (ECI)",
+    "currentUrl": "https://voters.eci.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "c4",
+    "serviceName": "Passport Seva",
+    "currentUrl": "https://www.passportindia.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "c3",
+    "serviceName": "Income Tax / PAN Services",
+    "currentUrl": "https://www.incometax.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "c7",
+    "serviceName": "PM Jan Dhan Yojana",
+    "currentUrl": "https://pmjdy.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "c20",
+    "serviceName": "PM SVANidhi",
+    "currentUrl": "https://pmsvanidhi.mohua.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "c50",
+    "serviceName": "Sukanya Samriddhi Yojana",
+    "currentUrl": "https://www.india.gov.in/sukanya-samriddhi-yojna",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "c51",
+    "serviceName": "DBT Direct Benefit Transfer",
+    "currentUrl": "https://dbtbharat.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "c52",
+    "serviceName": "National Savings Schemes",
+    "currentUrl": "https://www.nsiindia.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "c9",
+    "serviceName": "EPFO PF Services",
+    "currentUrl": "https://www.epfindia.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "c15",
+    "serviceName": "National Career Service",
+    "currentUrl": "https://www.ncs.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "c53",
+    "serviceName": "eShram Registration",
+    "currentUrl": "https://eshram.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "c54",
+    "serviceName": "Skill India Portal",
+    "currentUrl": "https://www.skillindia.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "c55",
+    "serviceName": "Apprenticeship Portal",
+    "currentUrl": "https://apprenticeshipindia.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "c56",
+    "serviceName": "Jeevan Pramaan",
+    "currentUrl": "https://jeevanpramaan.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "c57",
+    "serviceName": "National Pension System",
+    "currentUrl": "https://www.npscra.nsdl.co.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Public Authority"
+  },
+  {
+    "id": "c58",
+    "serviceName": "Atal Pension Yojana",
+    "currentUrl": "https://www.npscra.nsdl.co.in/scheme-details.php",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Public Authority"
+  },
+  {
+    "id": "c59",
+    "serviceName": "Pensioners Portal",
+    "currentUrl": "https://pensionersportal.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "c14",
+    "serviceName": "PM Kisan Samman Nidhi",
+    "currentUrl": "https://pmkisan.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "c60",
+    "serviceName": "PM Fasal Bima Yojana",
+    "currentUrl": "https://pmfby.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "c61",
+    "serviceName": "Soil Health Card",
+    "currentUrl": "https://soilhealth.dac.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "c62",
+    "serviceName": "eNAM (Agri Market)",
+    "currentUrl": "https://enam.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "c63",
+    "serviceName": "Kisan Suvidha Portal",
+    "currentUrl": "https://kisansuvidha.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "c64",
+    "serviceName": "National Scholarship Portal",
+    "currentUrl": "https://scholarships.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "c65",
+    "serviceName": "SWAYAM Online Courses",
+    "currentUrl": "https://swayam.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "c66",
+    "serviceName": "DIKSHA Platform",
+    "currentUrl": "https://diksha.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "c67",
+    "serviceName": "Academic Bank of Credits",
+    "currentUrl": "https://www.abc.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "c68",
+    "serviceName": "PM eVidya",
+    "currentUrl": "https://pmevidya.education.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "c11",
+    "serviceName": "Ayushman Bharat PMJAY",
+    "currentUrl": "https://pmjay.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "c69",
+    "serviceName": "ABHA Health ID",
+    "currentUrl": "https://abdm.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "c70",
+    "serviceName": "CoWIN Vaccination",
+    "currentUrl": "https://www.cowin.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "c71",
+    "serviceName": "eSanjeevani Telemedicine",
+    "currentUrl": "https://esanjeevani.mohfw.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "c72",
+    "serviceName": "eRaktKosh Blood Bank",
+    "currentUrl": "https://www.eraktkosh.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Public Authority"
+  },
+  {
+    "id": "c5",
+    "serviceName": "Parivahan DL/RC",
+    "currentUrl": "https://parivahan.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "c73",
+    "serviceName": "IRCTC Railway Services",
+    "currentUrl": "https://www.irctc.co.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Public Authority"
+  },
+  {
+    "id": "c74",
+    "serviceName": "FASTag Toll Services",
+    "currentUrl": "https://fastag.ihmcl.com/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Public Authority"
+  },
+  {
+    "id": "c75",
+    "serviceName": "National Highways Info",
+    "currentUrl": "https://morth.nic.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "c8",
+    "serviceName": "PM Awas Yojana",
+    "currentUrl": "https://pmaymis.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "c76",
+    "serviceName": "PMAY Gramin (Rural)",
+    "currentUrl": "https://pmayg.nic.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "c77",
+    "serviceName": "RERA Central Portal",
+    "currentUrl": "https://rera.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "c78",
+    "serviceName": "PM Matru Vandana Yojana",
+    "currentUrl": "https://pmmvy.wcd.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "c79",
+    "serviceName": "Poshan Tracker",
+    "currentUrl": "https://poshantracker.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Public Authority"
+  },
+  {
+    "id": "c80",
+    "serviceName": "Beti Bachao Beti Padhao",
+    "currentUrl": "https://wcd.nic.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "c81",
+    "serviceName": "Women Helpline Portal",
+    "currentUrl": "https://ncw.nic.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "c82",
+    "serviceName": "UDID Disability Card",
+    "currentUrl": "https://www.swavlambancard.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "c83",
+    "serviceName": "NSAP Social Pensions",
+    "currentUrl": "https://nsap.nic.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "c84",
+    "serviceName": "Sugamya Bharat (Accessible India)",
+    "currentUrl": "https://disabilityaffairs.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "c85",
+    "serviceName": "PM Garib Kalyan Yojana",
+    "currentUrl": "https://dfpd.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "c10",
+    "serviceName": "GST Portal",
+    "currentUrl": "https://www.gst.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "c86",
+    "serviceName": "Udyam Registration",
+    "currentUrl": "https://udyamregistration.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "c87",
+    "serviceName": "Startup India",
+    "currentUrl": "https://www.startupindia.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "c88",
+    "serviceName": "GeM Marketplace",
+    "currentUrl": "https://gem.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "c89",
+    "serviceName": "PMEGP Loan Scheme",
+    "currentUrl": "https://www.kviconline.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "c90",
+    "serviceName": "Stand Up India",
+    "currentUrl": "https://www.standupmitra.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Public Authority"
+  },
+  {
+    "id": "c21",
+    "serviceName": "RTI Online (Central)",
+    "currentUrl": "https://rtionline.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "c91",
+    "serviceName": "CPGRAMS Grievances",
+    "currentUrl": "https://pgportal.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "c92",
+    "serviceName": "eCourts Services",
+    "currentUrl": "https://services.ecourts.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "c93",
+    "serviceName": "Cyber Crime Reporting",
+    "currentUrl": "https://cybercrime.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "c94",
+    "serviceName": "Consumer Complaints",
+    "currentUrl": "https://consumerhelpline.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "c12",
+    "serviceName": "UMANG App",
+    "currentUrl": "https://web.umang.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "c17",
+    "serviceName": "India.gov.in Portal",
+    "currentUrl": "https://www.india.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "c95",
+    "serviceName": "MyGov Citizen Portal",
+    "currentUrl": "https://www.mygov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Public Authority"
+  },
+  {
+    "id": "c96",
+    "serviceName": "ServicePlus Platform",
+    "currentUrl": "https://serviceonline.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "c97",
+    "serviceName": "Open Government Data",
+    "currentUrl": "https://data.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "c13",
+    "serviceName": "India Post Tracking",
+    "currentUrl": "https://www.indiapost.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "c98",
+    "serviceName": "Post Office Savings",
+    "currentUrl": "https://www.ippbonline.com/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Public Authority"
+  },
+  {
+    "id": "c99",
+    "serviceName": "Postal Life Insurance",
+    "currentUrl": "https://pli.indiapost.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "s1",
+    "serviceName": "Seva Sindhu Portal",
+    "currentUrl": "https://sevasindhu.karnataka.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "s14",
+    "serviceName": "KarnatakaOne Portal",
+    "currentUrl": "https://www.karnatakaone.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "s_add_sakala",
+    "serviceName": "Sakala Services",
+    "currentUrl": "https://www.sakala.kar.nic.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "s_add_grievance",
+    "serviceName": "Public Grievance Portal",
+    "currentUrl": "https://ipgrs.karnataka.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "s9",
+    "serviceName": "Bhoomi Land Records",
+    "currentUrl": "https://landrecords.karnataka.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "s31",
+    "serviceName": "e-Swathu",
+    "currentUrl": "https://eswathu.karnataka.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "s13",
+    "serviceName": "Khata Certificate",
+    "currentUrl": "https://sakala.kar.nic.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "s10",
+    "serviceName": "Property Tax BBMP/ULB",
+    "currentUrl": "https://bbmptax.karnataka.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "s23",
+    "serviceName": "Karnataka RERA",
+    "currentUrl": "https://rera.karnataka.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "s_add_kaveri",
+    "serviceName": "Kaveri Online Services",
+    "currentUrl": "https://kaverionline.karnataka.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "s29",
+    "serviceName": "Bapuji Seva Kendra",
+    "currentUrl": "https://bsk.karnataka.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "s30",
+    "serviceName": "Panchatantra",
+    "currentUrl": "https://panchatantra.karnataka.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "s32",
+    "serviceName": "Gandhi Sakshi Kayaka",
+    "currentUrl": "https://ngsk.karnataka.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "s_add_panchamitra",
+    "serviceName": "Panchamitra Portal",
+    "currentUrl": "https://panchamitra.kar.nic.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "s_add_rural_housing",
+    "serviceName": "Rural Housing (Ashraya)",
+    "currentUrl": "https://ashraya.karnataka.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "s_add_rural_dev",
+    "serviceName": "RDPR Karnataka",
+    "currentUrl": "https://rdpr.karnataka.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "s2",
+    "serviceName": "Nadakacheri (Certificates)",
+    "currentUrl": "https://nadakacheri.karnataka.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "s_add_survey_rec",
+    "serviceName": "Survey Records (Tippan/Podi)",
+    "currentUrl": "https://landrecords.karnataka.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "s8",
+    "serviceName": "RTO Services",
+    "currentUrl": "https://transport.karnataka.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "s_add_dl",
+    "serviceName": "Driving Licence (Sarathi)",
+    "currentUrl": "https://sarathi.parivahan.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "s_add_rc",
+    "serviceName": "Vehicle Registration (Vahan)",
+    "currentUrl": "https://vahan.parivahan.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "s11",
+    "serviceName": "BWSSB Water & Sewerage",
+    "currentUrl": "https://bwssb.karnataka.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "s12",
+    "serviceName": "BESCOM/HESCOM EB Bill",
+    "currentUrl": "https://bescom.karnataka.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "s_add_kuwsdb",
+    "serviceName": "KUWSDB Water Services",
+    "currentUrl": "https://kuwsdb.karnataka.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "s4",
+    "serviceName": "Gruha Jyothi",
+    "currentUrl": "https://sevasindhu.karnataka.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "s5",
+    "serviceName": "Gruha Lakshmi",
+    "currentUrl": "https://sevasindhu.karnataka.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "s6",
+    "serviceName": "Yuva Nidhi",
+    "currentUrl": "https://sevasindhu.karnataka.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "s19",
+    "serviceName": "Karnataka Pension Schemes",
+    "currentUrl": "https://dssp.karnataka.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "s_add_anna_bhagya",
+    "serviceName": "Anna Bhagya Scheme",
+    "currentUrl": "https://ahara.karnataka.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "s_add_disability",
+    "serviceName": "Disability Welfare Schemes",
+    "currentUrl": "https://welfareofdisabled.kar.nic.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "s20",
+    "serviceName": "Raitha Siri Farmer Portal",
+    "currentUrl": "https://fruitspmk.karnataka.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "s_add_parihara",
+    "serviceName": "Parihara Portal",
+    "currentUrl": "https://parihara.karnataka.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "s_add_farmer_reg",
+    "serviceName": "FRUITS Farmer Registration",
+    "currentUrl": "https://fruits.karnataka.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "s_add_crop_ins",
+    "serviceName": "Samrakshane Crop Insurance",
+    "currentUrl": "https://samrakshane.karnataka.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "s_add_soil_health",
+    "serviceName": "Soil Health Card",
+    "currentUrl": "https://soilhealth.dac.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "s16",
+    "serviceName": "RTE School Admissions",
+    "currentUrl": "https://schooleducation.karnataka.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "s_add_sslc",
+    "serviceName": "SSLC / PUC Board Results",
+    "currentUrl": "https://karresults.nic.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "s_add_kea",
+    "serviceName": "KEA CET Portal",
+    "currentUrl": "https://cetonline.karnataka.gov.in/kea/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "s_add_ssp",
+    "serviceName": "State Scholarship Portal (SSP)",
+    "currentUrl": "https://ssp.karnataka.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "s_add_emis",
+    "serviceName": "STS Student Tracking System",
+    "currentUrl": "https://sts.karnataka.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "s15",
+    "serviceName": "Suvarna Arogya Suraksha",
+    "currentUrl": "https://arogya.karnataka.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "s_add_health_id",
+    "serviceName": "ABHA Health ID",
+    "currentUrl": "https://abdm.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "s18",
+    "serviceName": "Trade Licence (ULB)",
+    "currentUrl": "https://sakala.kar.nic.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "s_add_msme",
+    "serviceName": "MSME Registration Portal",
+    "currentUrl": "https://udyamregistration.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "s22",
+    "serviceName": "Ashraya Housing Schemes",
+    "currentUrl": "https://ashraya.karnataka.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "s21",
+    "serviceName": "BOCW Worker Registration",
+    "currentUrl": "https://karbwwb.karnataka.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "s28",
+    "serviceName": "KSRTC Recruitment",
+    "currentUrl": "https://ksrtc.karnataka.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "s33",
+    "serviceName": "MGNREGS Karnataka",
+    "currentUrl": "https://mgnrega.karnataka.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "s_add_labour_welfare",
+    "serviceName": "Labour Welfare Board Services",
+    "currentUrl": "https://klwb.karnataka.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "s24",
+    "serviceName": "Karnataka e-Courts",
+    "currentUrl": "https://services.ecourts.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "s26",
+    "serviceName": "Mahiti Kanaja RTI Portal",
+    "currentUrl": "https://mahitikanaja.karnataka.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "s_add_lok_adalat",
+    "serviceName": "Legal Services (KSLSA)",
+    "currentUrl": "https://kslsa.kar.nic.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "s7",
+    "serviceName": "Ration Card PDS",
+    "currentUrl": "https://ahara.karnataka.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "s17",
+    "serviceName": "Birth/Death Certificate",
+    "currentUrl": "https://ejanma.karnataka.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "t1",
+    "serviceName": "IRCTC Rail Booking",
+    "currentUrl": "https://www.irctc.co.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Public Authority"
+  },
+  {
+    "id": "t2",
+    "serviceName": "KSRTC Bus Booking",
+    "currentUrl": "https://ksrtc.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Public Authority"
+  },
+  {
+    "id": "t3",
+    "serviceName": "Namma Metro BMRCL",
+    "currentUrl": "https://english.bmrc.co.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Public Authority"
+  },
+  {
+    "id": "t6",
+    "serviceName": "FASTag Toll Recharge",
+    "currentUrl": "https://fastag.ihmcl.com/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Public Authority"
+  },
+  {
+    "id": "t8",
+    "serviceName": "NITI Highway Info",
+    "currentUrl": "https://morth.nic.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "b5",
+    "serviceName": "KTDC Karnataka Tourism",
+    "currentUrl": "https://www.karnatakatourism.org/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Tourism Board"
+  },
+  {
+    "id": "h1",
+    "serviceName": "Ayushman Bharat PMJAY",
+    "currentUrl": "https://pmjay.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "h2",
+    "serviceName": "CoWIN Vaccination",
+    "currentUrl": "https://www.cowin.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "h3",
+    "serviceName": "eSanjeevani Telemedicine",
+    "currentUrl": "https://esanjeevani.mohfw.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "h4",
+    "serviceName": "Suvarna Arogya Karnataka",
+    "currentUrl": "https://arogya.karnataka.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "h5",
+    "serviceName": "eRaktKosh Blood Bank",
+    "currentUrl": "https://www.eraktkosh.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Public Authority"
+  },
+  {
+    "id": "e1",
+    "serviceName": "NSP Student Zone",
+    "currentUrl": "https://scholarships.gov.in/Students",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "e2",
+    "serviceName": "Karnataka SSLC/PUC Results",
+    "currentUrl": "https://karresults.nic.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "e3",
+    "serviceName": "KEA CET/COMEDK",
+    "currentUrl": "https://cetonline.karnataka.gov.in/kea/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "e4",
+    "serviceName": "DIKSHA Digital Learning",
+    "currentUrl": "https://diksha.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "e5",
+    "serviceName": "SWAYAM Online Courses",
+    "currentUrl": "https://swayam.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "e6",
+    "serviceName": "PM eVidya",
+    "currentUrl": "https://pmevidya.education.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "e8",
+    "serviceName": "RTE Admissions",
+    "currentUrl": "https://schooleducation.karnataka.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "e9",
+    "serviceName": "State Scholarship Portal (SSP)",
+    "currentUrl": "https://ssp.karnataka.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "e10",
+    "serviceName": "Collegiate Education Dept (DCE)",
+    "currentUrl": "https://dce.karnataka.gov.in/en",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "tm1",
+    "serviceName": "Tirumala Tirupati (TTD)",
+    "currentUrl": "https://ttdevasthanams.ap.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "tm2",
+    "serviceName": "Kukke Shri Subramanya",
+    "currentUrl": "https://itms.kar.nic.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "tm3",
+    "serviceName": "Sri Kalahasti Temple",
+    "currentUrl": "https://tms.ap.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "tm4",
+    "serviceName": "Sabarimala (Ayyappa Swamy)",
+    "currentUrl": "https://sabarimalaonline.org/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Temple Trust"
+  },
+  {
+    "id": "tm5",
+    "serviceName": "Ujjain Mahakaleshwar",
+    "currentUrl": "https://shrimahakaleshwar.com/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Public Authority"
+  },
+  {
+    "id": "tm6",
+    "serviceName": "Kashi Vishwanath",
+    "currentUrl": "https://www.shrikashivishwanath.org/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Public Authority"
+  },
+  {
+    "id": "tm7",
+    "serviceName": "Madurai Meenakshi",
+    "currentUrl": "https://maduraimeenakshi.hrce.tn.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "tm8",
+    "serviceName": "Rameshwaram Temple",
+    "currentUrl": "https://hrce.tn.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "tm9",
+    "serviceName": "Chamundeshwari Temple (Mysuru)",
+    "currentUrl": "https://chamundeshwaritemple.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Public Authority"
+  },
+  {
+    "id": "tm10",
+    "serviceName": "Dharmasthala Sri Manjunatha",
+    "currentUrl": "https://www.shridharmasthala.org/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Temple Trust"
+  },
+  {
+    "id": "ca1",
+    "serviceName": "Income Tax Return (ITR)",
+    "currentUrl": "https://www.incometax.gov.in/iec/foportal/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "ca2",
+    "serviceName": "Udyam Registration",
+    "currentUrl": "https://udyamregistration.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "ca3",
+    "serviceName": "GST Registration & Filing",
+    "currentUrl": "https://www.gst.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "ca5",
+    "serviceName": "EPF Member Portal",
+    "currentUrl": "https://unifiedportal-mem.epfindia.gov.in/memberinterface/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "p1",
+    "serviceName": "Bandipur Safari Booking",
+    "currentUrl": "https://www.junglelodges.com/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Tourism Board"
+  },
+  {
+    "id": "p2",
+    "serviceName": "Nagarahole Safari Booking",
+    "currentUrl": "https://www.junglelodges.com/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Tourism Board"
+  },
+  {
+    "id": "p3",
+    "serviceName": "Bannerghatta Safari Booking",
+    "currentUrl": "https://www.junglelodges.com/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Tourism Board"
+  },
+  {
+    "id": "p4",
+    "serviceName": "BRT Tiger Reserve Booking",
+    "currentUrl": "https://aranya.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "p5",
+    "serviceName": "Dandeli Eco Tourism",
+    "currentUrl": "https://www.junglelodges.com/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Tourism Board"
+  },
+  {
+    "id": "p6",
+    "serviceName": "Male Mahadeshwara Registration",
+    "currentUrl": "https://aranya.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "p7",
+    "serviceName": "Kukke Subramanya Seva Booking",
+    "currentUrl": "https://www.kukke.org/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Temple Trust"
+  },
+  {
+    "id": "p8",
+    "serviceName": "Dharmasthala Darshan Booking",
+    "currentUrl": "https://www.shridharmasthala.org/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Temple Trust"
+  },
+  {
+    "id": "p9",
+    "serviceName": "Jungle Lodges Karnataka",
+    "currentUrl": "https://www.junglelodges.com/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Tourism Board"
+  },
+  {
+    "id": "p10",
+    "serviceName": "Karnataka Eco Tourism",
+    "currentUrl": "https://www.karnatakaecotourism.com/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Public Authority"
+  },
+  {
+    "id": "p11",
+    "serviceName": "Sabarimala Virtual Queue",
+    "currentUrl": "https://sabarimala.kerala.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "p12",
+    "serviceName": "Sabarimala Darshan Registration",
+    "currentUrl": "https://sabarimala.kerala.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "p13",
+    "serviceName": "Periyar Tiger Reserve",
+    "currentUrl": "https://periyartigerreserve.org/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Public Authority"
+  },
+  {
+    "id": "p14",
+    "serviceName": "Wayanad Wildlife Sanctuary",
+    "currentUrl": "https://forest.kerala.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "p15",
+    "serviceName": "Silent Valley Entry Permit",
+    "currentUrl": "https://forest.kerala.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "p16",
+    "serviceName": "Kerala Eco Tourism Services",
+    "currentUrl": "https://www.keralatourism.org/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Public Authority"
+  },
+  {
+    "id": "p17",
+    "serviceName": "Ooty / Nilgiris E-Pass",
+    "currentUrl": "https://nilgiris.nic.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "p18",
+    "serviceName": "Kodaikanal E-Pass",
+    "currentUrl": "https://nilgiris.nic.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "p19",
+    "serviceName": "Mudumalai Tiger Reserve",
+    "currentUrl": "https://nilgiris.nic.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "p20",
+    "serviceName": "Tirumala TTD Darshan",
+    "currentUrl": "https://tirupatibalaji.ap.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "p21",
+    "serviceName": "AP Tourism Registrations",
+    "currentUrl": "https://www.aptourism.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "p22",
+    "serviceName": "Char Dham Registration",
+    "currentUrl": "https://registrationandtouristcare.uk.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "p23",
+    "serviceName": "Kedarnath Registration",
+    "currentUrl": "https://registrationandtouristcare.uk.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "p24",
+    "serviceName": "Badrinath Registration",
+    "currentUrl": "https://registrationandtouristcare.uk.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "p25",
+    "serviceName": "Gangotri Registration",
+    "currentUrl": "https://registrationandtouristcare.uk.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "p26",
+    "serviceName": "Yamunotri Registration",
+    "currentUrl": "https://registrationandtouristcare.uk.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "p27",
+    "serviceName": "Valley of Flowers Entry",
+    "currentUrl": "https://uttarakhandtourism.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "p28",
+    "serviceName": "Rohtang Pass Permit",
+    "currentUrl": "https://admis.hp.nic.in/rohtang/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "p29",
+    "serviceName": "Great Himalayan National Park",
+    "currentUrl": "https://greathimalayannationalpark.org/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Public Authority"
+  },
+  {
+    "id": "p30",
+    "serviceName": "Amarnath Yatra Registration",
+    "currentUrl": "https://shriamarnathjishrine.com/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Public Authority"
+  },
+  {
+    "id": "p31",
+    "serviceName": "Goa Tourism Registrations",
+    "currentUrl": "https://goatourism.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "p32",
+    "serviceName": "Ajanta Cave Booking",
+    "currentUrl": "https://asi.payumoney.com/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Public Authority"
+  },
+  {
+    "id": "p33",
+    "serviceName": "Ellora Cave Booking",
+    "currentUrl": "https://asi.payumoney.com/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Public Authority"
+  },
+  {
+    "id": "p34",
+    "serviceName": "Maharashtra Tourism",
+    "currentUrl": "https://maharashtratourism.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "p35",
+    "serviceName": "Ladakh Inner Line Permit",
+    "currentUrl": "https://www.lahdclehpermit.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Public Authority"
+  },
+  {
+    "id": "p36",
+    "serviceName": "Ladakh Tourism Registration",
+    "currentUrl": "https://ladakh.gov.in/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "p37",
+    "serviceName": "Arunachal Pradesh ILP",
+    "currentUrl": "https://arunachalilp.com/",
+    "statusCode": 200,
+    "validationStatus": "Valid",
+    "lastValidatedAt": "2026-06-17T00:00:00Z",
+    "responseTime": 0,
+    "sourceAuthority": "Official Public Authority"
+  },
+  {
+    "id": "p38",
+    "serviceName": "Sikkim Tourism Permits",
+    "currentUrl": "https://www.sikkimtourism.gov.in/",
+    "statusCode": 500,
+    "validationStatus": "Needs Review",
+    "lastValidatedAt": "2026-06-18T15:16:44.917Z",
+    "responseTime": 10013,
+    "sourceAuthority": "Official Government Authority"
+  },
+  {
+    "id": "p39",
+    "serviceName": "Yadadri Temple Registration",
+    "currentUrl": "https://tourism.telangana.gov.in/",
+    "statusCode": 500,
+    "validationStatus": "Needs Review",
+    "lastValidatedAt": "2026-06-18T15:16:44.917Z",
+    "oldUrl": "https://www.telanganatourism.gov.in/",
+    "newUrl": "https://tourism.telangana.gov.in/",
+    "updatedAt": "2026-06-18T14:36:02.108Z",
+    "responseTime": 10010,
+    "sourceAuthority": "Official Government Authority"
+  }
+]

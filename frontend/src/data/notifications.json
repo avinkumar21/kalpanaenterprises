@@ -1,0 +1,156 @@
+[
+  {
+    "id": "notif_1",
+    "title": "Aadhaar Free Document Update Deadline Extended",
+    "source": "src_uidai",
+    "sourceUrl": "https://myaadhaar.uidai.gov.in/",
+    "category": "uc_central",
+    "priority": "Critical",
+    "summary": "UIDAI has extended the free online document update facility up to September 14, 2026. Citizens can upload identity and address proofs for free.",
+    "publishedDate": "2026-06-17",
+    "detectedDate": "2026-06-18"
+  },
+  {
+    "id": "notif_2",
+    "title": "ITR Filing Deadline for AY 2026-27 is July 31, 2026",
+    "source": "src_itr",
+    "sourceUrl": "https://www.incometax.gov.in/iec/foportal/",
+    "category": "uc_central",
+    "priority": "Critical",
+    "summary": "The last date to file Income Tax Returns (ITR) for individual taxpayers for Assessment Year 2026-27 is July 31, 2026. Avoid late filing fee by filing early.",
+    "publishedDate": "2026-06-16",
+    "detectedDate": "2026-06-17"
+  },
+  {
+    "id": "notif_3",
+    "title": "TTD Rs 300 Special Entry Darshan Tickets Release",
+    "source": "src_ttd",
+    "sourceUrl": "https://ttdevasthanams.ap.gov.in/",
+    "category": "uc_temple",
+    "priority": "High",
+    "summary": "Tirumala Tirupati Devasthanams (TTD) will release Special Entry Darshan (SED) tickets quota for August 2026 on June 24 at 10:00 AM.",
+    "publishedDate": "2026-06-18",
+    "detectedDate": "2026-06-18"
+  },
+  {
+    "id": "notif_4",
+    "title": "KPSC Gazetted Probationers Recruitment Notification 2026",
+    "source": "src_kpsc",
+    "sourceUrl": "https://kpsc.kar.nic.in/",
+    "category": "uc_recruitment",
+    "priority": "High",
+    "summary": "KPSC has released the recruitment notification for Gazetted Probationers (Group A & B) posts. Online applications are open from June 20 to July 20, 2026.",
+    "publishedDate": "2026-06-17",
+    "detectedDate": "2026-06-18"
+  },
+  {
+    "id": "notif_5",
+    "title": "SSP Post-Matric Scholarship Deadline Approaching",
+    "source": "src_ssp",
+    "sourceUrl": "https://ssp.postmatric.karnataka.gov.in/",
+    "category": "uc_education",
+    "priority": "High",
+    "summary": "State Scholarship Portal (SSP) post-matric scholarship applications for SC/ST/OBC students will close on June 30, 2026. Submit documents urgently.",
+    "publishedDate": "2026-06-15",
+    "detectedDate": "2026-06-16"
+  },
+  {
+    "id": "notif_6",
+    "title": "PM-Kisan 18th Instalment Release Status Update",
+    "source": "src_pmkisan",
+    "sourceUrl": "https://pmkisan.gov.in/",
+    "category": "uc_agriculture",
+    "priority": "Medium",
+    "summary": "The 18th instalment of PM-Kisan scheme is expected to be released directly into farmers bank accounts in July. Ensure e-KYC is completed.",
+    "publishedDate": "2026-06-14",
+    "detectedDate": "2026-06-15"
+  },
+  {
+    "id": "notif_7",
+    "title": "Seva Sindhu Portal Scheduled Maintenance Downtime",
+    "source": "src_sevasindhu",
+    "sourceUrl": "https://sevasindhu.karnataka.gov.in/",
+    "category": "uc_karnataka",
+    "priority": "Critical",
+    "summary": "The Seva Sindhu portal will undergo scheduled database maintenance and will be temporarily offline from June 20 at 10:00 PM to June 21 at 6:00 AM.",
+    "publishedDate": "2026-06-18",
+    "detectedDate": "2026-06-18"
+  },
+  {
+    "id": "notif_8",
+    "title": "Ooty E-Pass Mandatory for Tourists till June 30, 2026",
+    "source": "src_ooty",
+    "sourceUrl": "https://epass.tnega.org/",
+    "category": "uc_travel",
+    "priority": "Medium",
+    "summary": "As per Madras HC orders, tourist e-pass is mandatory to enter Nilgiris (Ooty) and Kodaikanal districts for all outstation vehicles until June 30, 2026.",
+    "publishedDate": "2026-06-13",
+    "detectedDate": "2026-06-14"
+  },
+  {
+    "id": "notif_9",
+    "title": "BESCOM Scheduled Power Interruptions in Mandya District",
+    "source": "src_bescom",
+    "sourceUrl": "https://bescom.karnataka.gov.in/",
+    "category": "uc_utility",
+    "priority": "Medium",
+    "summary": "BESCOM announces power cuts in parts of Mandya and Maddur taluk on June 22, 2026, from 9:00 AM to 5:00 PM due to substation line upgrades.",
+    "publishedDate": "2026-06-17",
+    "detectedDate": "2026-06-18"
+  },
+  {
+    "id": "notif_10",
+    "title": "Ayushman Bharat Card Registration Drive in Grama Panchayats",
+    "source": "src_health",
+    "sourceUrl": "https://pmjay.gov.in/",
+    "category": "uc_health",
+    "priority": "Medium",
+    "summary": "A mega registration drive for Ayushman Bharat Health Cards (ABHA) is being conducted across all grama panchayats in Mandya district this week.",
+    "publishedDate": "2026-06-16",
+    "detectedDate": "2026-06-17"
+  },
+  {
+    "id": "notif_11",
+    "title": "Bhoomi RTC Mutation Application Processing Fee Revision",
+    "source": "src_bhoomi",
+    "sourceUrl": "https://landrecords.karnataka.gov.in/",
+    "category": "uc_karnataka",
+    "priority": "Low",
+    "summary": "Revenue department has issued a circular revising the Bhoomi mutation application fee at Nada Kacheris. The new rate is applicable from July 1, 2026.",
+    "publishedDate": "2026-06-12",
+    "detectedDate": "2026-06-13"
+  },
+  {
+    "id": "notif_12",
+    "title": "Sabarimala Monthly Pooja Darshan Opening Dates",
+    "source": "src_sabarimala",
+    "sourceUrl": "https://sabarimalaonline.org/",
+    "category": "uc_temple",
+    "priority": "Medium",
+    "summary": "Sabarimala temple will open for monthly poojas for Malayalam month Karkidakam from July 16 to July 21. Virtual Q bookings are now open.",
+    "publishedDate": "2026-06-15",
+    "detectedDate": "2026-06-16"
+  },
+  {
+    "id": "notif_13",
+    "title": "Bandipur Tiger Reserve Wildlife Safari Timing Advisory",
+    "source": "src_bandipur",
+    "sourceUrl": "https://itms.kar.nic.in/",
+    "category": "uc_travel",
+    "priority": "Low",
+    "summary": "Forest department has issued a travel advisory regarding changes in safari slot timings during the summer season. Evening safaris will start 30 mins late.",
+    "publishedDate": "2026-06-11",
+    "detectedDate": "2026-06-12"
+  },
+  {
+    "id": "notif_14",
+    "title": "General Administration Department Public Holiday Declaration",
+    "source": "src_nadakacheri",
+    "sourceUrl": "https://nadakacheri.karnataka.gov.in/",
+    "category": "uc_general",
+    "priority": "Low",
+    "summary": "Karnataka Government has declared a local public holiday in the district on the occasion of the annual regional festival.",
+    "publishedDate": "2026-06-14",
+    "detectedDate": "2026-06-15"
+  }
+]

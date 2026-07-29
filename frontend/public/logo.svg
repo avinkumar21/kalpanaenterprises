@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bowGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3b82f6" />
+      <stop offset="100%" stop-color="#0284c7" />
+    </linearGradient>
+  </defs>
+  
+  <!-- The Bow (forming the left arc and integrating with the 'A' shape) -->
+  <path d="M 150 40 C 130 90, 100 130, 100 150 C 100 170, 130 210, 150 260" fill="none" stroke="url(#bowGradient)" stroke-width="8" stroke-linecap="round"/>
+  
+  <!-- Bow string -->
+  <line x1="150" y1="40" x2="150" y2="260" stroke="url(#bowGradient)" stroke-width="2"/>
+
+  <!-- The Arrow -->
+  <!-- Shaft -->
+  <line x1="60" y1="150" x2="320" y2="150" stroke="url(#bowGradient)" stroke-width="6"/>
+  <!-- Arrowhead -->
+  <polygon points="320,150 290,135 295,150 290,165" fill="url(#bowGradient)"/>
+  <!-- Fletching -->
+  <path d="M 60 150 L 40 140 L 50 150 L 40 160 Z" fill="url(#bowGradient)"/>
+  <path d="M 75 150 L 55 140 L 65 150 L 55 160 Z" fill="url(#bowGradient)"/>
+  <path d="M 90 150 L 70 140 L 80 150 L 70 160 Z" fill="url(#bowGradient)"/>
+
+  <!-- The letters RKA intersecting the arrow -->
+  <g font-family="Arial, sans-serif" font-weight="900" font-size="70" fill="url(#bowGradient)">
+    <!-- R (Intersects the bow string, arrow passes through) -->
+    <text x="145" y="175">R</text>
+    <!-- K -->
+    <text x="210" y="175">K</text>
+    <!-- A -->
+    <text x="270" y="175">A</text>
+  </g>
+</svg>

@@ -1,0 +1,776 @@
+{
+  "https://uidai.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://myaadhaar.uidai.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://www.digilocker.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://voters.eci.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://www.passportindia.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://www.incometax.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://pmjdy.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://pmsvanidhi.mohua.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://www.india.gov.in/sukanya-samriddhi-yojna": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://dbtbharat.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://www.nsiindia.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://www.epfindia.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://www.ncs.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://eshram.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://www.skillindia.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://apprenticeshipindia.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://jeevanpramaan.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://www.npscra.nsdl.co.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://www.npscra.nsdl.co.in/scheme-details.php": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://pensionersportal.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://pmkisan.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://pmfby.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://soilhealth.dac.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://enam.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://kisansuvidha.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://scholarships.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://swayam.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://diksha.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://www.abc.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://pmevidya.education.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://pmjay.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://abdm.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://www.cowin.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://esanjeevani.mohfw.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://www.eraktkosh.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://parivahan.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://www.irctc.co.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://fastag.ihmcl.com/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://morth.nic.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://pmaymis.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://pmayg.nic.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://rera.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://pmmvy.wcd.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://poshantracker.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://wcd.nic.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://ncw.nic.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://www.swavlambancard.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://nsap.nic.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://disabilityaffairs.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://dfpd.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://www.gst.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://udyamregistration.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://www.startupindia.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://gem.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://www.kviconline.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://www.standupmitra.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://rtionline.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://pgportal.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://services.ecourts.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://cybercrime.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://consumerhelpline.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://web.umang.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://www.india.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://www.mygov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://serviceonline.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://data.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://www.indiapost.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://www.ippbonline.com/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://pli.indiapost.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://sevasindhu.karnataka.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://www.karnatakaone.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://www.sakala.kar.nic.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://ipgrs.karnataka.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://landrecords.karnataka.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://eswathu.karnataka.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://sakala.kar.nic.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://bbmptax.karnataka.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://rera.karnataka.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://kaverionline.karnataka.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://bsk.karnataka.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://panchatantra.karnataka.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://ngsk.karnataka.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://panchamitra.kar.nic.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://ashraya.karnataka.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://rdpr.karnataka.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://nadakacheri.karnataka.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://transport.karnataka.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://sarathi.parivahan.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://vahan.parivahan.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://bwssb.karnataka.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://bescom.karnataka.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://kuwsdb.karnataka.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://dssp.karnataka.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://ahara.karnataka.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://welfareofdisabled.kar.nic.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://fruitspmk.karnataka.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://parihara.karnataka.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://fruits.karnataka.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://samrakshane.karnataka.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://schooleducation.karnataka.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://karresults.nic.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://cetonline.karnataka.gov.in/kea/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://ssp.karnataka.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://sts.karnataka.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://arogya.karnataka.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://karbwwb.karnataka.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://ksrtc.karnataka.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://mgnrega.karnataka.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://klwb.karnataka.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://mahitikanaja.karnataka.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://kslsa.kar.nic.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://ejanma.karnataka.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://ksrtc.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://english.bmrc.co.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://www.karnatakatourism.org/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://scholarships.gov.in/Students": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://dce.karnataka.gov.in/en": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://ttdevasthanams.ap.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://itms.kar.nic.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://tms.ap.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://sabarimalaonline.org/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://shrimahakaleshwar.com/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://www.shrikashivishwanath.org/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://maduraimeenakshi.hrce.tn.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://hrce.tn.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://chamundeshwaritemple.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://www.shridharmasthala.org/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://www.incometax.gov.in/iec/foportal/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://unifiedportal-mem.epfindia.gov.in/memberinterface/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://www.junglelodges.com/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://aranya.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://www.kukke.org/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://www.karnatakaecotourism.com/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://sabarimala.kerala.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://periyartigerreserve.org/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://forest.kerala.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://www.keralatourism.org/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://nilgiris.nic.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://tirupatibalaji.ap.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://www.aptourism.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://registrationandtouristcare.uk.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://uttarakhandtourism.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://admis.hp.nic.in/rohtang/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://greathimalayannationalpark.org/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://shriamarnathjishrine.com/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://goatourism.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://asi.payumoney.com/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://maharashtratourism.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://www.lahdclehpermit.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://ladakh.gov.in/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://arunachalilp.com/": {
+    "statusCode": 200,
+    "validated": true,
+    "lastValidated": "2026-06-17T00:00:00Z"
+  },
+  "https://www.sikkimtourism.gov.in/": {
+    "statusCode": 500,
+    "validated": false,
+    "lastValidated": "2026-06-18T15:16:44.917Z",
+    "responseTime": 10013,
+    "sourceAuthority": "Official Government Authority"
+  },
+  "https://www.telanganatourism.gov.in/": {
+    "statusCode": 500,
+    "validated": false,
+    "lastValidated": "2026-06-17T15:38:51.695Z"
+  },
+  "https://tourism.telangana.gov.in/": {
+    "statusCode": 500,
+    "validated": false,
+    "lastValidated": "2026-06-18T15:16:44.917Z",
+    "responseTime": 10010,
+    "sourceAuthority": "Official Government Authority"
+  }
+}

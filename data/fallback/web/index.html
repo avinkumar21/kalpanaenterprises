@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kalpan Enterprises | Services Portal</title>
+    <meta name="description" content="Official Central & State Government Services Directory by Kalpan Enterprises">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/web/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar" id="sidebar">
+            <div class="logo-container">
+                <i class="fa-solid fa-building-columns logo-icon"></i>
+                <div class="logo-text">
+                    <h1>KALPAN</h1>
+                    <p>Enterprises</p>
+                </div>
+            </div>
+
+            <!-- Google Translate Widget -->
+            <div id="google_translate_element" style="margin-top: 10px;"></div>
+            
+            <nav class="nav-menu" style="margin-top: 20px;">
+                <button class="nav-item active" data-category="ALL">
+                    <i class="fa-solid fa-border-all"></i> All Services
+                </button>
+                <button class="nav-item" data-category="CENTRAL GOVERNMENT SERVICES">
+                    <i class="fa-solid fa-landmark"></i> Central Govt
+                </button>
+                <button class="nav-item" data-category="KARNATAKA GOVERNMENT SERVICES">
+                    <i class="fa-solid fa-map"></i> Karnataka Govt
+                </button>
+                <button class="nav-item" data-category="JOB PORTALS">
+                    <i class="fa-solid fa-briefcase"></i> Job Portals
+                </button>
+                <button class="nav-item" data-category="SCHOLARSHIPS">
+                    <i class="fa-solid fa-graduation-cap"></i> Scholarships
+                </button>
+                <button class="nav-item" data-category="TRAVEL SERVICES">
+                    <i class="fa-solid fa-plane"></i> Travel Services
+                </button>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-header">
+                <div class="mobile-menu-toggle" id="menu-toggle">
+                    <i class="fa-solid fa-bars"></i>
+                </div>
+                <div class="search-container">
+                    <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                    <input type="text" id="search-input" placeholder="Search services, portals, jobs...">
+                </div>
+                <div class="user-profile">
+                    <i class="fa-solid fa-headset"></i> Digital Assistance Center
+                </div>
+            </header>
+
+            <div class="content-wrapper">
+                <div class="header-section">
+                    <h2 id="current-category-title">All Services</h2>
+                    <p id="results-count">Loading services...</p>
+                </div>
+
+                <div class="services-grid" id="services-grid">
+                    <!-- Cards will be dynamically injected here -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Details Modal -->
+    <div class="modal-overlay" id="details-modal">
+        <div class="modal-content">
+            <button class="close-modal" id="close-modal"><i class="fa-solid fa-xmark"></i></button>
+            <div class="modal-header">
+                <span class="modal-badge" id="modal-category">Category</span>
+                <h2 id="modal-title">Service Name</h2>
+            </div>
+            <div class="modal-body">
+                <p class="modal-desc" id="modal-desc">Description goes here...</p>
+                
+                <div class="info-grid">
+                    <div class="info-item">
+                        <i class="fa-solid fa-money-bill"></i>
+                        <div>
+                            <h4>Govt Fee</h4>
+                            <p id="modal-gov-fee">Free</p>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <i class="fa-solid fa-wallet"></i>
+                        <div>
+                            <h4>Service Charge</h4>
+                            <p id="modal-service-charge">Rs 50</p>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <i class="fa-solid fa-file-lines"></i>
+                        <div>
+                            <h4>Required Docs</h4>
+                            <p id="modal-docs">Aadhaar</p>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <i class="fa-solid fa-user-check"></i>
+                        <div>
+                            <h4>Eligibility</h4>
+                            <p id="modal-eligibility">Citizens</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="auth-section" id="modal-auth-container">
+                    <h4><i class="fa-solid fa-shield-halved"></i> Authorization Requirements</h4>
+                    <p id="modal-auth">None</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a href="#" target="_blank" class="primary-btn" id="modal-link">
+                    Visit Official Portal <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script src="/web/app.js"></script>
+    <script type="text/javascript">
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({
+                pageLanguage: 'en', 
+                includedLanguages: 'en,kn',
+                layout: google.translate.TranslateElement.InlineLayout.SIMPLE
+            }, 'google_translate_element');
+        }
+    </script>
+    <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+</body>
+</html>

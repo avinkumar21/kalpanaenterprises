@@ -1,0 +1,162 @@
+[
+  {
+    "id": "src_uidai",
+    "sourceName": "Aadhaar (UIDAI)",
+    "category": "uc_central",
+    "officialUrl": "https://uidai.gov.in/",
+    "notificationUrl": "https://uidai.gov.in/",
+    "rssFeed": "",
+    "enabled": true,
+    "lastChecked": "2026-06-18"
+  },
+  {
+    "id": "src_itr",
+    "sourceName": "Income Tax Department",
+    "category": "uc_central",
+    "officialUrl": "https://www.incometax.gov.in/iec/foportal/",
+    "notificationUrl": "https://www.incometax.gov.in/iec/foportal/",
+    "rssFeed": "",
+    "enabled": true,
+    "lastChecked": "2026-06-18"
+  },
+  {
+    "id": "src_epfo",
+    "sourceName": "EPFO Portal",
+    "category": "uc_central",
+    "officialUrl": "https://www.epfindia.gov.in/",
+    "notificationUrl": "https://www.epfindia.gov.in/",
+    "rssFeed": "",
+    "enabled": true,
+    "lastChecked": "2026-06-18"
+  },
+  {
+    "id": "src_passport",
+    "sourceName": "Passport Seva",
+    "category": "uc_central",
+    "officialUrl": "https://www.passportindia.gov.in/",
+    "notificationUrl": "https://www.passportindia.gov.in/",
+    "rssFeed": "",
+    "enabled": true,
+    "lastChecked": "2026-06-18"
+  },
+  {
+    "id": "src_sevasindhu",
+    "sourceName": "Seva Sindhu",
+    "category": "uc_karnataka",
+    "officialUrl": "https://sevasindhu.karnataka.gov.in/",
+    "notificationUrl": "https://sevasindhu.karnataka.gov.in/",
+    "rssFeed": "",
+    "enabled": true,
+    "lastChecked": "2026-06-18"
+  },
+  {
+    "id": "src_bhoomi",
+    "sourceName": "Bhoomi Land Records",
+    "category": "uc_karnataka",
+    "officialUrl": "https://landrecords.karnataka.gov.in/",
+    "notificationUrl": "https://landrecords.karnataka.gov.in/",
+    "rssFeed": "",
+    "enabled": true,
+    "lastChecked": "2026-06-18"
+  },
+  {
+    "id": "src_nadakacheri",
+    "sourceName": "Nadakacheri AJSK",
+    "category": "uc_karnataka",
+    "officialUrl": "https://nadakacheri.karnataka.gov.in/",
+    "notificationUrl": "https://nadakacheri.karnataka.gov.in/",
+    "rssFeed": "",
+    "enabled": true,
+    "lastChecked": "2026-06-18"
+  },
+  {
+    "id": "src_ttd",
+    "sourceName": "Tirumala Tirupati Devasthanams",
+    "category": "uc_temple",
+    "officialUrl": "https://ttdevasthanams.ap.gov.in/",
+    "notificationUrl": "https://ttdevasthanams.ap.gov.in/",
+    "rssFeed": "",
+    "enabled": true,
+    "lastChecked": "2026-06-18"
+  },
+  {
+    "id": "src_sabarimala",
+    "sourceName": "Sabarimala Shrine Board",
+    "category": "uc_temple",
+    "officialUrl": "https://sabarimalaonline.org/",
+    "notificationUrl": "https://sabarimalaonline.org/",
+    "rssFeed": "",
+    "enabled": true,
+    "lastChecked": "2026-06-18"
+  },
+  {
+    "id": "src_ooty",
+    "sourceName": "Ooty E-Pass Portal",
+    "category": "uc_travel",
+    "officialUrl": "https://epass.tnega.org/",
+    "notificationUrl": "https://epass.tnega.org/",
+    "rssFeed": "",
+    "enabled": true,
+    "lastChecked": "2026-06-18"
+  },
+  {
+    "id": "src_bandipur",
+    "sourceName": "Bandipur Safari Booking",
+    "category": "uc_travel",
+    "officialUrl": "https://itms.kar.nic.in/",
+    "notificationUrl": "https://itms.kar.nic.in/",
+    "rssFeed": "",
+    "enabled": true,
+    "lastChecked": "2026-06-18"
+  },
+  {
+    "id": "src_ssp",
+    "sourceName": "State Scholarship Portal (SSP)",
+    "category": "uc_education",
+    "officialUrl": "https://ssp.postmatric.karnataka.gov.in/",
+    "notificationUrl": "https://ssp.postmatric.karnataka.gov.in/",
+    "rssFeed": "",
+    "enabled": true,
+    "lastChecked": "2026-06-18"
+  },
+  {
+    "id": "src_kpsc",
+    "sourceName": "Karnataka PSC (KPSC)",
+    "category": "uc_recruitment",
+    "officialUrl": "https://kpsc.kar.nic.in/",
+    "notificationUrl": "https://kpsc.kar.nic.in/",
+    "rssFeed": "",
+    "enabled": true,
+    "lastChecked": "2026-06-18"
+  },
+  {
+    "id": "src_pmkisan",
+    "sourceName": "PM Kisan Portal",
+    "category": "uc_agriculture",
+    "officialUrl": "https://pmkisan.gov.in/",
+    "notificationUrl": "https://pmkisan.gov.in/",
+    "rssFeed": "",
+    "enabled": true,
+    "lastChecked": "2026-06-18"
+  },
+  {
+    "id": "src_health",
+    "sourceName": "Ayushman Bharat PMJAY",
+    "category": "uc_health",
+    "officialUrl": "https://pmjay.gov.in/",
+    "notificationUrl": "https://pmjay.gov.in/",
+    "rssFeed": "",
+    "enabled": true,
+    "lastChecked": "2026-06-18"
+  },
+  {
+    "id": "src_bescom",
+    "sourceName": "BESCOM Portal",
+    "category": "uc_utility",
+    "officialUrl": "https://bescom.karnataka.gov.in/",
+    "notificationUrl": "https://bescom.karnataka.gov.in/",
+    "rssFeed": "",
+    "enabled": true,
+    "lastChecked": "2026-06-18"
+  }
+]

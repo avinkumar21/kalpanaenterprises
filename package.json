@@ -1,0 +1,16 @@
+{
+  "name": "gravity",
+  "version": "2.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "npm run dev --prefix frontend",
+    "build": "npm run build --prefix frontend",
+    "start": "pm2 start backend/pm2.config.js",
+    "healthcheck": "node -e \"require('http').get('http://localhost:8082/api/v1/health', (res) => { if (res.statusCode === 200) { console.log('Backend OK'); process.exit(0); } else { console.error('Backend Unhealthy'); process.exit(1); } }).on('error', (e) => { console.error('Backend Offline:', e.message); process.exit(1); })\""
+  },
+  "workspaces": [
+    "frontend",
+    "backend",
+    "services"
+  ]
+}
