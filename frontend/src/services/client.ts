@@ -4,7 +4,7 @@ export const PrinterInfo = {} as any;
 export const LogEntry = {} as any;
 export const HistoryItem = {} as any;
 
-const API_BASE = '/api/prints';
+const API_BASE = 'https://contributed-neighbor-neural-animated.trycloudflare.com/api/prints';
 
 export interface SystemStatus {
   status: string;
