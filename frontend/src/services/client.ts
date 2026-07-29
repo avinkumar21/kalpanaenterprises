@@ -1,4 +1,8 @@
 // API Client for ARKA Prints Auto Document Engine
+export const QueueJob = {} as any;
+export const PrinterInfo = {} as any;
+export const LogEntry = {} as any;
+export const HistoryItem = {} as any;
 
 const API_BASE = '/api/prints';
 
