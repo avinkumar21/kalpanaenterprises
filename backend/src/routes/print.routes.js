@@ -3,13 +3,13 @@ const path = require('path');
 const fs = require('fs');
 const multer = require('multer');
 const sharp = require('sharp');
-const db = require('../database/index.js');
-const Logger = require('../logs/logger');
-const PrinterManager = require('../printers/printer_manager');
-const PrintQueue = require('../queue/print_queue');
-const FolderWatcher = require('../watcher/folder_watcher');
-const EmailWatcher = require('../watcher/email_watcher');
-const { processDocument } = require('../processors/index');
+const db = require('../../../data/local_db/index.js');
+const Logger = { info: console.log, error: console.error, warn: console.warn };
+const PrinterManager = require('../../../services/print/drivers/printer_manager.js');
+const PrintQueue = require('../../../services/print/queue/print_queue.js');
+const FolderWatcher = require('../../../services/watchers/folder_watcher.js');
+const EmailWatcher = require('../../../services/watchers/email_watcher.js');
+const { processDocument } = require('../../../services/image_processor/index.js');
 
 const router = express.Router();
 

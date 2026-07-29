@@ -13,6 +13,8 @@ export const CustomerPrintDashboard: React.FC = () => {
   
   // Ref to protect against React timer stale closure overriding selected image
   const selectedIdRef = useRef<string | null>(null);
+  const previousJobsRef = useRef<QueueJob[]>([]);
+  const [notification, setNotification] = useState<{ count: number, names: string[], show: boolean }>({ count: 0, names: [], show: false });
 
   // Ref to suppress loadData from overwriting selectedJob while user is actively dragging crop handles
   const isDraggingRef = useRef(false);
@@ -130,6 +132,22 @@ export const CustomerPrintDashboard: React.FC = () => {
         const timeB = new Date(b.createdAt || b.updatedAt || 0).getTime() || 0;
         return sortNewest ? (timeB - timeA) : (timeA - timeB);
       });
+
+      // Show notification if there are new files compared to the previous poll
+      const newIncomingJobs = combined.filter(job => 
+        !previousJobsRef.current.some(prev => prev.id === job.id || prev.fileId === job.fileId) && 
+        (new Date().getTime() - new Date(job.createdAt || job.updatedAt).getTime() < 30000)
+      );
+      
+      if (newIncomingJobs.length > 0 && previousJobsRef.current.length > 0) {
+        setNotification({
+          count: newIncomingJobs.length,
+          names: newIncomingJobs.map(j => j.fileName),
+          show: true
+        });
+        setTimeout(() => setNotification(prev => ({ ...prev, show: false })), 8000);
+      }
+      previousJobsRef.current = combined;
 
       setJobs(combined);
       setPrinters(printerData);
@@ -326,6 +344,16 @@ export const CustomerPrintDashboard: React.FC = () => {
   return (
     <div className="space-y-6 text-[#0f172a]" style={{ color: '#0f172a' }}>
       
+      {/* NOTIFICATION BAR FOR NEW DOCUMENTS */}
+      {notification.show && (
+        <div className="bg-emerald-600 text-white p-4 rounded-xl shadow-lg flex items-center gap-4 animate-bounce">
+          <CheckCircle2 className="w-8 h-8 flex-shrink-0 text-white" />
+          <div>
+            <h3 className="font-black text-lg">✅ {notification.count} New Document(s) Received!</h3>
+            <p className="font-bold text-sm text-emerald-100">Files: {notification.names.join(', ')}</p>
+          </div>
+        </div>
+      )}
       {/* SECTION 1: SHOP HARDWARE PRINTER STATION */}
       <div className="rounded-2xl p-5 shadow-xl border-2 border-slate-300" style={{ backgroundColor: '#ffffff' }}>
         <div className="flex items-center justify-between border-b-2 border-slate-200 pb-3 mb-4 flex-wrap gap-2">

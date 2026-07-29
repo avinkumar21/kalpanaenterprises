@@ -3,8 +3,8 @@ const path = require('path');
 const crypto = require('crypto');
 const db = require('../database/index.js');
 const Logger = require('../logs/logger');
-const { processDocument } = require('../processors/index');
-const PrintQueue = require('../queue/print_queue');
+const { processDocument } = require('../image_processor/index.js');
+const PrintQueue = require('../print/queue/print_queue.js');
 
 let watcherInstance = null;
 let pollInterval = null;

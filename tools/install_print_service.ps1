@@ -16,12 +16,12 @@ if (-not $isAdmin -and $Action -in @("install", "start", "stop", "uninstall")) {
 $taskName = "ARKA-PrintService"
 $root = (Get-Item $PSScriptRoot).Parent.FullName
 $nodeExe = "node.exe"
-$serverScript = Join-Path $root "modules\prints\backend\server.js"
+$serverScript = Join-Path $root "backend\src\server.js"
 
 switch ($Action) {
     "install" {
         Write-Host "Registering Windows Scheduled Task [$taskName] for 24/7 continuous operation..." -ForegroundColor Cyan
-        $action = New-ScheduledTaskAction -Execute $nodeExe -Argument """$serverScript""" -WorkingDirectory (Join-Path $root "modules\prints")
+        $action = New-ScheduledTaskAction -Execute $nodeExe -Argument """$serverScript""" -WorkingDirectory (Join-Path $root "backend")
         $trigger1 = New-ScheduledTaskTrigger -AtStartup
         $trigger2 = New-ScheduledTaskTrigger -AtLogOn
         $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -RestartCount 5 -RestartInterval (New-TimeSpan -Minutes 1) -ExecutionTimeLimit (New-TimeSpan -Days 365)

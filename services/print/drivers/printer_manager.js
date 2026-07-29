@@ -1,8 +1,8 @@
 const { execFile } = require('child_process');
 const path = require('path');
 const fs = require('fs');
-const db = require('../database/index.js');
-const Logger = require('../logs/logger');
+const db = require('../../../data/local_db/index.js');
+const Logger = require('../../logs/logger.js');
 
 function execPowerShell(script, timeoutMs = 25000) {
     return new Promise((resolve, reject) => {

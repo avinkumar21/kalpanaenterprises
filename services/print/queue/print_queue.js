@@ -1,6 +1,6 @@
-const db = require('../database/index.js');
-const Logger = require('../logs/logger');
-const PrinterManager = require('../printers/printer_manager');
+const db = require('../../../data/local_db/index.js');
+const Logger = require('../../logs/logger.js');
+const PrinterManager = require('../drivers/printer_manager.js');
 const path = require('path');
 const fs = require('fs');
 
@@ -65,8 +65,24 @@ const PrintQueue = {
             db.updateQueueStatus(job.id, 'Printing', job.attempts + 1);
 
             try {
+                // Check if target printer is actually online before spooling
+                let targetPrinter = job.printer;
+                const statusCheck = await PrinterManager.testPrinter(targetPrinter);
+                if (!statusCheck.success || statusCheck.status === 'OFFLINE') {
+                    const settings = db.getSettings();
+                    const altPrinter = targetPrinter === settings.primaryPrinter ? settings.secondaryPrinter : settings.primaryPrinter;
+                    if (altPrinter && altPrinter !== targetPrinter) {
+                        Logger.info('QUEUE', `Target printer [${targetPrinter}] is offline. Checking alternative [${altPrinter}]...`);
+                        const altCheck = await PrinterManager.testPrinter(altPrinter);
+                        if (altCheck.success && altCheck.status !== 'OFFLINE') {
+                            targetPrinter = altPrinter;
+                            Logger.info('QUEUE', `Auto-routing job to online printer: [${targetPrinter}]`);
+                        }
+                    }
+                }
+
                 // Execute print operation
-                const res = await PrinterManager.printFile(job.processedPath, job.printer, job.copies);
+                const res = await PrinterManager.printFile(job.processedPath, targetPrinter, job.copies);
                 
                 // Complete job
                 db.updateQueueStatus(job.id, 'Completed');

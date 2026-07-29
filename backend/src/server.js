@@ -5,12 +5,12 @@ const corsOptions = require('../../configs/cors.config.js');
 
 // Assuming services and data are mapped via path.resolve for safety
 // In a full migration, we would import these like:
-// const db = require('../../data/local_db/index.js');
-// const PrinterManager = require('../../services/print/drivers/printer_manager.js');
-// const PrintQueue = require('../../services/print/queue/print_queue.js');
-// const FolderWatcher = require('../../services/watchers/folder_watcher.js');
-// const EmailWatcher = require('../../services/watchers/email_watcher.js');
-// const apiRouter = require('./routes/print.routes.js');
+const db = require('../../data/local_db/index.js');
+const PrinterManager = require('../../services/print/drivers/printer_manager.js');
+const PrintQueue = require('../../services/print/queue/print_queue.js');
+const FolderWatcher = require('../../services/watchers/folder_watcher.js');
+const EmailWatcher = require('../../services/watchers/email_watcher.js');
+const apiRouter = require('./routes/print.routes.js');
 
 const app = express();
 
@@ -20,8 +20,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Dynamic Route Loader Placeholder (Assuming routes are moved)
-// app.use('/api/prints', apiRouter);
-// app.use('/prints', apiRouter);
+app.use('/api/prints', apiRouter);
+app.use('/prints', apiRouter);
 
 // Health Check Endpoint (Required for Phase 1 Vercel/Watchdog)
 app.get('/api/v1/health', (req, res) => {
@@ -54,18 +54,18 @@ const server = app.listen(PORT, '0.0.0.0', async () => {
     console.log(`=== ARKA Print Engine Server Booted on Port ${PORT} ===`);
     
     // In production after migration, start the background workers here:
-    // await PrinterManager.refreshPrintersList();
-    // PrintQueue.start(2500);
-    // FolderWatcher.start();
-    // EmailWatcher.start();
+    await PrinterManager.refreshPrintersList();
+    PrintQueue.start(2500);
+    FolderWatcher.start();
+    EmailWatcher.start();
 });
 
 // Graceful Shutdown for PM2
 function handleShutdown(signal) {
     console.log(`Received shutdown signal (${signal}). Shutting down gracefully...`);
-    // FolderWatcher.stop();
-    // EmailWatcher.stop();
-    // PrintQueue.stop();
+    FolderWatcher.stop();
+    EmailWatcher.stop();
+    PrintQueue.stop();
     server.close(() => {
         console.log("ARKA Print Engine Server terminated safely.");
         process.exit(0);

@@ -1,6 +1,20 @@
 {
   "files": {},
-  "history": {},
+  "history": {
+    "hist_1785330398158_diya": {
+      "id": "hist_1785330398158_diya",
+      "fileId": "doc_1785330396699",
+      "customerFile": "webupload_1785330395581_1c_BlackWhite_20260729_143546.jpg",
+      "originalPath": "D:\\Arka\\storage\\incoming\\1785330395590_webupload_1785330395581_1c_BlackWhite_20260729_143546.jpg",
+      "processedPath": "D:\\Arka\\storage\\processed\\enhanced_1785330395592_1785330395590_webupload_1785330395581_1c_BlackWhite_20260729_143546.png",
+      "pages": 1,
+      "printerName": "HP508140DE1D63(HP Laser MFP 131 133 135-138)",
+      "printTime": "2026-07-29T13:06:38.158Z",
+      "status": "Success",
+      "copies": 1,
+      "retryCount": 1
+    }
+  },
   "printers": {
     "onenote__desktop____protected": {
       "id": "onenote__desktop____protected",
@@ -11,7 +25,7 @@
       "isPrimary": false,
       "isSecondary": false,
       "isFallback": false,
-      "lastChecked": "2026-07-29T07:19:07.465Z"
+      "lastChecked": "2026-07-29T13:01:23.542Z"
     },
     "onenote__desktop_": {
       "id": "onenote__desktop_",
@@ -22,7 +36,7 @@
       "isPrimary": false,
       "isSecondary": false,
       "isFallback": false,
-      "lastChecked": "2026-07-29T07:19:07.464Z"
+      "lastChecked": "2026-07-29T13:01:23.542Z"
     },
     "microsoft_print_to_pdf": {
       "id": "microsoft_print_to_pdf",
@@ -33,7 +47,7 @@
       "isPrimary": false,
       "isSecondary": false,
       "isFallback": true,
-      "lastChecked": "2026-07-29T07:19:07.465Z"
+      "lastChecked": "2026-07-29T13:01:23.542Z"
     },
     "hp508140de1d63_hp_laser_mfp_131_133_135_138_": {
       "id": "hp508140de1d63_hp_laser_mfp_131_133_135_138_",
@@ -44,7 +58,7 @@
       "isPrimary": true,
       "isSecondary": false,
       "isFallback": false,
-      "lastChecked": "2026-07-29T07:19:07.465Z"
+      "lastChecked": "2026-07-29T13:01:23.542Z"
     },
     "generic___text_only": {
       "id": "generic___text_only",
@@ -55,7 +69,7 @@
       "isPrimary": false,
       "isSecondary": false,
       "isFallback": false,
-      "lastChecked": "2026-07-29T07:19:07.465Z"
+      "lastChecked": "2026-07-29T13:01:23.542Z"
     },
     "epson_l3110_series__copy_1_": {
       "id": "epson_l3110_series__copy_1_",
@@ -66,7 +80,7 @@
       "isPrimary": false,
       "isSecondary": false,
       "isFallback": false,
-      "lastChecked": "2026-07-29T07:19:07.465Z"
+      "lastChecked": "2026-07-29T13:01:23.542Z"
     },
     "epson_l3110_series": {
       "id": "epson_l3110_series",
@@ -77,7 +91,7 @@
       "isPrimary": false,
       "isSecondary": true,
       "isFallback": false,
-      "lastChecked": "2026-07-29T07:19:07.465Z"
+      "lastChecked": "2026-07-29T13:01:23.542Z"
     }
   },
   "settings": {
@@ -5488,7 +5502,23 @@
       "details": ""
     }
   ],
-  "queue": {},
+  "queue": {
+    "job_1785330396699_qlwkw": {
+      "id": "job_1785330396699_qlwkw",
+      "fileId": "doc_1785330396699",
+      "customerName": "WhatsApp Customer",
+      "fileName": "webupload_1785330395581_1c_BlackWhite_20260729_143546.jpg",
+      "processedPath": "D:\\Arka\\storage\\processed\\enhanced_1785330395592_1785330395590_webupload_1785330395581_1c_BlackWhite_20260729_143546.png",
+      "originalPath": "D:\\Arka\\storage\\incoming\\1785330395590_webupload_1785330395581_1c_BlackWhite_20260729_143546.jpg",
+      "printer": "HP508140DE1D63(HP Laser MFP 131 133 135-138)",
+      "copies": 1,
+      "status": "Completed",
+      "priority": 1,
+      "attempts": 1,
+      "createdAt": "2026-07-29T13:06:36.699Z",
+      "updatedAt": "2026-07-29T13:06:38.155Z"
+    }
+  },
   "statistics": {
     "2026-07-27": {
       "date": "2026-07-27",
@@ -5503,6 +5533,13 @@
       "totalProcessed": 11,
       "totalPrinted": 15,
       "totalFailed": 2
+    },
+    "2026-07-29": {
+      "date": "2026-07-29",
+      "totalReceived": 1,
+      "totalProcessed": 1,
+      "totalPrinted": 1,
+      "totalFailed": 0
     }
   }
 }

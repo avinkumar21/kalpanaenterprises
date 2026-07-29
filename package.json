@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "chokidar": "^5.0.0",
+    "multer": "^2.2.0",
+    "pdf-lib": "^1.17.1",
+    "sharp": "^0.35.3"
+  }
+}
