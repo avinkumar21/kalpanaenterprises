@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { api } from '../../services/client';
-import { Upload, FileText, CheckCircle2, AlertCircle, Printer, Sparkles, QrCode, Copy, RefreshCw, Layers, Palette, Monitor } from 'lucide-react';
+import { api, setCustomApiBase } from '../../services/client';
+import { Upload, FileText, CheckCircle2, AlertCircle, Printer, Sparkles, QrCode, RefreshCw, Layers, Palette, Monitor } from 'lucide-react';
 import QRCode from 'react-qr-code';
 
 declare const __LOCAL_IP__: string | undefined;
@@ -17,7 +17,7 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
   const [colorMode, setColorMode] = useState<'Color' | 'Black & White'>('Color');
   
   const [uploading, setUploading] = useState(false);
-  const [successData, setSuccessData] = useState<any | null>(null);
+  const [successData, setSuccessData] = useState<{ filename: string; copies: number; colorMode: string; timestamp: string } | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
 
@@ -28,13 +28,13 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
       if (typeof __LOCAL_IP__ !== 'undefined' && __LOCAL_IP__ && __LOCAL_IP__ !== 'localhost') {
         return __LOCAL_IP__;
       }
-    } catch (e) {}
+    } catch { /* ignore fallback */ }
     if (typeof window !== 'undefined' && window.location.hostname && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
       return window.location.hostname;
     }
     return '192.168.31.242'; // Permanent Shop Desktop IP (192.168.31.242)
   });
-  const [port, setPort] = useState(() => {
+  const [port] = useState(() => {
     if (typeof window !== 'undefined' && window.location.port && window.location.port !== '80' && window.location.port !== '8082') {
       return window.location.port;
     }
@@ -63,10 +63,29 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
   });
   const [shopEmail, setShopEmail] = useState('print@kalpanaenterprise.com');
 
+  const portSuffix = port && port !== '80' ? `:${port}` : '';
+  const portalUrl = (() => {
+    if (accessMode === 'wifi') {
+      return `http://${shopLanIp || '192.168.31.242'}${portSuffix}/prints?kiosk=true#upload`;
+    }
+    if (accessMode === 'mobile_web') {
+      const cleanTunnel = (publicTunnelUrl || '').trim().replace(/\/+$/, '');
+      if (cleanTunnel && cleanTunnel.includes('trycloudflare.com')) {
+        return `https://kalpanaenterprises.vercel.app/prints?tunnel=${encodeURIComponent(cleanTunnel)}&kiosk=true#upload`;
+      }
+      return 'https://kalpanaenterprises.vercel.app/prints?kiosk=true#upload';
+    }
+    if (accessMode === 'email') {
+      return `mailto:${shopEmail}?subject=Customer%20Print%20Order`;
+    }
+    return 'https://kalpanaenterprises.vercel.app/prints?kiosk=true#upload';
+  })();
+
   useEffect(() => {
     if (typeof window !== 'undefined' && window.localStorage && publicTunnelUrl) {
       window.localStorage.setItem('arka_tunnel_url', publicTunnelUrl);
       if (connectionMode === 'mobile') {
+        setCustomApiBase(publicTunnelUrl);
         api.setCustomApiBase(publicTunnelUrl);
       }
     }
@@ -79,7 +98,7 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
         if (status && status.publicTunnelUrl && status.publicTunnelUrl.includes('trycloudflare.com')) {
           setPublicTunnelUrl(status.publicTunnelUrl);
         }
-      } catch (e) {}
+      } catch { /* ignore fallback */ }
     };
     syncTunnelUrl();
     const interval = setInterval(syncTunnelUrl, 8000);
@@ -93,7 +112,6 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
     setSuccessData(null);
     if (!file) return;
     
-    const validTypes = ['application/pdf', 'image/png', 'image/jpeg', 'image/jpg', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/msword', 'image/bmp'];
     const ext = file.name.slice(file.name.lastIndexOf('.')).toLowerCase();
     const allowedExts = ['.pdf', '.png', '.jpg', '.jpeg', '.docx', '.doc', '.bmp'];
 
@@ -180,9 +198,12 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
       // Optimize large mobile camera photos before transfer for instant < 1s submission!
       const fileToUpload = await prepareFileForUpload(selectedFile);
       if (connectionMode === 'mobile' && publicTunnelUrl && publicTunnelUrl.includes('trycloudflare.com')) {
+        setCustomApiBase(publicTunnelUrl);
         api.setCustomApiBase(publicTunnelUrl);
       } else if (connectionMode === 'wifi') {
-        api.setCustomApiBase(`http://${shopLanIp || '192.168.31.242'}:8082`);
+        const lanUrl = `http://${shopLanIp || '192.168.31.242'}:8082`;
+        setCustomApiBase(lanUrl);
+        api.setCustomApiBase(lanUrl);
       }
       const result = await api.uploadDocument(fileToUpload, copies, colorMode);
       if (result.success) {
@@ -197,7 +218,7 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
       } else {
         setErrorMessage(result.error || 'Failed to transfer document to server.');
       }
-    } catch (err: any) {
+    } catch {
       setErrorMessage(
         accessMode === 'wifi'
           ? 'Network connection interrupted. Please ensure your phone is connected to the Shop Wi-Fi network and try again.'
@@ -216,8 +237,8 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
     }
     const svgString = new XMLSerializer().serializeToString(svgElement);
     const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
-    const URL = window.URL || window.webkitURL || window;
-    const blobURL = URL.createObjectURL(svgBlob);
+    const UrlObj = window.URL || (window as any).webkitURL;
+    const blobURL = UrlObj.createObjectURL(svgBlob);
     const image = new Image();
     image.onload = () => {
       const canvas = document.createElement('canvas');
@@ -251,8 +272,8 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
         // Vibrant Pill Badge for Scan Instruction
         context.fillStyle = '#047857';
         context.beginPath();
-        if (context.roundRect) {
-          context.roundRect(140, 255, 1120, 85, 42);
+        if (typeof (context as any).roundRect === 'function') {
+          (context as any).roundRect(140, 255, 1120, 85, 42);
         } else {
           context.rect(140, 255, 1120, 85);
         }
@@ -267,8 +288,8 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
         context.strokeStyle = '#10b981';
         context.lineWidth = 6;
         context.beginPath();
-        if (context.roundRect) {
-          context.roundRect(260, 385, 880, 880, 35);
+        if (typeof (context as any).roundRect === 'function') {
+          (context as any).roundRect(260, 385, 880, 880, 35);
         } else {
           context.rect(260, 385, 880, 880);
         }
@@ -283,8 +304,8 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
         context.strokeStyle = '#cbd5e1';
         context.lineWidth = 3;
         context.beginPath();
-        if (context.roundRect) {
-          context.roundRect(90, 1310, 1220, 210, 25);
+        if (typeof (context as any).roundRect === 'function') {
+          (context as any).roundRect(90, 1310, 1220, 210, 25);
         } else {
           context.rect(90, 1310, 1220, 210);
         }
@@ -295,7 +316,7 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
         context.font = 'bold 28px Arial, sans-serif';
         context.fillText('🌐 ಶಾಪ್ ವೈ-ಫೈ / 4G ಮೊಬೈಲ್ ಲಿಂಕ್ (Direct Portal URL):', 700, 1365);
 
-        const displayUrl = typeof window !== 'undefined' ? `${window.location.origin}/prints?kiosk=true#upload` : '';
+        const displayUrl = portalUrl;
         context.fillStyle = '#0f172a';
         // Auto-adjust font size if URL is long so it NEVER clips or touches borders!
         const urlFontSize = displayUrl.length > 65 ? 23 : displayUrl.length > 55 ? 25 : displayUrl.length > 45 ? 28 : 32;
@@ -327,13 +348,13 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
         downloadLink.click();
         document.body.removeChild(downloadLink);
       }
-      URL.revokeObjectURL(blobURL);
+      UrlObj.revokeObjectURL(blobURL);
     };
     image.src = blobURL;
   };
 
   const handlePrintA4Sign = () => {
-    const displayUrl = typeof window !== 'undefined' ? `${window.location.origin}/prints?kiosk=true#upload` : '';
+    const displayUrl = portalUrl;
     const svgElement = document.querySelector('.qr-canvas-container svg') as SVGSVGElement | null;
     const svgContent = svgElement ? new XMLSerializer().serializeToString(svgElement) : '';
     
@@ -393,24 +414,6 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
       }, 500);
     }
   };
-
-  const portSuffix = port && port !== '80' ? `:${port}` : '';
-  const portalUrl = (() => {
-    if (accessMode === 'wifi') {
-      return `http://${shopLanIp || '192.168.31.242'}${portSuffix}/prints?kiosk=true#upload`;
-    }
-    if (accessMode === 'mobile_web') {
-      const cleanTunnel = (publicTunnelUrl || '').trim().replace(/\/+$/, '');
-      if (cleanTunnel && cleanTunnel.includes('trycloudflare.com')) {
-        return `https://kalpanaenterprises.vercel.app/prints?tunnel=${encodeURIComponent(cleanTunnel)}&kiosk=true#upload`;
-      }
-      return 'https://kalpanaenterprises.vercel.app/prints?kiosk=true#upload';
-    }
-    if (accessMode === 'email') {
-      return `mailto:${shopEmail}?subject=Customer%20Print%20Order`;
-    }
-    return 'https://kalpanaenterprises.vercel.app/prints?kiosk=true#upload';
-  })();
 
   return (
     <div className="max-w-3xl mx-auto p-4 md:p-6 space-y-6 animate-in fade-in duration-300 text-white font-sans">
@@ -769,7 +772,10 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
                 type="button"
                 onClick={() => {
                   setConnectionMode('mobile');
-                  if (publicTunnelUrl) api.setCustomApiBase(publicTunnelUrl);
+                  if (publicTunnelUrl) {
+                    setCustomApiBase(publicTunnelUrl);
+                    api.setCustomApiBase(publicTunnelUrl);
+                  }
                 }}
                 className={`py-2.5 px-3 rounded-xl text-xs font-black uppercase tracking-wider border transition cursor-pointer flex items-center justify-center gap-1.5 ${
                   connectionMode === 'mobile'
@@ -783,7 +789,9 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
                 type="button"
                 onClick={() => {
                   setConnectionMode('wifi');
-                  api.setCustomApiBase(`http://${shopLanIp || '192.168.31.242'}:8082`);
+                  const lanUrl = `http://${shopLanIp || '192.168.31.242'}:8082`;
+                  setCustomApiBase(lanUrl);
+                  api.setCustomApiBase(lanUrl);
                 }}
                 className={`py-2.5 px-3 rounded-xl text-xs font-black uppercase tracking-wider border transition cursor-pointer flex items-center justify-center gap-1.5 ${
                   connectionMode === 'wifi'

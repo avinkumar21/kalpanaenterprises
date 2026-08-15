@@ -19,7 +19,7 @@ export function getApiBase(): string {
         }
         return trimmed;
       }
-    } catch (e) {}
+    } catch {}
 
     const customApi = window.localStorage.getItem('arka_api_url');
     if (customApi && customApi.trim()) {
@@ -65,6 +65,7 @@ export interface SystemStatus {
   status: string;
   serviceName: string;
   timestamp: string;
+  publicTunnelUrl?: string;
   watcher: {
     active: boolean;
     targetFolder: string;
@@ -143,7 +144,7 @@ class PrintsApi {
       const res = await fetch(`${getApiBase()}/status`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       return await res.json();
-    } catch (e) {
+    } catch {
       // Return offline simulation state
       return {
         status: 'OFFLINE',
@@ -307,7 +308,7 @@ class PrintsApi {
       const res = await fetch(`${getApiBase()}/printer-status`);
       if (!res.ok) return {};
       return await res.json();
-    } catch (e) {
+    } catch {
       return {};
     }
   }
@@ -333,7 +334,7 @@ class PrintsApi {
       const res = await fetch(`${getApiBase()}/email-watcher/status`);
       if (!res.ok) return null;
       return await res.json();
-    } catch (e) {
+    } catch {
       return null;
     }
   }
@@ -346,6 +347,15 @@ class PrintsApi {
     });
     return await res.json();
   }
+
+  getApiBase(): string {
+    return getApiBase();
+  }
+
+  setCustomApiBase(url: string | null): void {
+    setCustomApiBase(url);
+  }
 }
 
 export const api = new PrintsApi();
+
