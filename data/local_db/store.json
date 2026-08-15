@@ -51,7 +51,7 @@
       "isPrimary": false,
       "isSecondary": false,
       "isFallback": false,
-      "lastChecked": "2026-08-15T11:38:27.953Z"
+      "lastChecked": "2026-08-15T12:00:49.672Z"
     },
     "onenote__desktop_": {
       "id": "onenote__desktop_",
@@ -62,7 +62,7 @@
       "isPrimary": false,
       "isSecondary": false,
       "isFallback": false,
-      "lastChecked": "2026-08-15T11:38:27.953Z"
+      "lastChecked": "2026-08-15T12:00:49.672Z"
     },
     "microsoft_print_to_pdf": {
       "id": "microsoft_print_to_pdf",
@@ -73,7 +73,7 @@
       "isPrimary": false,
       "isSecondary": false,
       "isFallback": true,
-      "lastChecked": "2026-08-15T11:38:27.953Z"
+      "lastChecked": "2026-08-15T12:00:49.672Z"
     },
     "hp508140de1d63_hp_laser_mfp_131_133_135_138_": {
       "id": "hp508140de1d63_hp_laser_mfp_131_133_135_138_",
@@ -84,7 +84,7 @@
       "isPrimary": true,
       "isSecondary": false,
       "isFallback": false,
-      "lastChecked": "2026-08-15T11:38:27.953Z"
+      "lastChecked": "2026-08-15T12:00:49.672Z"
     },
     "generic___text_only": {
       "id": "generic___text_only",
@@ -95,7 +95,7 @@
       "isPrimary": false,
       "isSecondary": false,
       "isFallback": false,
-      "lastChecked": "2026-08-15T11:38:27.953Z"
+      "lastChecked": "2026-08-15T12:00:49.672Z"
     },
     "epson_l3110_series__copy_1_": {
       "id": "epson_l3110_series__copy_1_",
@@ -106,7 +106,7 @@
       "isPrimary": false,
       "isSecondary": false,
       "isFallback": false,
-      "lastChecked": "2026-08-15T11:38:27.953Z"
+      "lastChecked": "2026-08-15T12:00:49.672Z"
     },
     "epson_l3110_series": {
       "id": "epson_l3110_series",
@@ -117,7 +117,7 @@
       "isPrimary": false,
       "isSecondary": true,
       "isFallback": false,
-      "lastChecked": "2026-08-15T11:38:27.953Z"
+      "lastChecked": "2026-08-15T12:00:49.672Z"
     }
   },
   "settings": {

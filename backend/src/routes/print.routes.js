@@ -54,43 +54,24 @@ router.get('/status', async (req, res) => {
     }
 });
 
-// GET /api/prints/printer-status - Lightweight live status check for both shop printers (USB connectivity)
+// GET /api/prints/printer-status - Live status check for shop printers (USB & Wi-Fi)
 router.get('/printer-status', async (req, res) => {
-    const settings = db.getSettings();
-    const epsonName = settings.primaryPrinter || 'EPSON L3110 Series';
-    const hpName = settings.secondaryPrinter || 'HP508140DE1D63(HP Laser MFP 131 133 135-138)';
-
-    const { execFile } = require('child_process');
-    const checkPrinter = (name) => new Promise((resolve) => {
-        const script = `
-            try {
-                $p = Get-CimInstance -ClassName Win32_Printer -Filter "Name='${name.replace(/'/g, "''")}'" -ErrorAction SilentlyContinue
-                if (-not $p) { $p = Get-WmiObject -Class Win32_Printer -Filter "Name='${name.replace(/'/g, "''")}'" -ErrorAction SilentlyContinue }
-                if ($p -and $p.WorkOffline -ne $true -and $p.PrinterStatus -ne 2 -and $p.PrinterStatus -ne 4) {
-                    Write-Output "ONLINE"
-                } else {
-                    Write-Output "OFFLINE"
-                }
-            } catch {
-                Write-Output "OFFLINE"
-            }
-        `;
-        execFile('powershell.exe', ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command', script], { timeout: 8000 }, (err, stdout) => {
-            if (err || !stdout) return resolve('Offline');
-            resolve(stdout.trim().includes('ONLINE') ? 'Online' : 'Offline');
-        });
-    });
+    const epsonName = 'EPSON L3110 Series';
+    const hpName = 'HP508140DE1D63(HP Laser MFP 131 133 135-138)';
 
     try {
-        const [epsonStatus, hpStatus] = await Promise.all([
-            checkPrinter(epsonName),
-            checkPrinter(hpName)
+        const [epsonRes, hpRes] = await Promise.all([
+            PrinterManager.testPrinter(epsonName),
+            PrinterManager.testPrinter(hpName)
         ]);
-        res.json({
-            [epsonName]: epsonStatus,
-            [hpName]: hpStatus,
+
+        const result = {
+            [epsonName]: epsonRes.status === 'ONLINE' ? 'Online' : 'Offline',
+            [hpName]: hpRes.status === 'ONLINE' ? 'Online' : 'Offline',
             timestamp: new Date().toISOString()
-        });
+        };
+
+        res.json(result);
     } catch (error) {
         res.json({
             [epsonName]: 'Offline',
