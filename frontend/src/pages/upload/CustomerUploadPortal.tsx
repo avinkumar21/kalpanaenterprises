@@ -385,15 +385,15 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
     }
     if (accessMode === 'mobile_web') {
       const cleanTunnel = (publicTunnelUrl || '').trim().replace(/\/+$/, '');
-      if (cleanTunnel) {
-        return cleanTunnel.endsWith('/prints') ? `${cleanTunnel}?kiosk=true#upload` : `${cleanTunnel}/prints?kiosk=true#upload`;
+      if (cleanTunnel && cleanTunnel.includes('trycloudflare.com')) {
+        return `https://kalpanaenterprises.vercel.app/prints?tunnel=${encodeURIComponent(cleanTunnel)}&kiosk=true#upload`;
       }
-      return typeof window !== 'undefined' ? `${window.location.origin}/prints?kiosk=true#upload` : '';
+      return 'https://kalpanaenterprises.vercel.app/prints?kiosk=true#upload';
     }
     if (accessMode === 'email') {
       return `mailto:${shopEmail}?subject=Customer%20Print%20Order`;
     }
-    return typeof window !== 'undefined' ? `${window.location.origin}/prints?kiosk=true#upload` : '';
+    return 'https://kalpanaenterprises.vercel.app/prints?kiosk=true#upload';
   })();
 
   return (

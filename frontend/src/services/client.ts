@@ -6,6 +6,21 @@ export const HistoryItem = {} as any;
 
 export function getApiBase(): string {
   if (typeof window !== 'undefined') {
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      const tunnelParam = urlParams.get('tunnel') || urlParams.get('api');
+      if (tunnelParam && tunnelParam.trim()) {
+        let trimmed = tunnelParam.trim().replace(/\/+$/, '');
+        if (window.localStorage) {
+          window.localStorage.setItem('arka_tunnel_url', trimmed);
+        }
+        if (!trimmed.endsWith('/api/prints')) {
+          trimmed += '/api/prints';
+        }
+        return trimmed;
+      }
+    } catch (e) {}
+
     const customApi = window.localStorage.getItem('arka_api_url');
     if (customApi && customApi.trim()) {
       let trimmed = customApi.trim().replace(/\/+$/, '');
@@ -25,6 +40,10 @@ export function getApiBase(): string {
     }
 
     const hostname = window.location.hostname;
+    if (hostname.includes('trycloudflare.com')) {
+      return `${window.location.origin}/api/prints`;
+    }
+
     if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname.startsWith('192.168.') || hostname.startsWith('10.') || hostname.startsWith('172.')) {
       return `http://${hostname}:8082/api/prints`;
     }
