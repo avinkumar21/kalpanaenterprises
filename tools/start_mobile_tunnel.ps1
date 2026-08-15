@@ -6,7 +6,7 @@ Write-Host "=================================================================" -
 Write-Host "  Kalpana Enterprise V2: Booting Cloudflare 4G/5G Express Tunnel " -ForegroundColor Cyan
 Write-Host "=================================================================" -ForegroundColor Cyan
 
-$port = 80
+$port = 8082
 
 Write-Host "`n[1/3] Verifying Local Port $port availability..." -ForegroundColor Yellow
 $port80 = $false
@@ -33,5 +33,14 @@ Write-Host "=================================================================" -
 $root = (Get-Item $PSScriptRoot).Parent.FullName
 $logFile = Join-Path $root "logs\tunnel.log"
 
-# Launch Cloudflare Quick Tunnel forwarding directly to Port 80 using HTTP/2
-cmd.exe /c "npx.cmd -y cloudflared tunnel --protocol http2 --url http://localhost:80 > ""$logFile"" 2>&1"
+$cloudflaredPath = "C:\Program Files (x86)\cloudflared\cloudflared.exe"
+if (-not (Test-Path $cloudflaredPath)) {
+    $cloudflaredPath = "cloudflared"
+}
+
+# Stop any running cloudflared instances to ensure clean binding
+Stop-Process -Name "cloudflared" -Force -ErrorAction SilentlyContinue
+Start-Sleep -Milliseconds 500
+
+$tunnelScript = Join-Path $root "tools\tunnel_manager.js"
+Start-Process -FilePath "node.exe" -ArgumentList """$tunnelScript""" -WindowStyle Hidden

@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const fs = require('fs');
 const corsOptions = require('../../configs/cors.config.js');
 
 // Assuming services and data are mapped via path.resolve for safety
@@ -51,7 +52,7 @@ app.use((err, req, res, next) => {
 const PORT = process.env.PORT || 8082;
 
 function monitorCloudflareTunnel() {
-    setInterval(() => {
+    const check = () => {
         try {
             const tunnelLogPath = path.resolve(__dirname, '../../logs/tunnel.log');
             if (fs.existsSync(tunnelLogPath)) {
@@ -66,8 +67,12 @@ function monitorCloudflareTunnel() {
                     }
                 }
             }
-        } catch (e) {}
-    }, 4000);
+        } catch (e) {
+            console.error('[TUNNEL WATCHER ERROR]', e.message);
+        }
+    };
+    check();
+    setInterval(check, 4000);
 }
 
 const server = app.listen(PORT, '0.0.0.0', async () => {

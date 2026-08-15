@@ -39,6 +39,19 @@
       "status": "Success",
       "copies": 1,
       "retryCount": 1
+    },
+    "hist_1786796960103_j5pz": {
+      "id": "hist_1786796960103_j5pz",
+      "fileId": "doc_1786796951500",
+      "customerFile": "webupload_1786796951482_1c_Color_test_doc.pdf",
+      "originalPath": "D:\\Arka\\storage\\incoming\\1786796951485_webupload_1786796951482_1c_Color_test_doc.pdf",
+      "processedPath": "D:\\Arka\\storage\\processed\\optimized_1786796951497_1786796951485_webupload_1786796951482_1c_Color_test_doc.pdf",
+      "pages": 1,
+      "printerName": "HP508140DE1D63(HP Laser MFP 131 133 135-138)",
+      "printTime": "2026-08-15T12:29:20.103Z",
+      "status": "Success",
+      "copies": 1,
+      "retryCount": 1
     }
   },
   "printers": {
@@ -51,7 +64,7 @@
       "isPrimary": false,
       "isSecondary": false,
       "isFallback": false,
-      "lastChecked": "2026-08-15T12:15:49.570Z"
+      "lastChecked": "2026-08-15T12:30:31.799Z"
     },
     "onenote__desktop_": {
       "id": "onenote__desktop_",
@@ -62,7 +75,7 @@
       "isPrimary": false,
       "isSecondary": false,
       "isFallback": false,
-      "lastChecked": "2026-08-15T12:15:49.570Z"
+      "lastChecked": "2026-08-15T12:30:31.800Z"
     },
     "microsoft_print_to_pdf": {
       "id": "microsoft_print_to_pdf",
@@ -73,7 +86,7 @@
       "isPrimary": false,
       "isSecondary": false,
       "isFallback": true,
-      "lastChecked": "2026-08-15T12:15:49.570Z"
+      "lastChecked": "2026-08-15T12:30:31.800Z"
     },
     "hp508140de1d63_hp_laser_mfp_131_133_135_138_": {
       "id": "hp508140de1d63_hp_laser_mfp_131_133_135_138_",
@@ -84,7 +97,7 @@
       "isPrimary": true,
       "isSecondary": false,
       "isFallback": false,
-      "lastChecked": "2026-08-15T12:15:49.570Z"
+      "lastChecked": "2026-08-15T12:30:31.800Z"
     },
     "generic___text_only": {
       "id": "generic___text_only",
@@ -95,7 +108,7 @@
       "isPrimary": false,
       "isSecondary": false,
       "isFallback": false,
-      "lastChecked": "2026-08-15T12:15:49.570Z"
+      "lastChecked": "2026-08-15T12:30:31.800Z"
     },
     "epson_l3110_series__copy_1_": {
       "id": "epson_l3110_series__copy_1_",
@@ -106,7 +119,7 @@
       "isPrimary": false,
       "isSecondary": false,
       "isFallback": false,
-      "lastChecked": "2026-08-15T12:15:49.570Z"
+      "lastChecked": "2026-08-15T12:30:31.800Z"
     },
     "epson_l3110_series": {
       "id": "epson_l3110_series",
@@ -117,7 +130,7 @@
       "isPrimary": false,
       "isSecondary": true,
       "isFallback": false,
-      "lastChecked": "2026-08-15T12:15:49.570Z"
+      "lastChecked": "2026-08-15T12:30:31.800Z"
     }
   },
   "settings": {
@@ -140,7 +153,8 @@
     "imageEnhancementLevel": "Moderate",
     "pollingIntervalMs": 2000,
     "port": 8082,
-    "adminPasswordHash": "admin"
+    "adminPasswordHash": "admin",
+    "publicTunnelUrl": "https://inquiry-nov-basket-notes.trycloudflare.com"
   },
   "logs": [
     {
@@ -5573,6 +5587,21 @@
       "attempts": 1,
       "createdAt": "2026-07-29T13:25:58.699Z",
       "updatedAt": "2026-07-29T13:25:59.879Z"
+    },
+    "job_1786796951500_7x5fh": {
+      "id": "job_1786796951500_7x5fh",
+      "fileId": "doc_1786796951500",
+      "customerName": "WhatsApp Customer",
+      "fileName": "webupload_1786796951482_1c_Color_test_doc.pdf",
+      "processedPath": "D:\\Arka\\storage\\processed\\optimized_1786796951497_1786796951485_webupload_1786796951482_1c_Color_test_doc.pdf",
+      "originalPath": "D:\\Arka\\storage\\incoming\\1786796951485_webupload_1786796951482_1c_Color_test_doc.pdf",
+      "printer": "HP508140DE1D63(HP Laser MFP 131 133 135-138)",
+      "copies": 1,
+      "status": "Completed",
+      "priority": 1,
+      "attempts": 1,
+      "createdAt": "2026-08-15T12:29:11.500Z",
+      "updatedAt": "2026-08-15T12:29:20.101Z"
     }
   },
   "statistics": {
@@ -5595,6 +5624,13 @@
       "totalReceived": 3,
       "totalProcessed": 3,
       "totalPrinted": 3,
+      "totalFailed": 0
+    },
+    "2026-08-15": {
+      "date": "2026-08-15",
+      "totalReceived": 1,
+      "totalProcessed": 1,
+      "totalPrinted": 1,
       "totalFailed": 0
     }
   }

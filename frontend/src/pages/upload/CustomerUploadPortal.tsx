@@ -40,26 +40,37 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
     }
     return ''; // Standard HTTP Port 80 requires NO port number in mobile browser URL
   });
+  const [connectionMode, setConnectionMode] = useState<'mobile' | 'wifi'>(() => {
+    if (typeof window !== 'undefined' && (window.location.hostname.includes('192.168.') || window.location.hostname.includes('localhost') || window.location.hostname.includes('127.0.0.1'))) {
+      return 'wifi';
+    }
+    return 'mobile';
+  });
+
   const [accessMode, setAccessMode] = useState<'wifi' | 'mobile_web' | 'email'>(() => {
     if (typeof window !== 'undefined' && (window.location.hostname.includes('trycloudflare') || window.location.hostname.includes('tunnel') || window.location.hostname.includes('loca.lt'))) {
       return 'mobile_web';
     }
-    return 'wifi';
+    return 'mobile_web';
   });
+
   const [publicTunnelUrl, setPublicTunnelUrl] = useState(() => {
     if (typeof window !== 'undefined' && window.localStorage) {
       const saved = window.localStorage.getItem('arka_tunnel_url');
-      if (saved && saved.includes('trycloudflare.com') && !saved.includes('occurrence-selected-cons-recently')) return saved;
+      if (saved && saved.includes('trycloudflare.com')) return saved;
     }
-    return 'https://protein-myspace-illustration-daily.trycloudflare.com';
+    return 'https://inquiry-nov-basket-notes.trycloudflare.com';
   });
   const [shopEmail, setShopEmail] = useState('print@kalpanaenterprise.com');
 
   useEffect(() => {
     if (typeof window !== 'undefined' && window.localStorage && publicTunnelUrl) {
       window.localStorage.setItem('arka_tunnel_url', publicTunnelUrl);
+      if (connectionMode === 'mobile') {
+        api.setCustomApiBase(publicTunnelUrl);
+      }
     }
-  }, [publicTunnelUrl]);
+  }, [publicTunnelUrl, connectionMode]);
 
   useEffect(() => {
     const syncTunnelUrl = async () => {
@@ -168,6 +179,11 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
     try {
       // Optimize large mobile camera photos before transfer for instant < 1s submission!
       const fileToUpload = await prepareFileForUpload(selectedFile);
+      if (connectionMode === 'mobile' && publicTunnelUrl && publicTunnelUrl.includes('trycloudflare.com')) {
+        api.setCustomApiBase(publicTunnelUrl);
+      } else if (connectionMode === 'wifi') {
+        api.setCustomApiBase(`http://${shopLanIp || '192.168.31.242'}:8082`);
+      }
       const result = await api.uploadDocument(fileToUpload, copies, colorMode);
       if (result.success) {
         setSuccessData({
@@ -736,6 +752,48 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
               <span>ಇಲ್ಲಿ ಫೈಲ್ ಆಯ್ಕೆಮಾಡಿ • Customer Document Express Drop</span>
             </h2>
             <p className="text-xs text-slate-300 font-extrabold mt-1">ನಿಮ್ಮ PDF, ಫೋಟೋ ಅಥವಾ Word ಡಾಕ್ಯುಮೆಂಟ್ ಆಯ್ಕೆಮಾಡಿ (Select your document below to trigger automatic shop printing).</p>
+          </div>
+
+          {/* NETWORK CONNECTION TARGET SELECTOR */}
+          <div className="p-4 rounded-2xl border border-cyan-500/40 bg-slate-900 shadow-xl space-y-2">
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <span className="text-xs font-black uppercase text-amber-300 flex items-center gap-1.5">
+                📡 Select Network Connection Mode:
+              </span>
+              <span className="text-[11px] font-extrabold px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                {connectionMode === 'mobile' ? '🟢 4G/5G Express Relay Active' : '📶 Shop Wi-Fi Direct'}
+              </span>
+            </div>
+            <div className="grid grid-cols-2 gap-2 pt-1">
+              <button
+                type="button"
+                onClick={() => {
+                  setConnectionMode('mobile');
+                  if (publicTunnelUrl) api.setCustomApiBase(publicTunnelUrl);
+                }}
+                className={`py-2.5 px-3 rounded-xl text-xs font-black uppercase tracking-wider border transition cursor-pointer flex items-center justify-center gap-1.5 ${
+                  connectionMode === 'mobile'
+                    ? 'bg-blue-600 border-blue-400 text-white shadow-lg'
+                    : 'bg-slate-800 border-slate-700 text-slate-400 hover:text-white'
+                }`}
+              >
+                <span>📱 4G / 5G Mobile Data</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setConnectionMode('wifi');
+                  api.setCustomApiBase(`http://${shopLanIp || '192.168.31.242'}:8082`);
+                }}
+                className={`py-2.5 px-3 rounded-xl text-xs font-black uppercase tracking-wider border transition cursor-pointer flex items-center justify-center gap-1.5 ${
+                  connectionMode === 'wifi'
+                    ? 'bg-emerald-600 border-emerald-400 text-white shadow-lg'
+                    : 'bg-slate-800 border-slate-700 text-slate-400 hover:text-white'
+                }`}
+              >
+                <span>📶 Shop Wi-Fi (ARKA)</span>
+              </button>
+            </div>
           </div>
 
           {/* DRAG & DROP / FILE SELECTION ZONE */}
