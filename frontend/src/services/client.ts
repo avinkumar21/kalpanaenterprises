@@ -138,10 +138,52 @@ export interface LogEntry {
   details?: string;
 }
 
+export async function fetchWithFallback(endpointPath: string, options?: RequestInit): Promise<Response> {
+  const primaryBase = getApiBase();
+  const candidateBases = [primaryBase];
+
+  if (typeof window !== 'undefined') {
+    const host = window.location.hostname;
+    if (host && host !== 'localhost' && host !== '127.0.0.1') {
+      candidateBases.push(`http://${host}:8082/api/prints`);
+    }
+    candidateBases.push('http://192.168.31.242:8082/api/prints');
+    candidateBases.push('http://192.168.31.233:8082/api/prints');
+    candidateBases.push('http://localhost:8082/api/prints');
+  }
+
+  const uniqueBases = Array.from(new Set(candidateBases.map(b => b.trim().replace(/\/+$/, ''))));
+
+  let lastError: any = null;
+  for (const base of uniqueBases) {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 8000);
+      
+      const cleanPath = endpointPath.startsWith('/') ? endpointPath : `/${endpointPath}`;
+      const res = await fetch(`${base}${cleanPath}`, {
+        ...options,
+        signal: options?.signal || controller.signal
+      });
+      clearTimeout(timeoutId);
+
+      if (res.ok || res.status < 500) {
+        if (base !== primaryBase && !base.includes('trycloudflare.com')) {
+          setCustomApiBase(base.replace(/\/api\/prints$/, ''));
+        }
+        return res;
+      }
+    } catch (err) {
+      lastError = err;
+    }
+  }
+  throw lastError || new Error('Failed to connect to print server across all endpoints');
+}
+
 class PrintsApi {
   async fetchStatus(): Promise<SystemStatus> {
     try {
-      const res = await fetch(`${getApiBase()}/status`);
+      const res = await fetchWithFallback('/status');
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       return await res.json();
     } catch {
@@ -160,43 +202,67 @@ class PrintsApi {
   }
 
   async getHistory(limit = 100): Promise<HistoryItem[]> {
-    const res = await fetch(`${getApiBase()}/history?limit=${limit}`);
-    if (!res.ok) return [];
-    return await res.json();
+    try {
+      const res = await fetchWithFallback(`/history?limit=${limit}`);
+      if (!res.ok) return [];
+      return await res.json();
+    } catch {
+      return [];
+    }
   }
 
   async getPrinters(refresh = false): Promise<PrinterInfo[]> {
-    const res = await fetch(`${getApiBase()}/printers?refresh=${refresh}`);
-    if (!res.ok) return [];
-    return await res.json();
+    try {
+      const res = await fetchWithFallback(`/printers?refresh=${refresh}`);
+      if (!res.ok) return [];
+      return await res.json();
+    } catch {
+      return [];
+    }
   }
 
   async getQueue(): Promise<QueueJob[]> {
-    const res = await fetch(`${getApiBase()}/queue`);
-    if (!res.ok) return [];
-    return await res.json();
+    try {
+      const res = await fetchWithFallback('/queue');
+      if (!res.ok) return [];
+      return await res.json();
+    } catch {
+      return [];
+    }
   }
 
   async getLogs(category = 'ALL', level = 'ALL', limit = 150): Promise<LogEntry[]> {
-    const res = await fetch(`${getApiBase()}/logs?category=${category}&level=${level}&limit=${limit}`);
-    if (!res.ok) return [];
-    return await res.json();
+    try {
+      const res = await fetchWithFallback(`/logs?category=${category}&level=${level}&limit=${limit}`);
+      if (!res.ok) return [];
+      return await res.json();
+    } catch {
+      return [];
+    }
   }
 
   async getStatistics(): Promise<any[]> {
-    const res = await fetch(`${getApiBase()}/statistics`);
-    if (!res.ok) return [];
-    return await res.json();
+    try {
+      const res = await fetchWithFallback('/statistics');
+      if (!res.ok) return [];
+      return await res.json();
+    } catch {
+      return [];
+    }
   }
 
   async getSettings(): Promise<Record<string, any>> {
-    const res = await fetch(`${getApiBase()}/settings`);
-    if (!res.ok) return {};
-    return await res.json();
+    try {
+      const res = await fetchWithFallback('/settings');
+      if (!res.ok) return {};
+      return await res.json();
+    } catch {
+      return {};
+    }
   }
 
   async saveSettings(settings: Record<string, any>): Promise<any> {
-    const res = await fetch(`${getApiBase()}/settings`, {
+    const res = await fetchWithFallback('/settings', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(settings)
@@ -205,7 +271,7 @@ class PrintsApi {
   }
 
   async testPrinter(printerName: string): Promise<any> {
-    const res = await fetch(`${getApiBase()}/test-printer`, {
+    const res = await fetchWithFallback('/test-printer', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ printer: printerName })
@@ -214,12 +280,12 @@ class PrintsApi {
   }
 
   async clearQueue(): Promise<any> {
-    const res = await fetch(`${getApiBase()}/clear-queue`, { method: 'POST' });
+    const res = await fetchWithFallback('/clear-queue', { method: 'POST' });
     return await res.json();
   }
 
   async retryJob(jobId: string): Promise<any> {
-    const res = await fetch(`${getApiBase()}/queue/retry`, {
+    const res = await fetchWithFallback('/queue/retry', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ jobId })
@@ -228,7 +294,7 @@ class PrintsApi {
   }
 
   async cancelJob(jobId: string): Promise<any> {
-    const res = await fetch(`${getApiBase()}/queue/cancel`, {
+    const res = await fetchWithFallback('/queue/cancel', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ jobId })
@@ -237,7 +303,7 @@ class PrintsApi {
   }
 
   async deleteDocument(id: string, fileId?: string, fileName?: string): Promise<any> {
-    const res = await fetch(`${getApiBase()}/delete-document`, {
+    const res = await fetchWithFallback('/delete-document', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id, fileId, fileName })
@@ -246,7 +312,7 @@ class PrintsApi {
   }
 
   async deleteAllDocuments(): Promise<any> {
-    const res = await fetch(`${getApiBase()}/delete-all`, {
+    const res = await fetchWithFallback('/delete-all', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' }
     });
@@ -254,7 +320,7 @@ class PrintsApi {
   }
 
   async setPriority(jobId: string, priority: number): Promise<any> {
-    const res = await fetch(`${getApiBase()}/queue/priority`, {
+    const res = await fetchWithFallback('/queue/priority', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ jobId, priority })
@@ -263,7 +329,7 @@ class PrintsApi {
   }
 
   async reprint(historyId: string, printer?: string, copies?: number): Promise<any> {
-    const res = await fetch(`${getApiBase()}/reprint`, {
+    const res = await fetchWithFallback('/reprint', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ historyId, printer, copies })
@@ -272,7 +338,7 @@ class PrintsApi {
   }
 
   async manualPrint(jobId: string, printer?: string, copies?: number): Promise<any> {
-    const res = await fetch(`${getApiBase()}/print`, {
+    const res = await fetchWithFallback('/print', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ jobId, printer, copies })
@@ -281,7 +347,7 @@ class PrintsApi {
   }
 
   async overrideImage(jobId: string, overrides: Record<string, any>): Promise<any> {
-    const res = await fetch(`${getApiBase()}/override-image`, {
+    const res = await fetchWithFallback('/override-image', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ jobId, ...overrides })
@@ -292,7 +358,7 @@ class PrintsApi {
   async uploadFile(file: File): Promise<any> {
     const formData = new FormData();
     formData.append('file', file);
-    const res = await fetch(`${getApiBase()}/upload-file`, {
+    const res = await fetchWithFallback('/upload-file', {
       method: 'POST',
       body: formData
     });
@@ -305,7 +371,7 @@ class PrintsApi {
 
   async fetchPrinterStatus(): Promise<Record<string, string>> {
     try {
-      const res = await fetch(`${getApiBase()}/printer-status`);
+      const res = await fetchWithFallback('/printer-status');
       if (!res.ok) return {};
       return await res.json();
     } catch {
@@ -322,7 +388,7 @@ class PrintsApi {
     formData.append('document', file);
     formData.append('copies', copies.toString());
     formData.append('colorMode', colorMode);
-    const res = await fetch(`${getApiBase()}/upload-document`, {
+    const res = await fetchWithFallback('/upload-document', {
       method: 'POST',
       body: formData
     });
@@ -331,7 +397,7 @@ class PrintsApi {
 
   async fetchEmailWatcherStatus(): Promise<any> {
     try {
-      const res = await fetch(`${getApiBase()}/email-watcher/status`);
+      const res = await fetchWithFallback('/email-watcher/status');
       if (!res.ok) return null;
       return await res.json();
     } catch {
@@ -340,7 +406,7 @@ class PrintsApi {
   }
 
   async testEmailWatcherConnection(config: any): Promise<any> {
-    const res = await fetch(`${getApiBase()}/email-watcher/test`, {
+    const res = await fetchWithFallback('/email-watcher/test', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(config)
@@ -358,4 +424,5 @@ class PrintsApi {
 }
 
 export const api = new PrintsApi();
+
 

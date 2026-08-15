@@ -59,7 +59,7 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
       const saved = window.localStorage.getItem('arka_tunnel_url');
       if (saved && saved.includes('trycloudflare.com')) return saved;
     }
-    return 'https://inquiry-nov-basket-notes.trycloudflare.com';
+    return '';
   });
   const [shopEmail, setShopEmail] = useState('print@kalpanaenterprise.com');
 
