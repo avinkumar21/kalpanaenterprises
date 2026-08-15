@@ -65,18 +65,24 @@ const PrintQueue = {
             db.updateQueueStatus(job.id, 'Printing', job.attempts + 1);
 
             try {
-                // Check if target printer is actually online before spooling
+                // Check real-time printer connectivity (USB Cable / Wi-Fi) before spooling
                 let targetPrinter = job.printer;
                 const statusCheck = await PrinterManager.testPrinter(targetPrinter);
+                if (statusCheck && statusCheck.printer) {
+                    targetPrinter = statusCheck.printer;
+                }
                 if (!statusCheck.success || statusCheck.status === 'OFFLINE') {
                     const settings = db.getSettings();
-                    const altPrinter = targetPrinter === settings.primaryPrinter ? settings.secondaryPrinter : settings.primaryPrinter;
+                    const altPrinter = (targetPrinter.toLowerCase().includes('hp') || (job.printer || '').toLowerCase().includes('hp'))
+                        ? (settings.primaryPrinter || 'EPSON L3110 Series')
+                        : (settings.secondaryPrinter || 'HP Laser MFP');
+                    
                     if (altPrinter && altPrinter !== targetPrinter) {
-                        Logger.info('QUEUE', `Target printer [${targetPrinter}] is offline. Checking alternative [${altPrinter}]...`);
+                        Logger.info('QUEUE', `Target printer [${targetPrinter}] is offline. Checking fallback online printer [${altPrinter}]...`);
                         const altCheck = await PrinterManager.testPrinter(altPrinter);
                         if (altCheck.success && altCheck.status !== 'OFFLINE') {
-                            targetPrinter = altPrinter;
-                            Logger.info('QUEUE', `Auto-routing job to online printer: [${targetPrinter}]`);
+                            targetPrinter = altCheck.printer || altPrinter;
+                            Logger.info('QUEUE', `Auto-routing job to online fallback printer: [${targetPrinter}]`);
                         }
                     }
                 }

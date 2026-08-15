@@ -91,30 +91,54 @@ const PrinterManager = {
         }
     },
 
-    async testPrinter(printerName) {
-        Logger.logPrinterEvent(`Dispatching test print check instruction to [${printerName}]...`);
-
-        let targetPrinter = printerName;
+    async resolveActivePrinter(targetPrinter) {
         try {
             const installedPrinters = await this.refreshPrintersList();
-            if (installedPrinters && installedPrinters.length > 0) {
-                const exactMatch = installedPrinters.find(p => p.name.toLowerCase() === (targetPrinter || '').toLowerCase());
-                if (!exactMatch) {
-                    const bestMatch = installedPrinters.find(p => {
-                        const lName = p.name.toLowerCase();
-                        const tLower = (targetPrinter || '').toLowerCase();
-                        if (tLower.includes('hp') && lName.includes('hp')) return true;
-                        if (tLower.includes('epson') && lName.includes('epson')) return true;
-                        if (tLower.includes('pdf') && lName.includes('pdf')) return true;
-                        return false;
-                    });
-                    if (bestMatch) targetPrinter = bestMatch.name;
-                } else {
-                    targetPrinter = exactMatch.name;
-                }
-            }
-        } catch (e) {}
+            if (!installedPrinters || installedPrinters.length === 0) return targetPrinter;
 
+            const tLower = (targetPrinter || '').toLowerCase();
+            const isHp = tLower.includes('hp') || tLower.includes('131') || tLower.includes('133') || tLower.includes('135') || tLower.includes('136') || tLower.includes('138') || tLower.includes('mfp');
+            const isEpson = tLower.includes('epson') || tLower.includes('l3110');
+
+            // Step 1: Check if an exact match is already Ready
+            const exactMatch = installedPrinters.find(p => p.name.toLowerCase() === tLower);
+            if (exactMatch && exactMatch.status === 'Ready') {
+                return exactMatch.name;
+            }
+
+            // Step 2: Search for any READY printer candidate belonging to the requested hardware family (USB Cable or Wi-Fi)
+            const onlineFamilyCandidate = installedPrinters.find(p => {
+                const lName = p.name.toLowerCase();
+                const isReady = p.status === 'Ready';
+                if (!isReady) return false;
+                if (isHp && (lName.includes('hp') || lName.includes('131') || lName.includes('133') || lName.includes('135') || lName.includes('136') || lName.includes('138') || lName.includes('mfp'))) return true;
+                if (isEpson && (lName.includes('epson') || lName.includes('l3110'))) return true;
+                return false;
+            });
+
+            if (onlineFamilyCandidate) {
+                Logger.info('PRINTER_MANAGER', `Resolved requested printer [${targetPrinter}] to active ONLINE device [${onlineFamilyCandidate.name}] (${onlineFamilyCandidate.status})`);
+                return onlineFamilyCandidate.name;
+            }
+
+            // Step 3: Fallback to any matching installed driver name
+            const bestMatch = installedPrinters.find(p => {
+                const lName = p.name.toLowerCase();
+                if (isHp && (lName.includes('hp') || lName.includes('mfp'))) return true;
+                if (isEpson && lName.includes('epson')) return true;
+                return false;
+            });
+
+            return bestMatch ? bestMatch.name : (exactMatch ? exactMatch.name : targetPrinter);
+        } catch (e) {
+            return targetPrinter;
+        }
+    },
+
+    async testPrinter(printerName) {
+        Logger.logPrinterEvent(`Dispatching real-time printer connectivity check for [${printerName}]...`);
+
+        const targetPrinter = await this.resolveActivePrinter(printerName);
         const safePrinterName = (targetPrinter || '').replace(/'/g, "''");
         const script = `
             try {
@@ -127,7 +151,7 @@ const PrinterManager = {
                     } catch {}
                     $p = Get-CimInstance -ClassName Win32_Printer -Filter "Name='$safePrinterName'" -ErrorAction SilentlyContinue
                 }
-                if ($p.PrinterStatus -eq 2 -or $p.PrinterStatus -eq 4) {
+                if ($p.PrinterStatus -eq 2 -or $p.PrinterStatus -eq 4 -or $p.WorkOffline -eq $true) {
                     Write-Output "OFFLINE_CHECK_WIFI_OR_POWER"
                 } else {
                     Write-Output "ONLINE_READY"
@@ -140,15 +164,15 @@ const PrinterManager = {
             const res = await execPowerShell(script, 8000);
             const status = (res || '').trim();
             if (status.includes('ONLINE_READY')) {
-                Logger.logPrinterEvent(`Test connection confirmed: [${targetPrinter}] is Online and Ready.`);
-                return { success: true, status: 'ONLINE', message: `✅ Printer [${targetPrinter}] is Online, active, and ready to print!` };
+                Logger.logPrinterEvent(`Real-time connection confirmed: [${targetPrinter}] is Online and Ready via USB Cable / Wi-Fi.`);
+                return { success: true, status: 'ONLINE', printer: targetPrinter, message: `✅ Printer [${targetPrinter}] is Online, active, and ready to print!` };
             } else {
-                Logger.warn('PRINTER_MANAGER', `Test check for [${targetPrinter}] returned offline status.`);
-                return { success: false, status: 'OFFLINE', message: `⚠️ Printer [${targetPrinter}] is currently offline or unreachable via Wi-Fi/USB. Please check printer power or select your other available printer.` };
+                Logger.warn('PRINTER_MANAGER', `Real-time check for [${targetPrinter}] returned offline status.`);
+                return { success: false, status: 'OFFLINE', printer: targetPrinter, message: `⚠️ Printer [${targetPrinter}] is currently offline or unreachable via Wi-Fi/USB. Auto-routing to fallback printer or staging in queue for retry.` };
             }
         } catch (error) {
             Logger.warn('PRINTER_MANAGER', `Test check fallback for ${targetPrinter}: ${error.message}`);
-            return { success: false, status: 'OFFLINE', message: `⚠️ Printer [${targetPrinter}] could not be connected. Try testing USB cable or switching printer.` };
+            return { success: false, status: 'OFFLINE', printer: targetPrinter, message: `⚠️ Printer [${targetPrinter}] could not be connected via USB/Wi-Fi.` };
         }
     },
 
@@ -158,27 +182,10 @@ const PrinterManager = {
         }
 
         const settings = db.getSettings();
-        let targetPrinter = printerName || settings.defaultPrinter || settings.primaryPrinter || 'HP508140DE1D63(HP Laser MFP 131 133 135-138)';
+        const configuredPrinter = printerName || settings.defaultPrinter || settings.primaryPrinter || 'EPSON L3110 Series';
         
-        // Intelligent Windows driver resolution: map generic names (e.g. "HP Laser MFP 136w" or "Epson L3110") to exact Windows hardware name!
-        const installedPrinters = db.getPrinters() || [];
-        if (installedPrinters.length > 0) {
-            const exactMatch = installedPrinters.find(p => p.name.toLowerCase() === targetPrinter.toLowerCase());
-            if (!exactMatch) {
-                const bestMatch = installedPrinters.find(p => {
-                    const lName = p.name.toLowerCase();
-                    const tLower = targetPrinter.toLowerCase();
-                    if (tLower.includes('hp') && lName.includes('hp')) return true;
-                    if (tLower.includes('epson') && lName.includes('epson')) return true;
-                    if (tLower.includes('pdf') && lName.includes('pdf')) return true;
-                    return false;
-                });
-                if (bestMatch) {
-                    Logger.info('PRINTER_MANAGER', `Resolved generic configured name [${targetPrinter}] to active Windows driver [${bestMatch.name}]`);
-                    targetPrinter = bestMatch.name;
-                }
-            }
-        }
+        // Resolve dual USB Cable / Wi-Fi active hardware driver
+        const targetPrinter = await this.resolveActivePrinter(configuredPrinter);
 
         Logger.logPrinting(`Initiating direct hardware print job for [${path.basename(filePath)}] onto printer [${targetPrinter}] (${copies} copies)...`, { options });
 
