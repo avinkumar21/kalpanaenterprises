@@ -42,3 +42,7 @@ Thumbs.db
 *.tmp
 temp/
 scratch/
+storage/incoming/
+storage/processed/
+storage/archive/
+storage/failed/

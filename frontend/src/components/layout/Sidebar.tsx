@@ -354,7 +354,7 @@ export function Sidebar() {
                 value={(() => {
                   const host = window.location.hostname.toLowerCase();
                   if (host === 'localhost' || host === '127.0.0.1' || host === 'kalpanaenterprise') {
-                    return 'http://192.168.31.112/';
+                    return 'http://192.168.31.242/';
                   }
                   const origin = window.location.origin;
                   return origin.endsWith('/') ? origin : `${origin}/`;

@@ -181,8 +181,8 @@ switch ($Action.ToLower()) {
             Start-Process -FilePath "powershell.exe" -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File ""$backendScript""" -WindowStyle Hidden
         }
 
-        $printDir = Join-Path $root "modules\prints"
-        Start-Process -FilePath "cmd.exe" -ArgumentList "/c ""cd /d ""$printDir"" && node.exe backend/server.js > ""$(Join-Path $root 'logs\print_engine_out.log')"" 2>&1""" -WindowStyle Hidden
+        $printDir = Join-Path $root "backend"
+        Start-Process -FilePath "cmd.exe" -ArgumentList "/c ""cd /d ""$printDir"" && node.exe src/server.js > ""$(Join-Path $root 'logs\print_engine_out.log')"" 2>&1""" -WindowStyle Hidden
         
         # Launch persistent Watchdog loop
         Start-Process -FilePath "powershell.exe" -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File ""$watchdogScript""" -WindowStyle Hidden

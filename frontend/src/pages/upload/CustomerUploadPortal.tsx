@@ -32,7 +32,7 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
     if (typeof window !== 'undefined' && window.location.hostname && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
       return window.location.hostname;
     }
-    return '192.168.31.233'; // Default to active test server IP (Laptop: 192.168.31.233)
+    return '192.168.31.242'; // Permanent Shop Desktop IP (192.168.31.242)
   });
   const [port, setPort] = useState(() => {
     if (typeof window !== 'undefined' && window.location.port && window.location.port !== '80' && window.location.port !== '8082') {

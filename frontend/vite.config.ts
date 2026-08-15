@@ -17,7 +17,7 @@ function getLocalIP() {
       }
     }
   }
-  return validIPs.length > 0 ? validIPs[0] : '192.168.31.233';
+  return validIPs.length > 0 ? validIPs[0] : '192.168.31.242';
 }
 
 const localIP = getLocalIP()

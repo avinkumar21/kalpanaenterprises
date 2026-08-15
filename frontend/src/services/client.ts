@@ -4,7 +4,43 @@ export const PrinterInfo = {} as any;
 export const LogEntry = {} as any;
 export const HistoryItem = {} as any;
 
-const API_BASE = 'https://contributed-neighbor-neural-animated.trycloudflare.com/api/prints';
+export function getApiBase(): string {
+  if (typeof window !== 'undefined') {
+    const customApi = window.localStorage.getItem('arka_api_url');
+    if (customApi && customApi.trim()) {
+      let trimmed = customApi.trim().replace(/\/+$/, '');
+      if (!trimmed.endsWith('/api/prints')) {
+        trimmed += '/api/prints';
+      }
+      return trimmed;
+    }
+
+    const savedTunnel = window.localStorage.getItem('arka_tunnel_url');
+    if (savedTunnel && savedTunnel.includes('trycloudflare.com')) {
+      let trimmed = savedTunnel.trim().replace(/\/+$/, '');
+      if (!trimmed.endsWith('/api/prints')) {
+        trimmed += '/api/prints';
+      }
+      return trimmed;
+    }
+
+    const hostname = window.location.hostname;
+    if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname.startsWith('192.168.') || hostname.startsWith('10.') || hostname.startsWith('172.')) {
+      return `http://${hostname}:8082/api/prints`;
+    }
+  }
+  return 'http://192.168.31.242:8082/api/prints';
+}
+
+export function setCustomApiBase(url: string | null): void {
+  if (typeof window !== 'undefined' && window.localStorage) {
+    if (!url || !url.trim()) {
+      window.localStorage.removeItem('arka_api_url');
+    } else {
+      window.localStorage.setItem('arka_api_url', url.trim());
+    }
+  }
+}
 
 export interface SystemStatus {
   status: string;
@@ -85,7 +121,7 @@ export interface LogEntry {
 class PrintsApi {
   async fetchStatus(): Promise<SystemStatus> {
     try {
-      const res = await fetch(`${API_BASE}/status`);
+      const res = await fetch(`${getApiBase()}/status`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       return await res.json();
     } catch (e) {
@@ -104,43 +140,43 @@ class PrintsApi {
   }
 
   async getHistory(limit = 100): Promise<HistoryItem[]> {
-    const res = await fetch(`${API_BASE}/history?limit=${limit}`);
+    const res = await fetch(`${getApiBase()}/history?limit=${limit}`);
     if (!res.ok) return [];
     return await res.json();
   }
 
   async getPrinters(refresh = false): Promise<PrinterInfo[]> {
-    const res = await fetch(`${API_BASE}/printers?refresh=${refresh}`);
+    const res = await fetch(`${getApiBase()}/printers?refresh=${refresh}`);
     if (!res.ok) return [];
     return await res.json();
   }
 
   async getQueue(): Promise<QueueJob[]> {
-    const res = await fetch(`${API_BASE}/queue`);
+    const res = await fetch(`${getApiBase()}/queue`);
     if (!res.ok) return [];
     return await res.json();
   }
 
   async getLogs(category = 'ALL', level = 'ALL', limit = 150): Promise<LogEntry[]> {
-    const res = await fetch(`${API_BASE}/logs?category=${category}&level=${level}&limit=${limit}`);
+    const res = await fetch(`${getApiBase()}/logs?category=${category}&level=${level}&limit=${limit}`);
     if (!res.ok) return [];
     return await res.json();
   }
 
   async getStatistics(): Promise<any[]> {
-    const res = await fetch(`${API_BASE}/statistics`);
+    const res = await fetch(`${getApiBase()}/statistics`);
     if (!res.ok) return [];
     return await res.json();
   }
 
   async getSettings(): Promise<Record<string, any>> {
-    const res = await fetch(`${API_BASE}/settings`);
+    const res = await fetch(`${getApiBase()}/settings`);
     if (!res.ok) return {};
     return await res.json();
   }
 
   async saveSettings(settings: Record<string, any>): Promise<any> {
-    const res = await fetch(`${API_BASE}/settings`, {
+    const res = await fetch(`${getApiBase()}/settings`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(settings)
@@ -149,7 +185,7 @@ class PrintsApi {
   }
 
   async testPrinter(printerName: string): Promise<any> {
-    const res = await fetch(`${API_BASE}/test-printer`, {
+    const res = await fetch(`${getApiBase()}/test-printer`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ printer: printerName })
@@ -158,12 +194,12 @@ class PrintsApi {
   }
 
   async clearQueue(): Promise<any> {
-    const res = await fetch(`${API_BASE}/clear-queue`, { method: 'POST' });
+    const res = await fetch(`${getApiBase()}/clear-queue`, { method: 'POST' });
     return await res.json();
   }
 
   async retryJob(jobId: string): Promise<any> {
-    const res = await fetch(`${API_BASE}/queue/retry`, {
+    const res = await fetch(`${getApiBase()}/queue/retry`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ jobId })
@@ -172,7 +208,7 @@ class PrintsApi {
   }
 
   async cancelJob(jobId: string): Promise<any> {
-    const res = await fetch(`${API_BASE}/queue/cancel`, {
+    const res = await fetch(`${getApiBase()}/queue/cancel`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ jobId })
@@ -181,7 +217,7 @@ class PrintsApi {
   }
 
   async deleteDocument(id: string, fileId?: string, fileName?: string): Promise<any> {
-    const res = await fetch(`${API_BASE}/delete-document`, {
+    const res = await fetch(`${getApiBase()}/delete-document`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id, fileId, fileName })
@@ -190,7 +226,7 @@ class PrintsApi {
   }
 
   async deleteAllDocuments(): Promise<any> {
-    const res = await fetch(`${API_BASE}/delete-all`, {
+    const res = await fetch(`${getApiBase()}/delete-all`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' }
     });
@@ -198,7 +234,7 @@ class PrintsApi {
   }
 
   async setPriority(jobId: string, priority: number): Promise<any> {
-    const res = await fetch(`${API_BASE}/queue/priority`, {
+    const res = await fetch(`${getApiBase()}/queue/priority`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ jobId, priority })
@@ -207,7 +243,7 @@ class PrintsApi {
   }
 
   async reprint(historyId: string, printer?: string, copies?: number): Promise<any> {
-    const res = await fetch(`${API_BASE}/reprint`, {
+    const res = await fetch(`${getApiBase()}/reprint`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ historyId, printer, copies })
@@ -216,7 +252,7 @@ class PrintsApi {
   }
 
   async manualPrint(jobId: string, printer?: string, copies?: number): Promise<any> {
-    const res = await fetch(`${API_BASE}/print`, {
+    const res = await fetch(`${getApiBase()}/print`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ jobId, printer, copies })
@@ -225,7 +261,7 @@ class PrintsApi {
   }
 
   async overrideImage(jobId: string, overrides: Record<string, any>): Promise<any> {
-    const res = await fetch(`${API_BASE}/override-image`, {
+    const res = await fetch(`${getApiBase()}/override-image`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ jobId, ...overrides })
@@ -236,7 +272,7 @@ class PrintsApi {
   async uploadFile(file: File): Promise<any> {
     const formData = new FormData();
     formData.append('file', file);
-    const res = await fetch(`${API_BASE}/upload-file`, {
+    const res = await fetch(`${getApiBase()}/upload-file`, {
       method: 'POST',
       body: formData
     });
@@ -244,12 +280,12 @@ class PrintsApi {
   }
 
   getDownloadUrl(type: 'original' | 'processed', id: string): string {
-    return `${API_BASE}/download/${type}/${id}`;
+    return `${getApiBase()}/download/${type}/${id}`;
   }
 
   async fetchPrinterStatus(): Promise<Record<string, string>> {
     try {
-      const res = await fetch(`${API_BASE}/printer-status`);
+      const res = await fetch(`${getApiBase()}/printer-status`);
       if (!res.ok) return {};
       return await res.json();
     } catch (e) {
@@ -258,7 +294,7 @@ class PrintsApi {
   }
 
   getPreviewUrl(id: string): string {
-    return `${API_BASE}/preview/${id}`;
+    return `${getApiBase()}/preview/${id}`;
   }
 
   async uploadDocument(file: File, copies: number = 1, colorMode: string = 'Color'): Promise<any> {
@@ -266,7 +302,7 @@ class PrintsApi {
     formData.append('document', file);
     formData.append('copies', copies.toString());
     formData.append('colorMode', colorMode);
-    const res = await fetch(`${API_BASE}/upload-document`, {
+    const res = await fetch(`${getApiBase()}/upload-document`, {
       method: 'POST',
       body: formData
     });
@@ -275,7 +311,7 @@ class PrintsApi {
 
   async fetchEmailWatcherStatus(): Promise<any> {
     try {
-      const res = await fetch(`${API_BASE}/email-watcher/status`);
+      const res = await fetch(`${getApiBase()}/email-watcher/status`);
       if (!res.ok) return null;
       return await res.json();
     } catch (e) {
@@ -284,7 +320,7 @@ class PrintsApi {
   }
 
   async testEmailWatcherConnection(config: any): Promise<any> {
-    const res = await fetch(`${API_BASE}/email-watcher/test`, {
+    const res = await fetch(`${getApiBase()}/email-watcher/test`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(config)

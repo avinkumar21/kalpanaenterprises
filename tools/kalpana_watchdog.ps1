@@ -71,7 +71,16 @@ while ($true) {
             Start-Sleep -Seconds 5
         }
         
-        # Note: PM2 now manages the Node.js backend (Port 8082). We don't restart it here to avoid conflicts.
+        # Check Print Engine Port 8082
+        if (-not (Test-Port 8082)) {
+            Write-Log "Port 8082 (Print Engine) unresponsive or stopped. Executing self-healing restart..." "WARN"
+            $backendDir = Join-Path $root "backend"
+            $printLog = Join-Path $logDir "print_engine_out.log"
+            $cmdArgs = "/c ""cd /d ""$backendDir"" && node.exe src/server.js > ""$printLog"" 2>&1"""
+            Start-Process -FilePath "cmd.exe" -ArgumentList $cmdArgs -WindowStyle Hidden
+            Write-Log "ARKA Print Engine relaunch command dispatched." "HEAL"
+            Start-Sleep -Seconds 5
+        }
     } catch {
         Write-Log "Watchdog loop error: $($_.Exception.Message)" "ERROR"
     }

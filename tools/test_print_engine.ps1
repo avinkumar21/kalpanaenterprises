@@ -4,7 +4,7 @@ Write-Host "   ARKA PLATFORM V2 - AUTO WHATSAPP PRINTING & PROCESSING ENGINE TES
 Write-Host "==========================================================================" -ForegroundColor Cyan
 
 $root = (Get-Item $PSScriptRoot).Parent.FullName
-$printModDir = Join-Path $root "modules\prints"
+$printModDir = Join-Path $root "backend"
 $logFile = Join-Path $root "logs\print_test_run.log"
 if (-not (Test-Path (Join-Path $root "logs"))) { New-Item -ItemType Directory -Path (Join-Path $root "logs") -Force | Out-Null }
 
@@ -16,8 +16,8 @@ foreach ($conn in $connections) {
 }
 Start-Sleep -Seconds 1
 
-Write-Host "2. Launching ARKA Print Engine (node backend/server.js) in background..." -ForegroundColor Cyan
-$serverProc = Start-Process -FilePath "node.exe" -ArgumentList "backend/server.js" -WorkingDirectory $printModDir -WindowStyle Hidden -PassThru -RedirectStandardOutput $logFile -RedirectStandardError (Join-Path $root "logs\print_test_err.log")
+Write-Host "2. Launching ARKA Print Engine (node src/server.js) in background..." -ForegroundColor Cyan
+$serverProc = Start-Process -FilePath "node.exe" -ArgumentList "src/server.js" -WorkingDirectory $printModDir -WindowStyle Hidden -PassThru -RedirectStandardOutput $logFile -RedirectStandardError (Join-Path $root "logs\print_test_err.log")
 Write-Host "   Server Process ID: $($serverProc.Id)" -ForegroundColor Gray
 Start-Sleep -Seconds 5
 

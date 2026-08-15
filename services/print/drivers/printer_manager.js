@@ -93,11 +93,41 @@ const PrinterManager = {
 
     async testPrinter(printerName) {
         Logger.logPrinterEvent(`Dispatching test print check instruction to [${printerName}]...`);
+
+        let targetPrinter = printerName;
+        try {
+            const installedPrinters = await this.refreshPrintersList();
+            if (installedPrinters && installedPrinters.length > 0) {
+                const exactMatch = installedPrinters.find(p => p.name.toLowerCase() === (targetPrinter || '').toLowerCase());
+                if (!exactMatch) {
+                    const bestMatch = installedPrinters.find(p => {
+                        const lName = p.name.toLowerCase();
+                        const tLower = (targetPrinter || '').toLowerCase();
+                        if (tLower.includes('hp') && lName.includes('hp')) return true;
+                        if (tLower.includes('epson') && lName.includes('epson')) return true;
+                        if (tLower.includes('pdf') && lName.includes('pdf')) return true;
+                        return false;
+                    });
+                    if (bestMatch) targetPrinter = bestMatch.name;
+                } else {
+                    targetPrinter = exactMatch.name;
+                }
+            }
+        } catch (e) {}
+
+        const safePrinterName = (targetPrinter || '').replace(/'/g, "''");
         const script = `
             try {
-                $p = Get-CimInstance -ClassName Win32_Printer -Filter "Name='$printerName'" -ErrorAction SilentlyContinue
-                if (-not $p) { $p = Get-WmiObject -Class Win32_Printer -Filter "Name='$printerName'" -ErrorAction Stop }
-                if ($p.WorkOffline -eq $true -or $p.PrinterStatus -eq 2 -or $p.PrinterStatus -eq 4) {
+                $p = Get-CimInstance -ClassName Win32_Printer -Filter "Name='$safePrinterName'" -ErrorAction SilentlyContinue
+                if (-not $p) { $p = Get-WmiObject -Class Win32_Printer -Filter "Name='$safePrinterName'" -ErrorAction Stop }
+                if ($p.WorkOffline -eq $true) {
+                    try {
+                        $wmi = Get-WmiObject -Class Win32_Printer -Filter "Name='$safePrinterName'" -ErrorAction SilentlyContinue
+                        if ($wmi) { $wmi.WorkOffline = $false; $wmi.Put() }
+                    } catch {}
+                    $p = Get-CimInstance -ClassName Win32_Printer -Filter "Name='$safePrinterName'" -ErrorAction SilentlyContinue
+                }
+                if ($p.PrinterStatus -eq 2 -or $p.PrinterStatus -eq 4) {
                     Write-Output "OFFLINE_CHECK_WIFI_OR_POWER"
                 } else {
                     Write-Output "ONLINE_READY"
@@ -110,15 +140,15 @@ const PrinterManager = {
             const res = await execPowerShell(script, 8000);
             const status = (res || '').trim();
             if (status.includes('ONLINE_READY')) {
-                Logger.logPrinterEvent(`Test connection confirmed: [${printerName}] is Online and Ready.`);
-                return { success: true, status: 'ONLINE', message: `✅ Printer [${printerName}] is Online, active, and ready to print!` };
+                Logger.logPrinterEvent(`Test connection confirmed: [${targetPrinter}] is Online and Ready.`);
+                return { success: true, status: 'ONLINE', message: `✅ Printer [${targetPrinter}] is Online, active, and ready to print!` };
             } else {
-                Logger.warn('PRINTER_MANAGER', `Test check for [${printerName}] returned offline status.`);
-                return { success: false, status: 'OFFLINE', message: `⚠️ Printer [${printerName}] is currently offline or unreachable via Wi-Fi/USB. Please check printer power or select your other available printer.` };
+                Logger.warn('PRINTER_MANAGER', `Test check for [${targetPrinter}] returned offline status.`);
+                return { success: false, status: 'OFFLINE', message: `⚠️ Printer [${targetPrinter}] is currently offline or unreachable via Wi-Fi/USB. Please check printer power or select your other available printer.` };
             }
         } catch (error) {
-            Logger.warn('PRINTER_MANAGER', `Test check fallback for ${printerName}: ${error.message}`);
-            return { success: false, status: 'OFFLINE', message: `⚠️ Printer [${printerName}] could not be connected. Try testing USB cable or switching printer.` };
+            Logger.warn('PRINTER_MANAGER', `Test check fallback for ${targetPrinter}: ${error.message}`);
+            return { success: false, status: 'OFFLINE', message: `⚠️ Printer [${targetPrinter}] could not be connected. Try testing USB cable or switching printer.` };
         }
     },
 
