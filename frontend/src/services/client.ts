@@ -143,12 +143,16 @@ export async function fetchWithFallback(endpointPath: string, options?: RequestI
   const candidateBases = [primaryBase];
 
   if (typeof window !== 'undefined') {
+    const savedTunnel = window.localStorage?.getItem('arka_tunnel_url');
+    if (savedTunnel && savedTunnel.includes('trycloudflare.com')) {
+      candidateBases.unshift(`${savedTunnel.replace(/\/+$/, '')}/api/prints`);
+    }
+
     const host = window.location.hostname;
-    if (host && host !== 'localhost' && host !== '127.0.0.1') {
+    if (host && !host.includes('vercel.app') && host !== 'localhost' && host !== '127.0.0.1') {
       candidateBases.push(`http://${host}:8082/api/prints`);
     }
     candidateBases.push('http://192.168.31.242:8082/api/prints');
-    candidateBases.push('http://192.168.31.233:8082/api/prints');
     candidateBases.push('http://localhost:8082/api/prints');
   }
 
@@ -158,7 +162,7 @@ export async function fetchWithFallback(endpointPath: string, options?: RequestI
   for (const base of uniqueBases) {
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 8000);
+      const timeoutId = setTimeout(() => controller.abort(), 18000);
       
       const cleanPath = endpointPath.startsWith('/') ? endpointPath : `/${endpointPath}`;
       const res = await fetch(`${base}${cleanPath}`, {
@@ -167,13 +171,16 @@ export async function fetchWithFallback(endpointPath: string, options?: RequestI
       });
       clearTimeout(timeoutId);
 
-      if (res.ok || res.status < 500) {
+      if (res.ok) {
         if (base !== primaryBase && !base.includes('trycloudflare.com')) {
           setCustomApiBase(base.replace(/\/api\/prints$/, ''));
         }
         return res;
+      } else {
+        const errorData = await res.json().catch(() => null);
+        throw new Error(errorData?.error || `Server responded with status ${res.status}`);
       }
-    } catch (err) {
+    } catch (err: any) {
       lastError = err;
     }
   }

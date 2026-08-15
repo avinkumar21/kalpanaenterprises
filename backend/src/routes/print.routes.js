@@ -13,10 +13,32 @@ const { processDocument, mergeIdCards } = require('../../../services/image_proce
 
 const router = express.Router();
 
-const rootDir = path.resolve(__dirname, '../../');
+const rootDir = path.resolve(__dirname, '../../../');
 const incomingDir = path.join(rootDir, 'storage', 'incoming');
 const processedDir = path.join(rootDir, 'storage', 'processed');
+if (!fs.existsSync(incomingDir)) fs.mkdirSync(incomingDir, { recursive: true });
+if (!fs.existsSync(processedDir)) fs.mkdirSync(processedDir, { recursive: true });
 const upload = multer({ dest: incomingDir });
+
+// Strips invalid/conflicting ICC color profile chunks from palette PNGs to prevent libvips interpretation space crashes
+function sanitizePngBuffer(buffer) {
+    if (!Buffer.isBuffer(buffer) || buffer.length < 8 || buffer[0] !== 0x89 || buffer[1] !== 0x50) return buffer;
+    try {
+        const chunks = [buffer.slice(0, 8)];
+        let offset = 8;
+        while (offset < buffer.length) {
+            const len = buffer.readUInt32BE(offset);
+            const type = buffer.slice(offset + 4, offset + 8).toString('ascii');
+            if (type !== 'iCCP' && type !== 'eXIf') {
+                chunks.push(buffer.slice(offset, offset + 12 + len));
+            }
+            offset += 12 + len;
+        }
+        return Buffer.concat(chunks);
+    } catch {
+        return buffer;
+    }
+}
 
 // GET /api/prints/status - Comprehensive operational health diagnostics
 router.get('/status', async (req, res) => {
@@ -280,16 +302,43 @@ router.post('/override-image', async (req, res) => {
     const { trimTopPct = 0, trimBottomPct = 0, trimLeftPct = 0, trimRightPct = 0 } = req.body;
     const queue = db.getQueue();
     const history = db.getHistory(500);
-    const item = queue.find(q => q.id === jobId || q.fileId === jobId) || history.find(h => h.id === jobId || h.fileId === jobId);
-    if (!item || (!fs.existsSync(item.processedPath) && !fs.existsSync(item.originalPath))) {
+    const item = queue.find(q => q.id === jobId || q.fileId === jobId || q.fileName === jobId) || history.find(h => h.id === jobId || h.fileId === jobId || h.customerFile === jobId);
+    
+    const settings = db.getSettings();
+    const targetFolder = settings.whatsAppFolder || 'D:\\WhatsApp';
+    
+    let sourcePath = '';
+    if (item) {
+        const candidatePaths = [
+            item.originalPath,
+            item.processedPath,
+            path.join(targetFolder, item.fileName || ''),
+            path.join(targetFolder, path.basename(item.originalPath || '')),
+            path.join(incomingDir, item.fileName || ''),
+            path.join(processedDir, item.fileName || '')
+        ].filter(Boolean);
+
+        for (const p of candidatePaths) {
+            if (fs.existsSync(p)) {
+                sourcePath = p;
+                break;
+            }
+        }
+    }
+
+    if (!sourcePath && jobId) {
+        const directCandidate = path.join(targetFolder, jobId);
+        if (fs.existsSync(directCandidate)) {
+            sourcePath = directCandidate;
+        }
+    }
+
+    if (!sourcePath || !fs.existsSync(sourcePath)) {
         return res.status(404).json({ error: "Job file not found on disk." });
     }
 
     try {
-        const baseDir = item.processedPath ? path.dirname(item.processedPath) : path.resolve(__dirname, '../../storage/processed');
-        // Always start from originalPath whenever cropping, auto-cropping, resetting, or altering filters so we never attempt to crop an already-padded A4 white canvas!
-        const useOriginal = reset || autoCrop || trimAllPct > 0 || trimVerticalPct > 0 || trimHorizontalPct > 0 || trimTopPct > 0 || trimBottomPct > 0 || trimLeftPct > 0 || trimRightPct > 0 || filterType || !item.processedPath || !fs.existsSync(item.processedPath);
-        const sourcePath = useOriginal ? item.originalPath : item.processedPath;
+        const baseDir = processedDir;
         const tempPath = path.join(baseDir, `docscan_${Date.now()}_${path.basename(sourcePath)}`);
         
         // Ensure source is an image format suitable for Sharp
@@ -297,18 +346,29 @@ router.post('/override-image', async (req, res) => {
             return res.status(400).json({ error: "Cropping is only supported for image document files (PNG, JPG, JPEG)." });
         }
 
-        // Get image metadata cleanly before altering pipeline
-        const meta = await sharp(sourcePath).metadata();
+        // Read and normalize buffer to standard baseline sRGB buffer to eliminate any libvips palette/interpretation space errors
+        const fileBuffer = fs.readFileSync(sourcePath);
+        const sanitized = sanitizePngBuffer(fileBuffer);
+        const cleanBuffer = await sharp(sanitized, { failOnError: false, ignoreIcc: true })
+            .flatten({ background: '#ffffff' })
+            .jpeg({ quality: 100 })
+            .toBuffer();
+
+        const meta = await sharp(cleanBuffer, { failOnError: false, ignoreIcc: true }).metadata();
         const w = meta.width || 1000;
         const h = meta.height || 1000;
-        let instance = sharp(sourcePath);
+        let instance = sharp(cleanBuffer, { failOnError: false });
         
         if (!reset) {
             // Intelligent doc_scanner_kit AI Auto-Crop (Detects document boundaries on wooden desk/table backgrounds)
             if (autoCrop && !trimAllPct && !trimVerticalPct && !trimHorizontalPct && !trimTopPct && !trimBottomPct && !trimLeftPct && !trimRightPct) {
                 try {
-                    // Downsample to 200x200 raw greyscale buffer for precise row/column edge luminance segmentation
-                    const thumb = await sharp(sourcePath).resize(200, 200, { fit: 'fill' }).greyscale().raw().toBuffer();
+                    // Downsample sanitized buffer for precise row/column edge luminance segmentation
+                    const thumb = await sharp(cleanBuffer, { failOnError: false })
+                        .resize(200, 200, { fit: 'fill' })
+                        .greyscale()
+                        .raw()
+                        .toBuffer();
                     
                     // Calculate reference brightness of top, bottom, left, and right tabletop borders
                     let topBg = 0, bottomBg = 0, leftBg = 0, rightBg = 0;
@@ -384,7 +444,7 @@ router.post('/override-image', async (req, res) => {
                         Logger.info('DOC_SCANNER', `Applied clean fallback edge crop [${extW}x${extH}]`);
                     }
                 } catch (errCrop) {
-                    try { instance = instance.trim({ threshold: 35 }); } catch (e) {}
+                    Logger.warn('DOC_SCANNER', `Auto-crop error ignored: ${errCrop.message}`);
                 }
             }
 
@@ -405,21 +465,17 @@ router.post('/override-image', async (req, res) => {
 
             if (rotate) instance = instance.rotate(Number(rotate));
             
-            // pub.dev doc_scanner_kit professional document scanning filter algorithms
+            // doc_scanner_kit professional document scanning filter algorithms
             if (filterType === 'magic_color') {
-                // Whitens muddy background, enhances text sharpness and vibrancy
-                instance = instance.normalize().sharpen(2).modulate({ brightness: 1.08, saturation: 1.3 }).linear(1.15, -8);
+                instance = instance.normalize().sharpen(2).modulate({ brightness: 1.08, saturation: 1.25 }).linear(1.15, -8);
                 Logger.info('DOC_SCANNER', `Applied doc_scanner_kit Magic Color Boost to job [${jobId}]`);
             } else if (filterType === 'bw_scan') {
-                // High contrast pure B/W threshold scan (removes all desk wood grain and lighting shadows)
-                instance = instance.greyscale().normalize().linear(1.5, -35).sharpen(1.5);
+                instance = instance.greyscale().normalize().linear(1.4, -30).sharpen(1.5);
                 Logger.info('DOC_SCANNER', `Applied doc_scanner_kit B/W Document Scan to job [${jobId}]`);
             } else if (filterType === 'clean_noise') {
-                // Stain, fingerprint shadow, and sensor blemish cleaner
                 instance = instance.median(3).sharpen(1.2).normalize();
                 Logger.info('DOC_SCANNER', `Applied doc_scanner_kit Stain & Noise Removal to job [${jobId}]`);
             } else if (filterType === 'grayscale') {
-                // Professional smooth leveled grayscale
                 instance = instance.greyscale().normalize().linear(1.1, -5);
                 Logger.info('DOC_SCANNER', `Applied doc_scanner_kit Professional Grayscale to job [${jobId}]`);
             }
@@ -429,25 +485,52 @@ router.post('/override-image', async (req, res) => {
             }
         }
 
-        await instance.png({ quality: 100 }).toFile(tempPath);
+        // Always format and fit adjusted image onto standard 300 DPI A4 Sheet Paper canvas
+        const A4_PORTRAIT_W = 2480;
+        const A4_PORTRAIT_H = 3508;
+        const intermediateBuffer = await instance.png().toBuffer();
+        const outMeta = await sharp(intermediateBuffer).metadata();
+        const isLandscape = (outMeta.width || 0) > (outMeta.height || 0);
+        const targetA4Width = isLandscape ? A4_PORTRAIT_H : A4_PORTRAIT_W;
+        const targetA4Height = isLandscape ? A4_PORTRAIT_W : A4_PORTRAIT_H;
+
+        await sharp(intermediateBuffer)
+            .resize({
+                width: Math.floor(targetA4Width * 0.95),
+                height: Math.floor(targetA4Height * 0.95),
+                fit: 'contain',
+                background: { r: 255, g: 255, b: 255, alpha: 1 }
+            })
+            .extend({
+                top: Math.floor(targetA4Height * 0.025),
+                bottom: Math.floor(targetA4Height * 0.025),
+                left: Math.floor(targetA4Width * 0.025),
+                right: Math.floor(targetA4Width * 0.025),
+                background: { r: 255, g: 255, b: 255, alpha: 1 }
+            })
+            .withMetadata({ density: 300 })
+            .png({ quality: 100 })
+            .toFile(tempPath);
         
-        // Replace old processed file if it wasn't the original scan
-        try { if (item.processedPath && item.processedPath !== item.originalPath && fs.existsSync(item.processedPath)) fs.unlinkSync(item.processedPath); } catch(e){}
-        item.processedPath = tempPath;
-        item.fileName = path.basename(tempPath);
-        item.status = 'Pending';
-        
-        // Save back into active queue or history cleanly without schema mismatch errors
-        if (queue.some(q => q.id === item.id || q.fileId === item.id)) {
-            try { db.addQueueItem(item); } catch (e) { console.error('Queue db update error:', e); }
-        }
-        if (history.some(h => h.id === item.id || h.fileId === item.id)) {
-            try { db.addHistoryItem(item); } catch (e) { console.error('History db update error:', e); }
+        // Update job item references
+        if (item) {
+            try { if (item.processedPath && item.processedPath !== item.originalPath && fs.existsSync(item.processedPath)) fs.unlinkSync(item.processedPath); } catch(e){}
+            item.processedPath = tempPath;
+            item.fileName = path.basename(tempPath);
+            item.status = 'Pending';
+            
+            if (queue.some(q => q.id === item.id || q.fileId === item.id)) {
+                try { db.addQueueItem(item); } catch (e) { console.error('Queue db update error:', e); }
+            }
+            if (history.some(h => h.id === item.id || h.fileId === item.id)) {
+                try { db.addHistoryItem(item); } catch (e) { console.error('History db update error:', e); }
+            }
         }
 
-        Logger.info('OPERATOR_DASHBOARD', `Operator applied custom image adjustments (crop/rotate/reset) to job [${jobId}]`);
-        res.json({ success: true, job: item });
+        Logger.info('OPERATOR_DASHBOARD', `Operator applied custom image adjustments to job [${jobId}] formatted for A4 sheet`);
+        res.json({ success: true, job: item || { id: jobId, fileName: path.basename(tempPath), processedPath: tempPath } });
     } catch (e) {
+        Logger.error('DOC_SCANNER', `Image modification failed: ${e.message}\n${e.stack}`);
         res.status(500).json({ error: `Image modification failed: ${e.message}` });
     }
 });

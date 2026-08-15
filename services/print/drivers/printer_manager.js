@@ -290,7 +290,7 @@ const PrinterManager = {
         const ext = path.extname(absPath).toLowerCase();
         let script = '';
 
-        // Direct hardware image spooling via .NET System.Drawing (100% background, no Windows dialogs)
+        // Direct hardware image spooling via .NET System.Drawing (100% background, no Windows dialogs, strictly A4 Sheet)
         if (['.png', '.jpg', '.jpeg', '.bmp', '.gif'].includes(ext)) {
             script = `
                 try {
@@ -299,6 +299,15 @@ const PrinterManager = {
                     $pd = New-Object System.Drawing.Printing.PrintDocument
                     $pd.PrinterSettings.PrinterName = "${targetPrinter}"
                     $pd.PrinterSettings.Copies = ${copies}
+                    
+                    # Strictly enforce A4 Sheet Paper (Kind 9 = A4 standard)
+                    $a4Paper = $pd.PrinterSettings.PaperSizes | Where-Object { $_.Kind -eq [System.Drawing.Printing.PaperKind]::A4 -or $_.PaperName -like '*A4*' } | Select-Object -First 1
+                    if ($a4Paper) {
+                        $pd.DefaultPageSettings.PaperSize = $a4Paper
+                    }
+                    $pd.DefaultPageSettings.Margins = New-Object System.Drawing.Printing.Margins(0, 0, 0, 0)
+                    $pd.OriginAtMargins = $false
+
                     $pd.add_PrintPage({
                         param($sender, $e)
                         $e.Graphics.DrawImage($img, $e.PageBounds)
