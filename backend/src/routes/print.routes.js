@@ -69,6 +69,10 @@ router.get('/printer-status', async (req, res) => {
         const result = {
             [epsonName]: epsonRes.status === 'ONLINE' ? 'Online' : 'Offline',
             [hpName]: hpRes.status === 'ONLINE' ? 'Online' : 'Offline',
+            messages: {
+                [epsonName]: epsonRes.message,
+                [hpName]: hpRes.message
+            },
             timestamp: new Date().toISOString()
         };
 
@@ -77,6 +81,10 @@ router.get('/printer-status', async (req, res) => {
         res.json({
             [epsonName]: 'Offline',
             [hpName]: 'Offline',
+            messages: {
+                [epsonName]: '⚠️ Printer is currently powered off or disconnected.',
+                [hpName]: '⚠️ Printer is currently powered off or disconnected.'
+            },
             timestamp: new Date().toISOString(),
             error: error.message
         });

@@ -193,13 +193,27 @@ export const CustomerPrintDashboard: React.FC = () => {
     return () => clearInterval(interval);
   }, [sortNewest]);
 
-  // Poll both printers every 10 seconds for live ONLINE/OFFLINE status
+  // Poll both printers every 5 seconds for live ONLINE/OFFLINE hardware status
   useEffect(() => {
     const pollPrinterStatus = async () => {
       try {
         const status = await api.fetchPrinterStatus();
         if (status && typeof status === 'object') {
           setPrinterStatus(status);
+          if ((status as any).messages) {
+            const msgs = (status as any).messages;
+            setTestResultMsg(prev => ({
+              ...prev,
+              [EPSON_NAME]: msgs[EPSON_NAME] || (status[EPSON_NAME] === 'Online' ? '✅ Printer [EPSON L3110 Series] is Online, powered on, and ready to print!' : '⚠️ Printer [EPSON L3110 Series] is currently powered off or disconnected.'),
+              [HP_NAME]: msgs[HP_NAME] || (status[HP_NAME] === 'Online' ? '✅ Printer [HP Laser MFP] is Online, powered on, and ready to print!' : '⚠️ Printer [HP Laser MFP] is currently powered off or disconnected.')
+            }));
+          } else {
+            setTestResultMsg(prev => ({
+              ...prev,
+              [EPSON_NAME]: status[EPSON_NAME] === 'Online' ? '✅ Printer [EPSON L3110 Series] is Online, powered on, and ready to print!' : '⚠️ Printer [EPSON L3110 Series] is currently powered off or disconnected.',
+              [HP_NAME]: status[HP_NAME] === 'Online' ? '✅ Printer [HP Laser MFP] is Online, powered on, and ready to print!' : '⚠️ Printer [HP Laser MFP] is currently powered off or disconnected.'
+            }));
+          }
           if (status[HP_NAME] === 'Online' && status[EPSON_NAME] !== 'Online') {
             setActivePrinterName(HP_NAME);
           } else if (status[EPSON_NAME] === 'Online' && status[HP_NAME] !== 'Online') {
@@ -211,7 +225,7 @@ export const CustomerPrintDashboard: React.FC = () => {
       }
     };
     pollPrinterStatus();
-    const statusInterval = setInterval(pollPrinterStatus, 10000);
+    const statusInterval = setInterval(pollPrinterStatus, 5000);
     return () => clearInterval(statusInterval);
   }, []);
 
@@ -403,8 +417,8 @@ export const CustomerPrintDashboard: React.FC = () => {
                 </div>
 
                 <div className="mt-2">
-                  <span className={`px-2.5 py-1 rounded text-xs font-bold uppercase ${epsonOnline ? 'text-emerald-700 bg-emerald-50' : 'text-amber-800 bg-amber-100 border border-amber-400'}`}>
-                    {epsonOnline ? '🟢 Online USB Printer' : '⚠️ OFFLINE (USB Cable Disconnected)'}
+                  <span className={`px-2.5 py-1 rounded text-xs font-bold uppercase ${epsonOnline ? 'text-emerald-800 bg-emerald-100 border-2 border-emerald-500 shadow-sm font-black' : 'text-red-800 bg-red-100 border border-red-400 font-black'}`}>
+                    {epsonOnline ? '🟢 ONLINE USB PRINTER (READY)' : '🔴 OFFLINE (POWERED OFF / CABLE DISCONNECTED)'}
                   </span>
                 </div>
 
@@ -471,8 +485,8 @@ export const CustomerPrintDashboard: React.FC = () => {
                 </div>
 
                 <div className="mt-2">
-                  <span className={`px-2.5 py-1 rounded text-xs font-bold uppercase ${hpOnline ? 'text-emerald-800 bg-emerald-100 border-2 border-emerald-500 shadow-sm font-black' : 'text-red-700 bg-red-50'}`}>
-                    {hpOnline ? '⭐ PRIMARY ACTIVE WI-FI PRINTER (CONNECTED)' : 'Secondary Backup Printer'}
+                  <span className={`px-2.5 py-1 rounded text-xs font-bold uppercase ${hpOnline ? 'text-emerald-800 bg-emerald-100 border-2 border-emerald-500 shadow-sm font-black' : 'text-red-800 bg-red-100 border border-red-400 font-black'}`}>
+                    {hpOnline ? '⭐ PRIMARY ACTIVE LASER PRINTER (READY)' : '🔴 OFFLINE (POWERED OFF / CABLE DISCONNECTED)'}
                   </span>
                 </div>
 

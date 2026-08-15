@@ -15,25 +15,61 @@ function execPowerShell(script, timeoutMs = 25000) {
 
 const PrinterManager = {
     async refreshPrintersList() {
-        Logger.logPrinterEvent("Scanning system for installed Windows printers...");
+        Logger.logPrinterEvent("Scanning system for installed Windows printers with live hardware status...");
         const script = `
             try {
-                $printers = Get-CimInstance -ClassName Win32_Printer -ErrorAction SilentlyContinue
-                if (-not $printers) {
-                    $printers = Get-WmiObject -Class Win32_Printer -ErrorAction SilentlyContinue
+                $printerMap = @{}
+                $gp = Get-Printer -ErrorAction SilentlyContinue
+                if ($gp) {
+                    foreach ($p in $gp) {
+                        $printerMap[$p.Name] = $p.PrinterStatus.ToString()
+                    }
                 }
+
+                $cimPrinters = Get-CimInstance -ClassName Win32_Printer -ErrorAction SilentlyContinue
+                if (-not $cimPrinters) {
+                    $cimPrinters = Get-WmiObject -Class Win32_Printer -ErrorAction SilentlyContinue
+                }
+
                 $res = @()
-                foreach ($w in $printers) {
-                    $statusStr = "Ready"
-                    if ($w.WorkOffline -eq $true) { $statusStr = "Offline" }
-                    elseif ($w.PrinterStatus -eq 4) { $statusStr = "Paper Out/Jam" }
-                    elseif ($w.PrinterStatus -eq 2) { $statusStr = "Error/Offline" }
-                    
+                foreach ($w in $cimPrinters) {
+                    $name = $w.Name
+                    $gpStatus = if ($printerMap.ContainsKey($name)) { $printerMap[$name] } else { $null }
+                    $workOffline = [bool]$w.WorkOffline
+                    $printerStatus = [int]$w.PrinterStatus
+                    $extendedStatus = [int]$w.ExtendedPrinterStatus
+                    $detectedError = [int]$w.DetectedErrorState
+
+                    $isOnline = $false
+
+                    if ($workOffline -eq $true) {
+                        $isOnline = $false
+                    } elseif ($gpStatus -and ($gpStatus -eq 'Offline' -or $gpStatus -eq 'Error' -or $gpStatus -eq 'PaperJam' -or $gpStatus -eq 'PaperOut' -or $gpStatus -eq 'NotAvailable')) {
+                        $isOnline = $false
+                    } elseif ($extendedStatus -in @(7, 9, 11)) {
+                        # 7=Offline, 9=Error, 11=NotAvailable
+                        $isOnline = $false
+                    } elseif ($detectedError -and $detectedError -ne 0 -and $detectedError -ne 2) {
+                        # 1=Error, 9=Offline, etc.
+                        $isOnline = $false
+                    } elseif ($printerStatus -in @(2, 4, 7)) {
+                        # 2=Error, 7=Offline, 4=Paper Out
+                        $isOnline = $false
+                    } elseif ($gpStatus -eq 'Normal') {
+                        $isOnline = $true
+                    } elseif ($printerStatus -eq 3 -and $detectedError -eq 0 -and ($extendedStatus -eq 2 -or $extendedStatus -eq 3)) {
+                        $isOnline = $true
+                    } else {
+                        $isOnline = $false
+                    }
+
                     $res += [PSCustomObject]@{
-                        name = $w.Name
+                        name = $name
                         driverName = $w.DriverName
-                        status = $statusStr
+                        status = if ($isOnline) { "Ready" } else { "Offline" }
                         isDefault = [bool]$w.Default
+                        portName = $w.PortName
+                        isOnline = $isOnline
                     }
                 }
                 $res | ConvertTo-Json -Compress
@@ -51,7 +87,7 @@ const PrinterManager = {
                 list = (Array.isArray(parsed) ? parsed : [parsed]).filter(Boolean).map(p => ({
                     name: p.name || 'Unknown Printer',
                     driverName: p.driverName || 'Standard Driver',
-                    status: p.status || 'Ready',
+                    status: p.status || 'Offline',
                     isDefault: Boolean(p.isDefault),
                     isPrimary: false,
                     isSecondary: false,
@@ -69,8 +105,8 @@ const PrinterManager = {
 
             if (!list || list.length === 0) {
                 list = [
-                    { name: 'EPSON L3110 Series', driverName: 'EPSON L3110 Series', status: 'Ready', isDefault: true, isPrimary: true, isSecondary: false, isFallback: false },
-                    { name: 'HP508140DE1D63(HP Laser MFP 131 133 135-138)', driverName: 'HP Laser MFP 131 133 135-138', status: 'Ready', isDefault: false, isPrimary: false, isSecondary: true, isFallback: false }
+                    { name: 'EPSON L3110 Series', driverName: 'EPSON L3110 Series', status: 'Offline', isDefault: true, isPrimary: true, isSecondary: false, isFallback: false },
+                    { name: 'HP508140DE1D63(HP Laser MFP 131 133 135-138)', driverName: 'HP Laser MFP 131 133 135-138', status: 'Offline', isDefault: false, isPrimary: false, isSecondary: true, isFallback: false }
                 ];
             }
 
@@ -82,8 +118,8 @@ const PrinterManager = {
             let list = db.getPrinters();
             if (list.length === 0) {
                 list = [
-                    { name: 'EPSON L3110 Series', driverName: 'EPSON L3110 Series', status: 'Ready', isDefault: true, isPrimary: true, isSecondary: false, isFallback: false },
-                    { name: 'HP508140DE1D63(HP Laser MFP 131 133 135-138)', driverName: 'HP Laser MFP 131 133 135-138', status: 'Ready', isDefault: false, isPrimary: false, isSecondary: true, isFallback: false }
+                    { name: 'EPSON L3110 Series', driverName: 'EPSON L3110 Series', status: 'Offline', isDefault: true, isPrimary: true, isSecondary: false, isFallback: false },
+                    { name: 'HP508140DE1D63(HP Laser MFP 131 133 135-138)', driverName: 'HP Laser MFP 131 133 135-138', status: 'Offline', isDefault: false, isPrimary: false, isSecondary: true, isFallback: false }
                 ];
                 db.savePrinters(list);
             }
@@ -100,7 +136,7 @@ const PrinterManager = {
             const isHp = tLower.includes('hp') || tLower.includes('131') || tLower.includes('133') || tLower.includes('135') || tLower.includes('136') || tLower.includes('138') || tLower.includes('mfp');
             const isEpson = tLower.includes('epson') || tLower.includes('l3110');
 
-            // Step 1: Check if an exact match is already Ready
+            // Step 1: Check if an exact match is already Ready (Online)
             const exactMatch = installedPrinters.find(p => p.name.toLowerCase() === tLower);
             if (exactMatch && exactMatch.status === 'Ready') {
                 return exactMatch.name;
@@ -143,18 +179,44 @@ const PrinterManager = {
         const script = `
             try {
                 $p = Get-CimInstance -ClassName Win32_Printer -Filter "Name='$safePrinterName'" -ErrorAction SilentlyContinue
-                if (-not $p) { $p = Get-WmiObject -Class Win32_Printer -Filter "Name='$safePrinterName'" -ErrorAction Stop }
-                if ($p.WorkOffline -eq $true) {
-                    try {
-                        $wmi = Get-WmiObject -Class Win32_Printer -Filter "Name='$safePrinterName'" -ErrorAction SilentlyContinue
-                        if ($wmi) { $wmi.WorkOffline = $false; $wmi.Put() }
-                    } catch {}
-                    $p = Get-CimInstance -ClassName Win32_Printer -Filter "Name='$safePrinterName'" -ErrorAction SilentlyContinue
-                }
-                if ($p.PrinterStatus -eq 2 -or $p.PrinterStatus -eq 4 -or $p.WorkOffline -eq $true) {
+                if (-not $p) { $p = Get-WmiObject -Class Win32_Printer -Filter "Name='$safePrinterName'" -ErrorAction SilentlyContinue }
+                
+                $gp = Get-Printer -Name '$safePrinterName' -ErrorAction SilentlyContinue
+
+                if (-not $p -and -not $gp) {
                     Write-Output "OFFLINE_CHECK_WIFI_OR_POWER"
+                    exit 0
+                }
+
+                $gpStatus = if ($gp) { $gp.PrinterStatus.ToString() } else { $null }
+                $workOffline = if ($p) { [bool]$p.WorkOffline } else { $false }
+                $printerStatus = if ($p) { [int]$p.PrinterStatus } else { 0 }
+                $extendedStatus = if ($p) { [int]$p.ExtendedPrinterStatus } else { 0 }
+                $detectedError = if ($p) { [int]$p.DetectedErrorState } else { 0 }
+
+                $isOnline = $false
+                if ($workOffline -eq $true) {
+                    $isOnline = $false
+                } elseif ($gpStatus -and ($gpStatus -eq 'Offline' -or $gpStatus -eq 'Error' -or $gpStatus -eq 'PaperJam' -or $gpStatus -eq 'PaperOut' -or $gpStatus -eq 'NotAvailable')) {
+                    $isOnline = $false
+                } elseif ($extendedStatus -in @(7, 9, 11)) {
+                    $isOnline = $false
+                } elseif ($detectedError -and $detectedError -ne 0 -and $detectedError -ne 2) {
+                    $isOnline = $false
+                } elseif ($printerStatus -in @(2, 4, 7)) {
+                    $isOnline = $false
+                } elseif ($gpStatus -eq 'Normal') {
+                    $isOnline = $true
+                } elseif ($printerStatus -eq 3 -and $detectedError -eq 0 -and ($extendedStatus -eq 2 -or $extendedStatus -eq 3)) {
+                    $isOnline = $true
                 } else {
+                    $isOnline = $false
+                }
+
+                if ($isOnline) {
                     Write-Output "ONLINE_READY"
+                } else {
+                    Write-Output "OFFLINE_CHECK_WIFI_OR_POWER"
                 }
             } catch {
                 Write-Output "OFFLINE_CHECK_WIFI_OR_POWER"
@@ -165,14 +227,14 @@ const PrinterManager = {
             const status = (res || '').trim();
             if (status.includes('ONLINE_READY')) {
                 Logger.logPrinterEvent(`Real-time connection confirmed: [${targetPrinter}] is Online and Ready via USB Cable / Wi-Fi.`);
-                return { success: true, status: 'ONLINE', printer: targetPrinter, message: `✅ Printer [${targetPrinter}] is Online, active, and ready to print!` };
+                return { success: true, status: 'ONLINE', printer: targetPrinter, message: `✅ Printer [${targetPrinter}] is Online, powered on, and ready to print!` };
             } else {
                 Logger.warn('PRINTER_MANAGER', `Real-time check for [${targetPrinter}] returned offline status.`);
-                return { success: false, status: 'OFFLINE', printer: targetPrinter, message: `⚠️ Printer [${targetPrinter}] is currently offline or unreachable via Wi-Fi/USB. Auto-routing to fallback printer or staging in queue for retry.` };
+                return { success: false, status: 'OFFLINE', printer: targetPrinter, message: `⚠️ Printer [${targetPrinter}] is currently powered off or disconnected. Please turn on printer power switch or connect cable.` };
             }
         } catch (error) {
             Logger.warn('PRINTER_MANAGER', `Test check fallback for ${targetPrinter}: ${error.message}`);
-            return { success: false, status: 'OFFLINE', printer: targetPrinter, message: `⚠️ Printer [${targetPrinter}] could not be connected via USB/Wi-Fi.` };
+            return { success: false, status: 'OFFLINE', printer: targetPrinter, message: `⚠️ Printer [${targetPrinter}] is powered off or unreachable.` };
         }
     },
 
