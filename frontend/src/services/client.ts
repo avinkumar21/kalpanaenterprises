@@ -405,11 +405,16 @@ class PrintsApi {
     }
   }
 
-  async testEmailWatcherConnection(config: any): Promise<any> {
-    const res = await fetchWithFallback('/email-watcher/test', {
+  async mergeAndUploadIdCard(frontFile: File, backFile: File, orientation: 'vertical' | 'horizontal' = 'vertical', copies: number = 1, colorMode: string = 'Color'): Promise<any> {
+    const formData = new FormData();
+    formData.append('front', frontFile);
+    formData.append('back', backFile);
+    formData.append('orientation', orientation);
+    formData.append('copies', copies.toString());
+    formData.append('colorMode', colorMode);
+    const res = await fetchWithFallback('/merge-id-card', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(config)
+      body: formData
     });
     return await res.json();
   }

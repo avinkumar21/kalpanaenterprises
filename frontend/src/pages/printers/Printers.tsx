@@ -82,7 +82,12 @@ export const Printers: React.FC = () => {
           <div className="col-span-3 py-16 text-center text-cyan-400 font-extrabold animate-pulse text-base">
             🔍 Interrogating physical Windows spooler print hardware...
           </div>
-        ) : printers.map((p) => {
+        ) : printers
+          .filter(p => {
+            const l = (p.name || '').toLowerCase();
+            return !['onenote', 'print to pdf', 'generic', 'text only', 'fax', 'xps', 'copy 1'].some(kw => l.includes(kw));
+          })
+          .map((p) => {
           const isReady = p.status === 'Ready';
           const isPaperOut = p.status.includes('Paper Out');
           

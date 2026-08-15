@@ -84,7 +84,42 @@ const PrinterManager = {
             let list = [];
             if (out) {
                 const parsed = JSON.parse(out);
-                list = (Array.isArray(parsed) ? parsed : [parsed]).filter(Boolean).map(p => ({
+                const rawList = (Array.isArray(parsed) ? parsed : [parsed]).filter(Boolean);
+
+                // Filter out virtual/unwanted OS printers (OneNote, Microsoft Print to PDF, Generic Text Only, Fax, XPS, etc.)
+                const unwantedKeywords = ['onenote', 'print to pdf', 'generic', 'text only', 'fax', 'xps', 'root print queue', 'virtual'];
+                
+                const physicalPrinters = rawList.filter(p => {
+                    const lName = (p.name || '').toLowerCase();
+                    const lDriver = (p.driverName || '').toLowerCase();
+                    if (unwantedKeywords.some(kw => lName.includes(kw) || lDriver.includes(kw))) {
+                        return false;
+                    }
+                    return true;
+                });
+
+                // Deduplicate copy duplicates like "EPSON L3110 Series (Copy 1)" when base "EPSON L3110 Series" exists
+                const seenFamilies = new Map();
+                for (const p of physicalPrinters) {
+                    const lName = (p.name || '').toLowerCase();
+                    const lDriver = (p.driverName || '').toLowerCase();
+                    const isHp = lName.includes('hp') || lDriver.includes('hp') || lName.includes('131') || lName.includes('135') || lName.includes('138');
+                    const isEpson = lName.includes('epson') || lDriver.includes('epson') || lName.includes('l3110');
+                    const familyKey = isHp ? 'HP' : (isEpson ? 'EPSON' : p.name);
+
+                    if (!seenFamilies.has(familyKey)) {
+                        seenFamilies.set(familyKey, p);
+                    } else {
+                        const existing = seenFamilies.get(familyKey);
+                        if (p.status === 'Ready' && existing.status !== 'Ready') {
+                            seenFamilies.set(familyKey, p);
+                        } else if (!p.name.includes('(Copy') && existing.name.includes('(Copy')) {
+                            seenFamilies.set(familyKey, p);
+                        }
+                    }
+                }
+
+                list = Array.from(seenFamilies.values()).map(p => ({
                     name: p.name || 'Unknown Printer',
                     driverName: p.driverName || 'Standard Driver',
                     status: p.status || 'Offline',

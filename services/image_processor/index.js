@@ -41,4 +41,6 @@ async function processDocument(inputPath, outputDir, options = {}) {
     }
 }
 
-module.exports = { processDocument };
+const { mergeIdCards } = require('./id_card_merger');
+
+module.exports = { processDocument, mergeIdCards };

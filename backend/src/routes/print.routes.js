@@ -9,7 +9,7 @@ const PrinterManager = require('../../../services/print/drivers/printer_manager.
 const PrintQueue = require('../../../services/print/queue/print_queue.js');
 const FolderWatcher = require('../../../services/watchers/folder_watcher.js');
 const EmailWatcher = require('../../../services/watchers/email_watcher.js');
-const { processDocument } = require('../../../services/image_processor/index.js');
+const { processDocument, mergeIdCards } = require('../../../services/image_processor/index.js');
 
 const router = express.Router();
 
@@ -554,6 +554,63 @@ router.post('/upload-document', (req, res) => {
             });
         } catch (error) {
             Logger.error('WEB_PORTAL', `Failed processing web document upload: ${error.message}`);
+            res.status(500).json({ success: false, error: error.message });
+        }
+    });
+});
+
+// POST /api/prints/merge-id-card - Merge 2-sided ID card (front & back) onto 1 single A4 sheet
+router.post('/merge-id-card', (req, res) => {
+    upload.fields([{ name: 'front', maxCount: 1 }, { name: 'back', maxCount: 1 }, { name: 'files', maxCount: 2 }])(req, res, async (err) => {
+        if (err) {
+            return res.status(400).json({ success: false, error: err.message });
+        }
+        try {
+            let frontFile = req.files?.front?.[0] || req.files?.files?.[0];
+            let backFile = req.files?.back?.[0] || req.files?.files?.[1];
+
+            if (!frontFile || !backFile) {
+                return res.status(400).json({ success: false, error: "Both Front and Back card files are required to merge onto 1 page." });
+            }
+
+            const orientation = req.body.orientation || 'vertical'; // 'vertical' (top/bottom) | 'horizontal' (side-by-side)
+            const colorMode = (req.body.colorMode || 'Color').replace(/[^a-zA-Z]/g, '') || 'Color';
+            const copies = Math.min(Math.max(Number(req.body.copies) || 1, 1), 50);
+
+            const settings = db.getSettings();
+            const targetFolder = settings.whatsAppFolder || 'D:\\WhatsApp';
+            if (!fs.existsSync(targetFolder)) {
+                fs.mkdirSync(targetFolder, { recursive: true });
+            }
+
+            const mergedResult = await mergeIdCards(frontFile.path, backFile.path, targetFolder, {
+                orientation,
+                colorMode,
+                enhance: true
+            });
+
+            // Clean up temporary upload files
+            try { if (fs.existsSync(frontFile.path)) fs.unlinkSync(frontFile.path); } catch (e) {}
+            try { if (fs.existsSync(backFile.path)) fs.unlinkSync(backFile.path); } catch (e) {}
+
+            // Standard prefix so FolderWatcher picks it up cleanly
+            const finalFilename = `webupload_${Date.now()}_${copies}c_${colorMode}_IDCard_${orientation}.png`;
+            const finalPath = path.join(targetFolder, finalFilename);
+            fs.renameSync(mergedResult.outputPath, finalPath);
+
+            Logger.info('WEB_PORTAL', `Merged 2-Sided ID Card created: [${finalFilename}] (${copies} Copies, ${orientation} Layout)`);
+
+            res.json({
+                success: true,
+                message: "2-Sided ID Card merged onto 1 page and sent to printer!",
+                filename: finalFilename,
+                copies,
+                colorMode,
+                orientation,
+                destination: targetFolder
+            });
+        } catch (error) {
+            Logger.error('WEB_PORTAL', `Failed merging 2-sided ID Card: ${error.message}`);
             res.status(500).json({ success: false, error: error.message });
         }
     });

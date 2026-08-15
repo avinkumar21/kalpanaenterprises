@@ -107,6 +107,201 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Document Type / Print Mode State ('single' vs 'id_merge')
+  const [printMode, setPrintMode] = useState<'single' | 'id_merge'>('single');
+
+  // 2-Sided ID Card State (Front & Back Merge)
+  const [frontCardFile, setFrontCardFile] = useState<File | null>(null);
+  const [backCardFile, setBackCardFile] = useState<File | null>(null);
+  const [frontCardPreview, setFrontCardPreview] = useState<string | null>(null);
+  const [backCardPreview, setBackCardPreview] = useState<string | null>(null);
+  const [idOrientation, setIdOrientation] = useState<'vertical' | 'horizontal'>('vertical');
+  const [mergedPreviewUrl, setMergedPreviewUrl] = useState<string | null>(null);
+
+  const frontInputRef = useRef<HTMLInputElement>(null);
+  const backInputRef = useRef<HTMLInputElement>(null);
+
+  // Generate live composite preview of 2-sided ID Card onto A4 Canvas in real-time
+  useEffect(() => {
+    if (!frontCardFile && !backCardFile) {
+      setMergedPreviewUrl(null);
+      return;
+    }
+
+    let isMounted = true;
+    const generateMergedPreview = async () => {
+      try {
+        const isLandscape = idOrientation === 'horizontal';
+        const canvas = document.createElement('canvas');
+        const cWidth = isLandscape ? 1200 : 850;
+        const cHeight = isLandscape ? 850 : 1200;
+        canvas.width = cWidth;
+        canvas.height = cHeight;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        // Clean white A4 paper background with subtle inner border
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(0, 0, cWidth, cHeight);
+        ctx.strokeStyle = '#E2E8F0';
+        ctx.lineWidth = 4;
+        ctx.strokeRect(10, 10, cWidth - 20, cHeight - 20);
+
+        // Target card dimensions on preview canvas
+        const cardW = isLandscape ? 480 : 540;
+        const cardH = isLandscape ? 300 : 340;
+
+        const drawCard = (img: HTMLImageElement, x: number, y: number, label: string) => {
+          // Draw card shadow
+          ctx.save();
+          ctx.shadowColor = 'rgba(0, 0, 0, 0.18)';
+          ctx.shadowBlur = 14;
+          ctx.shadowOffsetX = 0;
+          ctx.shadowOffsetY = 4;
+
+          // Draw card background
+          ctx.fillStyle = '#F8FAFC';
+          ctx.fillRect(x, y, cardW, cardH);
+          ctx.restore();
+
+          // Draw card image fitted contain
+          const imgAspect = img.naturalWidth / img.naturalHeight;
+          const cardAspect = cardW / cardH;
+          let drawW = cardW;
+          let drawH = cardH;
+          let drawX = x;
+          let drawY = y;
+
+          if (imgAspect > cardAspect) {
+            drawH = cardW / imgAspect;
+            drawY = y + (cardH - drawH) / 2;
+          } else {
+            drawW = cardH * imgAspect;
+            drawX = x + (cardW - drawW) / 2;
+          }
+
+          ctx.drawImage(img, drawX, drawY, drawW, drawH);
+
+          // Card outline border
+          ctx.strokeStyle = '#94A3B8';
+          ctx.lineWidth = 2;
+          ctx.strokeRect(x, y, cardW, cardH);
+
+          // Label tag
+          ctx.fillStyle = '#1E293B';
+          ctx.fillRect(x + 8, y + 8, 120, 22);
+          ctx.fillStyle = '#38BDF8';
+          ctx.font = 'bold 11px sans-serif';
+          ctx.fillText(label, x + 14, y + 23);
+        };
+
+        const loadImg = (file: File): Promise<HTMLImageElement> => {
+          return new Promise((resolve) => {
+            const img = new Image();
+            const url = URL.createObjectURL(file);
+            img.onload = () => {
+              resolve(img);
+            };
+            img.src = url;
+          });
+        };
+
+        if (idOrientation === 'vertical') {
+          // Vertical Layout (Top = Front, Bottom = Back)
+          const posX = (cWidth - cardW) / 2;
+          const topY = cHeight * 0.12;
+          const bottomY = cHeight * 0.54;
+
+          if (frontCardFile) {
+            const frontImg = await loadImg(frontCardFile);
+            drawCard(frontImg, posX, topY, 'CARD FRONT (ಮುಂಭಾಗ)');
+          } else {
+            ctx.fillStyle = '#F1F5F9';
+            ctx.fillRect(posX, topY, cardW, cardH);
+            ctx.strokeStyle = '#CBD5E1';
+            ctx.strokeRect(posX, topY, cardW, cardH);
+            ctx.fillStyle = '#64748B';
+            ctx.font = 'bold 14px sans-serif';
+            ctx.fillText('FRONT SIDE PENDING (ಮುಂಭಾಗ ಬಾಕಿ ಇದೆ)', posX + 60, topY + cardH / 2);
+          }
+
+          // Center dashed fold/cut guide line
+          ctx.save();
+          ctx.setLineDash([8, 8]);
+          ctx.strokeStyle = '#CBD5E1';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(40, cHeight / 2);
+          ctx.lineTo(cWidth - 40, cHeight / 2);
+          ctx.stroke();
+          ctx.restore();
+
+          if (backCardFile) {
+            const backImg = await loadImg(backCardFile);
+            drawCard(backImg, posX, bottomY, 'CARD BACK (ಹಿಂಭಾಗ)');
+          } else {
+            ctx.fillStyle = '#F1F5F9';
+            ctx.fillRect(posX, bottomY, cardW, cardH);
+            ctx.strokeStyle = '#CBD5E1';
+            ctx.strokeRect(posX, bottomY, cardW, cardH);
+            ctx.fillStyle = '#64748B';
+            ctx.font = 'bold 14px sans-serif';
+            ctx.fillText('BACK SIDE PENDING (ಹಿಂಭಾಗ ಬಾಕಿ ಇದೆ)', posX + 60, bottomY + cardH / 2);
+          }
+        } else {
+          // Horizontal Layout (Left = Front, Right = Back)
+          const posY = (cHeight - cardH) / 2;
+          const leftX = cWidth * 0.06;
+          const rightX = cWidth * 0.52;
+
+          if (frontCardFile) {
+            const frontImg = await loadImg(frontCardFile);
+            drawCard(frontImg, leftX, posY, 'CARD FRONT (ಮುಂಭಾಗ)');
+          }
+          if (backCardFile) {
+            const backImg = await loadImg(backCardFile);
+            drawCard(backImg, rightX, posY, 'CARD BACK (ಹಿಂಭಾಗ)');
+          }
+        }
+
+        if (isMounted) {
+          setMergedPreviewUrl(canvas.toDataURL('image/jpeg', 0.9));
+        }
+      } catch (err) {
+        console.error("Preview generation error:", err);
+      }
+    };
+
+    generateMergedPreview();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [frontCardFile, backCardFile, idOrientation]);
+
+  const handleFrontCardChange = (file?: File) => {
+    if (!file) return;
+    setFrontCardFile(file);
+    const UrlObj = window.URL || (window as any).webkitURL;
+    setFrontCardPreview(UrlObj.createObjectURL(file));
+  };
+
+  const handleBackCardChange = (file?: File) => {
+    if (!file) return;
+    setBackCardFile(file);
+    const UrlObj = window.URL || (window as any).webkitURL;
+    setBackCardPreview(UrlObj.createObjectURL(file));
+  };
+
+  const handleSwapCards = () => {
+    const tempFile = frontCardFile;
+    const tempPreview = frontCardPreview;
+    setFrontCardFile(backCardFile);
+    setFrontCardPreview(backCardPreview);
+    setBackCardFile(tempFile);
+    setBackCardPreview(tempPreview);
+  };
+
   const handleFileChange = (file?: File) => {
     setErrorMessage(null);
     setSuccessData(null);
@@ -187,16 +382,23 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedFile) {
-      setErrorMessage('Please choose a document or image file before submitting.');
-      return;
+    setErrorMessage(null);
+
+    // Validate inputs depending on Mode
+    if (printMode === 'id_merge') {
+      if (!frontCardFile || !backCardFile) {
+        setErrorMessage('ದಯವಿಟ್ಟು ID ಕಾರ್ಡ್‌ನ ಮುಂಭಾಗ ಮತ್ತು ಹಿಂಭಾಗ ಎರಡೂ ಫೋಟೋಗಳನ್ನು ಆಯ್ಕೆಮಾಡಿ (Please select both Front and Back photos of ID card).');
+        return;
+      }
+    } else {
+      if (!selectedFile) {
+        setErrorMessage('Please choose a document or image file before submitting.');
+        return;
+      }
     }
 
     setUploading(true);
-    setErrorMessage(null);
     try {
-      // Optimize large mobile camera photos before transfer for instant < 1s submission!
-      const fileToUpload = await prepareFileForUpload(selectedFile);
       if (connectionMode === 'mobile' && publicTunnelUrl && publicTunnelUrl.includes('trycloudflare.com')) {
         setCustomApiBase(publicTunnelUrl);
         api.setCustomApiBase(publicTunnelUrl);
@@ -205,18 +407,45 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
         setCustomApiBase(lanUrl);
         api.setCustomApiBase(lanUrl);
       }
-      const result = await api.uploadDocument(fileToUpload, copies, colorMode);
-      if (result.success) {
-        setSuccessData({
-          filename: fileToUpload.name,
+
+      let result: any;
+      let displayFilename = '';
+
+      if (printMode === 'id_merge' && frontCardFile && backCardFile) {
+        const optFront = await prepareFileForUpload(frontCardFile);
+        const optBack = await prepareFileForUpload(backCardFile);
+        result = await api.mergeAndUploadIdCard(
+          optFront,
+          optBack,
+          idOrientation,
           copies,
-          colorMode,
+          colorMode === 'Color' ? 'Color' : 'BlackWhite'
+        );
+        displayFilename = `2-Sided ID Card (${idOrientation === 'vertical' ? 'Top & Bottom' : 'Side by Side'})`;
+      } else if (selectedFile) {
+        const fileToUpload = await prepareFileForUpload(selectedFile);
+        result = await api.uploadDocument(fileToUpload, copies, colorMode);
+        displayFilename = fileToUpload.name;
+      }
+
+      if (result && result.success) {
+        setSuccessData({
+          filename: result.filename || displayFilename,
+          copies,
+          colorMode: `${colorMode} ${printMode === 'id_merge' ? '(2-Sided Merged on 1 Page)' : ''}`,
           timestamp: new Date().toLocaleTimeString()
         });
         setSelectedFile(null);
+        setFrontCardFile(null);
+        setBackCardFile(null);
+        setFrontCardPreview(null);
+        setBackCardPreview(null);
+        setMergedPreviewUrl(null);
         if (fileInputRef.current) fileInputRef.current.value = '';
+        if (frontInputRef.current) frontInputRef.current.value = '';
+        if (backInputRef.current) backInputRef.current.value = '';
       } else {
-        setErrorMessage(result.error || 'Failed to transfer document to server.');
+        setErrorMessage(result?.error || 'Failed to transfer document to server.');
       }
     } catch {
       setErrorMessage(
@@ -804,56 +1033,316 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
             </div>
           </div>
 
-          {/* DRAG & DROP / FILE SELECTION ZONE */}
-          <div
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            onDrop={handleDrop}
-            onClick={() => fileInputRef.current?.click()}
-            style={{
-              backgroundColor: isDragging ? '#1e293b' : '#0f172a',
-              border: `3px dashed ${isDragging ? '#38bdf8' : selectedFile ? '#10b981' : '#64748b'}`
-            }}
-            className="p-8 rounded-2xl transition-all cursor-pointer text-center flex flex-col items-center justify-center min-h-[220px] shadow-inner hover:border-cyan-400 group"
-          >
-            <input
-              type="file"
-              ref={fileInputRef}
-              onChange={(e) => handleFileChange(e.target.files?.[0])}
-              accept=".pdf,.png,.jpg,.jpeg,.docx,.doc,.bmp"
-              className="hidden"
-            />
+          {/* DOCUMENT PRINT TYPE / LAYOUT SELECTOR */}
+          <div className="p-4 rounded-2xl border-2 border-indigo-500/50 bg-slate-900 shadow-xl space-y-3">
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <span className="text-xs font-black uppercase text-cyan-300 flex items-center gap-2">
+                <Layers className="w-4 h-4 text-cyan-400" />
+                <span>ಪ್ರಿಂಟ್ ಪ್ರಕಾರ ಆಯ್ಕೆಮಾಡಿ • Select Document Print Type:</span>
+              </span>
+              <span className="text-[11px] font-black px-3 py-1 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 uppercase">
+                {printMode === 'single' ? '📄 Standard Document' : '🪪 2-Sided ID Card onto 1 Sheet'}
+              </span>
+            </div>
 
-            {selectedFile ? (
-              <div className="space-y-3 animate-in fade-in duration-200">
-                <div className="p-4 bg-emerald-600/30 text-emerald-300 rounded-2xl w-16 h-16 mx-auto flex items-center justify-center border border-emerald-500/40 shadow-lg">
-                  <FileText className="w-9 h-9 text-emerald-400 animate-bounce" />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setPrintMode('single')}
+                style={printMode === 'single'
+                  ? { backgroundColor: '#1e3a8a', border: '2px solid #60a5fa', color: '#ffffff', boxShadow: '0 0 15px rgba(96, 165, 250, 0.35)' }
+                  : { backgroundColor: '#1e293b', border: '1px solid #475569', color: '#94a3b8' }
+                }
+                className="p-4 rounded-xl text-left font-black transition cursor-pointer flex items-center gap-3"
+              >
+                <div className="p-2.5 rounded-xl bg-blue-500/20 text-blue-400">
+                  <FileText className="w-6 h-6" />
                 </div>
                 <div>
-                  <h4 className="text-lg font-black text-white truncate max-w-md mx-auto">{selectedFile.name}</h4>
-                  <span className="text-xs font-mono font-black text-emerald-300 bg-emerald-950 px-3.5 py-1.5 rounded-full border border-emerald-600 inline-block mt-1">
-                    🟢 ಪ್ರಿಂಟ್‌ಗೆ ಸಿದ್ಧವಾಗಿದೆ • Ready ({(selectedFile.size / (1024 * 1024)).toFixed(2)} MB)
-                  </span>
+                  <h4 className="text-sm font-black text-white">📄 ಸಾಮಾನ್ಯ ಡಾಕ್ಯುಮೆಂಟ್ (Standard Document)</h4>
+                  <p className="text-[11px] font-bold text-slate-300">Single File or Multi-page PDF / Photo</p>
                 </div>
-                <p className="text-xs text-slate-400 font-bold underline group-hover:text-white transition">ಬೇರೆ ಫೈಲ್ ಆಯ್ಕೆ ಮಾಡಲು ಇಲ್ಲಿ ಕ್ಲಿಕ್ ಮಾಡಿ • (Tap to change file)</p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                <div className="p-4 bg-cyan-500/20 text-cyan-400 rounded-2xl w-16 h-16 mx-auto flex items-center justify-center border border-cyan-500/30 group-hover:scale-110 transition shadow-lg">
-                  <Upload className="w-8 h-8 text-cyan-400 animate-pulse" />
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setPrintMode('id_merge')}
+                style={printMode === 'id_merge'
+                  ? { backgroundColor: '#065f46', border: '2px solid #34d399', color: '#ffffff', boxShadow: '0 0 15px rgba(52, 211, 153, 0.35)' }
+                  : { backgroundColor: '#1e293b', border: '1px solid #475569', color: '#94a3b8' }
+                }
+                className="p-4 rounded-xl text-left font-black transition cursor-pointer flex items-center gap-3"
+              >
+                <div className="p-2.5 rounded-xl bg-emerald-500/20 text-emerald-400">
+                  <Sparkles className="w-6 h-6 animate-pulse" />
                 </div>
                 <div>
-                  <h4 className="text-lg md:text-xl font-black text-white">ಇಲ್ಲಿ ಟಚ್ ಮಾಡಿ ಅಥವಾ ಫೈಲ್ ಡ್ರಾಪ್ ಮಾಡಿ (Tap Here or Drop File)</h4>
-                  <p className="text-xs font-bold text-cyan-200 mt-1">ಬೆಂಬಲಿತ ಫೈಲ್‌ಗಳು • Supported Formats: <span className="text-amber-300 font-mono">PDF, PNG, JPG, JPEG, DOCX</span></p>
+                  <h4 className="text-sm font-black text-white">🪪 2 ಮುಖದ ID ಕಾರ್ಡ್ (Merge 2-Sided ID on 1 Sheet)</h4>
+                  <p className="text-[11px] font-bold text-emerald-300">Aadhar, PAN, Driving License, Voter ID (Front+Back)</p>
                 </div>
-                <div className="pt-2">
-                  <span className="px-5 py-2.5 rounded-xl bg-cyan-600 text-black font-black text-xs uppercase tracking-wider shadow-lg inline-block hover:bg-cyan-400 transition">
-                    📂 ಮೊಬೈಲ್ / ಡೆಸ್ಕ್‌ಟಾಪ್ ಫೈಲ್ ತೆರೆಯಿರಿ (Browse Files)
-                  </span>
-                </div>
-              </div>
-            )}
+              </button>
+            </div>
           </div>
+
+          {/* ============================================================ */}
+          {/* MODE A: STANDARD SINGLE DOCUMENT UPLOAD ZONE */}
+          {/* ============================================================ */}
+          {printMode === 'single' && (
+            <div
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              onClick={() => fileInputRef.current?.click()}
+              style={{
+                backgroundColor: isDragging ? '#1e293b' : '#0f172a',
+                border: `3px dashed ${isDragging ? '#38bdf8' : selectedFile ? '#10b981' : '#64748b'}`
+              }}
+              className="p-8 rounded-2xl transition-all cursor-pointer text-center flex flex-col items-center justify-center min-h-[220px] shadow-inner hover:border-cyan-400 group"
+            >
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={(e) => handleFileChange(e.target.files?.[0])}
+                accept=".pdf,.png,.jpg,.jpeg,.docx,.doc,.bmp"
+                className="hidden"
+              />
+
+              {selectedFile ? (
+                <div className="space-y-3 animate-in fade-in duration-200">
+                  <div className="p-4 bg-emerald-600/30 text-emerald-300 rounded-2xl w-16 h-16 mx-auto flex items-center justify-center border border-emerald-500/40 shadow-lg">
+                    <FileText className="w-9 h-9 text-emerald-400 animate-bounce" />
+                  </div>
+                  <div>
+                    <h4 className="text-lg font-black text-white truncate max-w-md mx-auto">{selectedFile.name}</h4>
+                    <span className="text-xs font-mono font-black text-emerald-300 bg-emerald-950 px-3.5 py-1.5 rounded-full border border-emerald-600 inline-block mt-1">
+                      🟢 ಪ್ರಿಂಟ್‌ಗೆ ಸಿದ್ಧವಾಗಿದೆ • Ready ({(selectedFile.size / (1024 * 1024)).toFixed(2)} MB)
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-400 font-bold underline group-hover:text-white transition">ಬೇರೆ ಫೈಲ್ ಆಯ್ಕೆ ಮಾಡಲು ಇಲ್ಲಿ ಕ್ಲಿಕ್ ಮಾಡಿ • (Tap to change file)</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <div className="p-4 bg-cyan-500/20 text-cyan-400 rounded-2xl w-16 h-16 mx-auto flex items-center justify-center border border-cyan-500/30 group-hover:scale-110 transition shadow-lg">
+                    <Upload className="w-8 h-8 text-cyan-400 animate-pulse" />
+                  </div>
+                  <div>
+                    <h4 className="text-lg md:text-xl font-black text-white">ಇಲ್ಲಿ ಟಚ್ ಮಾಡಿ ಅಥವಾ ಫೈಲ್ ಡ್ರಾಪ್ ಮಾಡಿ (Tap Here or Drop File)</h4>
+                    <p className="text-xs font-bold text-cyan-200 mt-1">ಬೆಂಬಲಿತ ಫೈಲ್‌ಗಳು • Supported Formats: <span className="text-amber-300 font-mono">PDF, PNG, JPG, JPEG, DOCX</span></p>
+                  </div>
+                  <div className="pt-2">
+                    <span className="px-5 py-2.5 rounded-xl bg-cyan-600 text-black font-black text-xs uppercase tracking-wider shadow-lg inline-block hover:bg-cyan-400 transition">
+                      📂 ಮೊಬೈಲ್ / ಡೆಸ್ಕ್‌ಟಾಪ್ ಫೈಲ್ ತೆರೆಯಿರಿ (Browse Files)
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ============================================================ */}
+          {/* MODE B: 2-SIDED ID CARD MERGE STUDIO (FRONT + BACK ONTO 1 SHEET) */}
+          {/* ============================================================ */}
+          {printMode === 'id_merge' && (
+            <div className="space-y-6 animate-in fade-in duration-300">
+              
+              {/* MERGE ORIENTATION SELECTOR (VERTICAL / HORIZONTAL) */}
+              <div className="p-4 rounded-2xl border border-emerald-500/40 bg-slate-900 shadow-md space-y-2">
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <span className="text-xs font-black uppercase text-amber-300 flex items-center gap-1.5">
+                    📐 1 ಪುಟದಲ್ಲಿ ಲೇಔಟ್ ಜೋಡಣೆ (Select A4 Sheet Layout):
+                  </span>
+                  <span className="text-[11px] font-extrabold text-emerald-300">
+                    {idOrientation === 'vertical' ? '↕️ Vertical (Top & Bottom / ಮೇಲೆ & ಕೆಳಗೆ)' : '↔️ Horizontal (Side by Side / ಪಕ್ಕ ಪಕ್ಕದಲ್ಲಿ)'}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => setIdOrientation('vertical')}
+                    style={idOrientation === 'vertical'
+                      ? { backgroundColor: '#059669', border: '2px solid #34d399', color: '#ffffff', boxShadow: '0 0 12px rgba(52, 211, 153, 0.4)' }
+                      : { backgroundColor: '#1e293b', border: '1px solid #475569', color: '#94a3b8' }
+                    }
+                    className="p-3 rounded-xl font-black text-xs uppercase tracking-wider transition cursor-pointer flex flex-col items-center justify-center gap-1 active:scale-95"
+                  >
+                    <span className="text-base">↕️ ಮೇಲೆ ಮತ್ತು ಕೆಳಗೆ (Vertical)</span>
+                    <span className="text-[10px] opacity-90">Top & Bottom (Standard Xerox)</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setIdOrientation('horizontal')}
+                    style={idOrientation === 'horizontal'
+                      ? { backgroundColor: '#059669', border: '2px solid #34d399', color: '#ffffff', boxShadow: '0 0 12px rgba(52, 211, 153, 0.4)' }
+                      : { backgroundColor: '#1e293b', border: '1px solid #475569', color: '#94a3b8' }
+                    }
+                    className="p-3 rounded-xl font-black text-xs uppercase tracking-wider transition cursor-pointer flex flex-col items-center justify-center gap-1 active:scale-95"
+                  >
+                    <span className="text-base">↔️ ಪಕ್ಕ ಪಕ್ಕದಲ್ಲಿ (Horizontal)</span>
+                    <span className="text-[10px] opacity-90">Side by Side (Landscape)</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* DUAL DROPZONES: FRONT & BACK OF ID CARD */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                
+                {/* 1. FRONT CARD DROPZONE */}
+                <div className="p-5 rounded-2xl border-2 border-indigo-500/60 bg-slate-900 shadow-xl space-y-3 flex flex-col justify-between">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-black uppercase tracking-wider text-cyan-300 flex items-center gap-1.5">
+                      <span>1️⃣ ಮುಂಭಾಗ • Card Front Side</span>
+                    </span>
+                    {frontCardFile && (
+                      <button
+                        type="button"
+                        onClick={() => { setFrontCardFile(null); setFrontCardPreview(null); }}
+                        className="text-[11px] font-black text-rose-400 hover:text-rose-300 underline cursor-pointer"
+                      >
+                        ✕ ತೆಗೆದುಹಾಕಿ (Remove)
+                      </button>
+                    )}
+                  </div>
+
+                  <input
+                    type="file"
+                    ref={frontInputRef}
+                    onChange={(e) => handleFrontCardChange(e.target.files?.[0])}
+                    accept="image/*,.pdf"
+                    className="hidden"
+                  />
+
+                  {frontCardPreview ? (
+                    <div
+                      onClick={() => frontInputRef.current?.click()}
+                      className="w-full h-44 rounded-xl border-2 border-emerald-400 overflow-hidden bg-slate-950 flex items-center justify-center relative cursor-pointer group shadow-lg"
+                    >
+                      <img src={frontCardPreview} alt="Front Card" className="w-full h-full object-contain p-1" />
+                      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition flex items-center justify-center font-black text-xs text-white">
+                        🔄 ಬದಲಾಯಿಸಲು ಟ್ಯಾಪ್ ಮಾಡಿ (Change)
+                      </div>
+                    </div>
+                  ) : (
+                    <div
+                      onClick={() => frontInputRef.current?.click()}
+                      className="w-full h-44 rounded-xl border-2 border-dashed border-cyan-500/50 hover:border-cyan-400 bg-slate-950/80 flex flex-col items-center justify-center text-center p-4 cursor-pointer group transition"
+                    >
+                      <div className="p-3 rounded-xl bg-cyan-500/20 text-cyan-400 mb-2 group-hover:scale-110 transition">
+                        <Upload className="w-6 h-6" />
+                      </div>
+                      <h5 className="text-sm font-black text-white">ಮುಂಭಾಗ ಫೋಟೋ ಆಯ್ಕೆಮಾಡಿ</h5>
+                      <p className="text-[11px] font-bold text-slate-400 mt-0.5">Upload Front Side of Aadhar / PAN / ID</p>
+                    </div>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={() => frontInputRef.current?.click()}
+                    style={{ backgroundColor: '#1e3a8a', color: '#ffffff', border: '1px solid #60a5fa' }}
+                    className="w-full py-2.5 rounded-xl font-black text-xs uppercase tracking-wider hover:bg-blue-800 transition cursor-pointer flex items-center justify-center gap-1.5"
+                  >
+                    <span>📷 ಮುಂಭಾಗ ಫೋಟೋ (Select Front)</span>
+                  </button>
+                </div>
+
+                {/* 2. BACK CARD DROPZONE */}
+                <div className="p-5 rounded-2xl border-2 border-emerald-500/60 bg-slate-900 shadow-xl space-y-3 flex flex-col justify-between">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-black uppercase tracking-wider text-emerald-300 flex items-center gap-1.5">
+                      <span>2️⃣ ಹಿಂಭಾಗ • Card Back Side</span>
+                    </span>
+                    {backCardFile && (
+                      <button
+                        type="button"
+                        onClick={() => { setBackCardFile(null); setBackCardPreview(null); }}
+                        className="text-[11px] font-black text-rose-400 hover:text-rose-300 underline cursor-pointer"
+                      >
+                        ✕ ತೆಗೆದುಹಾಕಿ (Remove)
+                      </button>
+                    )}
+                  </div>
+
+                  <input
+                    type="file"
+                    ref={backInputRef}
+                    onChange={(e) => handleBackCardChange(e.target.files?.[0])}
+                    accept="image/*,.pdf"
+                    className="hidden"
+                  />
+
+                  {backCardPreview ? (
+                    <div
+                      onClick={() => backInputRef.current?.click()}
+                      className="w-full h-44 rounded-xl border-2 border-emerald-400 overflow-hidden bg-slate-950 flex items-center justify-center relative cursor-pointer group shadow-lg"
+                    >
+                      <img src={backCardPreview} alt="Back Card" className="w-full h-full object-contain p-1" />
+                      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition flex items-center justify-center font-black text-xs text-white">
+                        🔄 ಬದಲಾಯಿಸಲು ಟ್ಯಾಪ್ ಮಾಡಿ (Change)
+                      </div>
+                    </div>
+                  ) : (
+                    <div
+                      onClick={() => backInputRef.current?.click()}
+                      className="w-full h-44 rounded-xl border-2 border-dashed border-emerald-500/50 hover:border-emerald-400 bg-slate-950/80 flex flex-col items-center justify-center text-center p-4 cursor-pointer group transition"
+                    >
+                      <div className="p-3 rounded-xl bg-emerald-500/20 text-emerald-400 mb-2 group-hover:scale-110 transition">
+                        <Upload className="w-6 h-6" />
+                      </div>
+                      <h5 className="text-sm font-black text-white">ಹಿಂಭಾಗ ಫೋಟೋ ಆಯ್ಕೆಮಾಡಿ</h5>
+                      <p className="text-[11px] font-bold text-slate-400 mt-0.5">Upload Back Side of Aadhar / PAN / ID</p>
+                    </div>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={() => backInputRef.current?.click()}
+                    style={{ backgroundColor: '#065f46', color: '#ffffff', border: '1px solid #34d399' }}
+                    className="w-full py-2.5 rounded-xl font-black text-xs uppercase tracking-wider hover:bg-emerald-800 transition cursor-pointer flex items-center justify-center gap-1.5"
+                  >
+                    <span>📷 ಹಿಂಭಾಗ ಫೋಟೋ (Select Back)</span>
+                  </button>
+                </div>
+
+              </div>
+
+              {/* SWAP SIDES & LIVE MERGED A4 PREVIEW */}
+              {(frontCardFile || backCardFile) && (
+                <div className="p-5 rounded-2xl border-2 border-cyan-500/50 bg-slate-900 shadow-2xl space-y-4">
+                  <div className="flex items-center justify-between flex-wrap gap-2 border-b border-slate-800 pb-3">
+                    <div>
+                      <h4 className="text-sm font-black text-white flex items-center gap-2">
+                        <Monitor className="w-4 h-4 text-cyan-400" />
+                        <span>🖼️ 1 ಪುಟದಲ್ಲಿ ಲೈವ್ ಪ್ರಿವ್ಯೂ • Live Merged A4 Sheet Preview</span>
+                      </h4>
+                      <p className="text-[11px] font-bold text-slate-300">ಹೇಗೆ ಪ್ರಿಂಟ್ ಆಗುತ್ತದೆ ಎಂಬುದನ್ನು ಕೆಳಗೆ ನೋಡಿ (Exact print output shown below)</p>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={handleSwapCards}
+                      style={{ backgroundColor: '#475569', color: '#ffffff', border: '1px solid #94a3b8' }}
+                      className="px-3.5 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider hover:bg-slate-700 transition flex items-center gap-1.5 cursor-pointer shadow"
+                      title="Swap Front and Back Cards"
+                    >
+                      <span>🔄 ಮುಂಭಾಗ ↔ ಹಿಂಭಾಗ ಅದಲು-ಬದಲು (Swap Sides)</span>
+                    </button>
+                  </div>
+
+                  {mergedPreviewUrl && (
+                    <div className="flex justify-center p-3 bg-slate-950 rounded-xl border border-slate-800">
+                      <img
+                        src={mergedPreviewUrl}
+                        alt="Merged ID Card A4 Preview"
+                        className="max-h-[380px] w-auto object-contain rounded-lg shadow-2xl border border-slate-700"
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
+
+            </div>
+          )}
 
           {/* SETTINGS (COPIES & COLOR MODE) */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
@@ -938,7 +1427,7 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
           <div className="pt-3">
             <button
               type="submit"
-              disabled={uploading || !selectedFile}
+              disabled={uploading || (printMode === 'single' ? !selectedFile : (!frontCardFile || !backCardFile))}
               style={{
                 background: 'linear-gradient(to right, #0891b2, #3b82f6, #6366f1)',
                 color: '#ffffff',
@@ -950,12 +1439,16 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
               {uploading ? (
                 <>
                   <RefreshCw className="w-6 h-6 animate-spin text-white flex-shrink-0" />
-                  <span>ಫೈಲ್ ಕಳುಹಿಸಲಾಗುತ್ತಿದೆ • Sending to Print Station...</span>
+                  <span>ಫೈಲ್ ಕಳುಹಿಸಲಾಗುತ್ತಿದೆ • Processing & Sending to Print Station...</span>
                 </>
               ) : (
                 <>
                   <Printer className="w-7 h-7 text-amber-300 animate-bounce flex-shrink-0" />
-                  <span>🚀 ಪ್ರಿಂಟ್‌ಗೆ ಕಳುಹಿಸಿ • SEND TO PRINTER NOW</span>
+                  <span>
+                    {printMode === 'id_merge'
+                      ? '🪪 1 ಪುಟದಲ್ಲಿ ID ಕಾರ್ಡ್ ಪ್ರಿಂಟ್ ಮಾಡಿ • MERGE & PRINT ID CARD'
+                      : '🚀 ಪ್ರಿಂಟ್‌ಗೆ ಕಳುಹಿಸಿ • SEND TO PRINTER NOW'}
+                  </span>
                 </>
               )}
             </button>
