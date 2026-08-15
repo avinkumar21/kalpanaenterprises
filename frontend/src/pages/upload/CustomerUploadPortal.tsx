@@ -61,6 +61,20 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
     }
   }, [publicTunnelUrl]);
 
+  useEffect(() => {
+    const syncTunnelUrl = async () => {
+      try {
+        const status = await api.fetchStatus();
+        if (status && status.publicTunnelUrl && status.publicTunnelUrl.includes('trycloudflare.com')) {
+          setPublicTunnelUrl(status.publicTunnelUrl);
+        }
+      } catch (e) {}
+    };
+    syncTunnelUrl();
+    const interval = setInterval(syncTunnelUrl, 8000);
+    return () => clearInterval(interval);
+  }, []);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (file?: File) => {
@@ -365,7 +379,22 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
   };
 
   const portSuffix = port && port !== '80' ? `:${port}` : '';
-  const portalUrl = typeof window !== 'undefined' ? `${window.location.origin}/prints?kiosk=true#upload` : '';
+  const portalUrl = (() => {
+    if (accessMode === 'wifi') {
+      return `http://${shopLanIp || '192.168.31.242'}${portSuffix}/prints?kiosk=true#upload`;
+    }
+    if (accessMode === 'mobile_web') {
+      const cleanTunnel = (publicTunnelUrl || '').trim().replace(/\/+$/, '');
+      if (cleanTunnel) {
+        return cleanTunnel.endsWith('/prints') ? `${cleanTunnel}?kiosk=true#upload` : `${cleanTunnel}/prints?kiosk=true#upload`;
+      }
+      return typeof window !== 'undefined' ? `${window.location.origin}/prints?kiosk=true#upload` : '';
+    }
+    if (accessMode === 'email') {
+      return `mailto:${shopEmail}?subject=Customer%20Print%20Order`;
+    }
+    return typeof window !== 'undefined' ? `${window.location.origin}/prints?kiosk=true#upload` : '';
+  })();
 
   return (
     <div className="max-w-3xl mx-auto p-4 md:p-6 space-y-6 animate-in fade-in duration-300 text-white font-sans">

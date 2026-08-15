@@ -50,14 +50,34 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 8082;
 
+function monitorCloudflareTunnel() {
+    setInterval(() => {
+        try {
+            const tunnelLogPath = path.resolve(__dirname, '../../logs/tunnel.log');
+            if (fs.existsSync(tunnelLogPath)) {
+                const content = fs.readFileSync(tunnelLogPath, 'utf8');
+                const matches = content.match(/https:\/\/[a-zA-Z0-9-]+\.trycloudflare\.com/g);
+                if (matches && matches.length > 0) {
+                    const latestUrl = matches[matches.length - 1];
+                    const currentSettings = db.getSettings();
+                    if (currentSettings.publicTunnelUrl !== latestUrl) {
+                        db.saveSettings({ ...currentSettings, publicTunnelUrl: latestUrl });
+                        console.log(`[TUNNEL] Detected active Cloudflare HTTPS Tunnel: ${latestUrl}`);
+                    }
+                }
+            }
+        } catch (e) {}
+    }, 4000);
+}
+
 const server = app.listen(PORT, '0.0.0.0', async () => {
     console.log(`=== ARKA Print Engine Server Booted on Port ${PORT} ===`);
     
-    // In production after migration, start the background workers here:
     await PrinterManager.refreshPrintersList();
     PrintQueue.start(2500);
     FolderWatcher.start();
     EmailWatcher.start();
+    monitorCloudflareTunnel();
 });
 
 // Graceful Shutdown for PM2

@@ -35,6 +35,7 @@ router.get('/status', async (req, res) => {
             status: 'ONLINE',
             serviceName: 'ARKA Print Service (24x7 Continuous Engine)',
             timestamp: new Date().toISOString(),
+            publicTunnelUrl: db.getSettings().publicTunnelUrl || '',
             watcher: watcherStatus,
             metrics: {
                 filesToday: todayStat.totalReceived,

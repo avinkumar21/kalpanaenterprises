@@ -30,5 +30,8 @@ Write-Host "💡 Copy the 'https://...trycloudflare.com' URL and paste it into y
 Write-Host "Customers on 4G/5G mobile data will open your portal INSTANTLY with zero IP checks and stable uptime!" -ForegroundColor Yellow
 Write-Host "=================================================================" -ForegroundColor Cyan
 
+$root = (Get-Item $PSScriptRoot).Parent.FullName
+$logFile = Join-Path $root "logs\tunnel.log"
+
 # Launch Cloudflare Quick Tunnel forwarding directly to Port 80 using HTTP/2
-cmd.exe /c "npx.cmd -y cloudflared tunnel --protocol http2 --url http://localhost:80"
+cmd.exe /c "npx.cmd -y cloudflared tunnel --protocol http2 --url http://localhost:80 > ""$logFile"" 2>&1"
