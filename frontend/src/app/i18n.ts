@@ -13,7 +13,14 @@ const resources = {
   ta: { translation: taTranslation }
 };
 
-const savedLanguage = localStorage.getItem('gravity-lang') || 'en';
+let savedLanguage = 'en';
+try {
+  if (typeof window !== 'undefined' && window.localStorage) {
+    savedLanguage = window.localStorage.getItem('gravity-lang') || 'en';
+  }
+} catch (e) {
+  savedLanguage = 'en';
+}
 
 i18n
   .use(initReactI18next)

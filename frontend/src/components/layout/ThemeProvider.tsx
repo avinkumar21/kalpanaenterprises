@@ -12,8 +12,13 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setTheme] = useState<Theme>(() => {
-    const saved = localStorage.getItem('gravity-theme');
-    return (saved as Theme) || 'light';
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        const saved = window.localStorage.getItem('gravity-theme');
+        return (saved as Theme) || 'dark';
+      }
+    } catch {}
+    return 'dark';
   });
 
   useEffect(() => {
@@ -23,7 +28,11 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     } else {
       root.classList.remove('dark');
     }
-    localStorage.setItem('gravity-theme', theme);
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        window.localStorage.setItem('gravity-theme', theme);
+      }
+    } catch {}
   }, [theme]);
 
   const toggleTheme = () => {
