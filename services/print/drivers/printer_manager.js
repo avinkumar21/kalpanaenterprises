@@ -519,14 +519,15 @@ const PrinterManager = {
         }
 
         try {
-            await execPowerShell(script, 25000);
+            const execTimeout = ext === '.pdf' ? 240000 : 35000;
+            await execPowerShell(script, execTimeout);
             Logger.logPrinting(`Successfully spooled [${path.basename(filePath)}] directly to physical printer [${targetPrinter}]!`);
             return { success: true, printer: targetPrinter, copies, mode: 'Direct Hardware Spooler' };
         } catch (error) {
-            // Try secondary printer before giving up
+            // Try secondary printer before giving up only if secondary is defined and different
             const secondaryPrinter = settings.secondaryPrinter;
             if (secondaryPrinter && secondaryPrinter !== targetPrinter && !options.isFallbackAttempt) {
-                Logger.warn('PRINTER_MANAGER', `Printer [${targetPrinter}] unreachable. Trying secondary printer [${secondaryPrinter}]...`);
+                Logger.warn('PRINTER_MANAGER', `Printer [${targetPrinter}] print failed. Trying secondary printer [${secondaryPrinter}]...`);
                 return await this.printFile(filePath, secondaryPrinter, copies, { ...options, isFallbackAttempt: true });
             }
             Logger.error('PRINTER_MANAGER', `Printer spool error: ${error.message}`);

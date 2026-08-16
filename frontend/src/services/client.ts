@@ -173,10 +173,13 @@ export async function fetchWithFallback(endpointPath: string, options?: RequestI
   const uniqueBases = Array.from(new Set(candidateBases.filter(Boolean).map(b => b.trim().replace(/\/+$/, ''))));
 
   let lastError: any = null;
+  const isUpload = options?.body instanceof FormData || endpointPath.includes('upload');
+  const timeoutMs = (options as any)?.timeout || (isUpload ? 180000 : 15000);
+
   for (const base of uniqueBases) {
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 12000);
+      const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
       
       const cleanPath = endpointPath.startsWith('/') ? endpointPath : `/${endpointPath}`;
       const res = await fetch(`${base}${cleanPath}`, {
