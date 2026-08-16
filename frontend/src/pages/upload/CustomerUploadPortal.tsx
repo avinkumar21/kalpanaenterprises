@@ -12,12 +12,12 @@ interface CustomerUploadPortalProps {
 export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCustomerKiosk = false }) => {
   const isKioskMode = isCustomerKiosk || (typeof window !== 'undefined' && (window.location.hash.includes('customer') || window.location.hash.includes('kiosk') || window.location.search.includes('customer') || window.location.search.includes('kiosk')));
 
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [copies, setCopies] = useState<number>(1);
   const [colorMode] = useState<'Color' | 'Black & White'>('Black & White');
   
   const [uploading, setUploading] = useState(false);
-  const [successData, setSuccessData] = useState<{ filename: string; copies: number; colorMode: string; timestamp: string } | null>(null);
+  const [successData, setSuccessData] = useState<{ filename: string; fileCount?: number; filenames?: string[]; copies: number; colorMode: string; timestamp: string } | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
 
@@ -305,21 +305,33 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
     setBackCardPreview(tempPreview);
   };
 
-  const handleFileChange = (file?: File) => {
-    setErrorMessage(null);
-    setSuccessData(null);
-    if (!file) return;
-    
-    const ext = file.name.slice(file.name.lastIndexOf('.')).toLowerCase();
-    const allowedExts = ['.pdf', '.png', '.jpg', '.jpeg', '.docx', '.doc', '.bmp'];
+  const handleAddFiles = (files: FileList | File[] | null | undefined) => {
+    if (!files || files.length === 0) return;
+    const allowedExts = ['.pdf', '.png', '.jpg', '.jpeg', '.docx', '.doc', '.bmp', '.webp'];
+    const validFiles: File[] = [];
 
-    if (!allowedExts.includes(ext)) {
-      setErrorMessage(`Unsupported file format (${ext}). Please select a PDF, PNG, JPG, JPEG, or DOCX file.`);
-      setSelectedFile(null);
+    Array.from(files).forEach(file => {
+      const ext = '.' + file.name.split('.').pop()?.toLowerCase();
+      if (allowedExts.includes(ext)) {
+        validFiles.push(file);
+      }
+    });
+
+    if (validFiles.length === 0) {
+      setErrorMessage('ಬೆಂಬಲಿತ ಫೈಲ್‌ಗಳನ್ನು ಮಾತ್ರ ಆಯ್ಕೆಮಾಡಿ (PDF, PNG, JPG, DOCX).');
       return;
     }
 
-    setSelectedFile(file);
+    setSelectedFiles(prev => {
+      const existingKeys = new Set(prev.map(f => `${f.name}_${f.size}`));
+      const newItems = validFiles.filter(f => !existingKeys.has(`${f.name}_${f.size}`));
+      return [...prev, ...newItems];
+    });
+    setErrorMessage(null);
+  };
+
+  const handleRemoveFile = (index: number) => {
+    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -336,7 +348,7 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
     e.preventDefault();
     setIsDragging(false);
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      handleFileChange(e.dataTransfer.files[0]);
+      handleAddFiles(e.dataTransfer.files);
     }
   };
 
@@ -394,8 +406,8 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
         return;
       }
     } else {
-      if (!selectedFile) {
-        setErrorMessage('Please choose a document or image file before submitting.');
+      if (selectedFiles.length === 0) {
+        setErrorMessage('ದಯವಿಟ್ಟು ಕನಿಷ್ಠ 1 ಡಾಕ್ಯುಮೆಂಟ್ ಅಥವಾ ಫೋಟೋ ಫೈಲ್ ಆಯ್ಕೆಮಾಡಿ (Please select at least 1 file to print).');
         return;
       }
     }
@@ -426,33 +438,47 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
           optBack,
           idOrientation,
           copies,
-          colorMode === 'Color' ? 'Color' : 'BlackWhite'
+          'BlackWhite'
         );
         displayFilename = `2-Sided ID Card (${idOrientation === 'vertical' ? 'Top & Bottom' : 'Side by Side'})`;
-      } else if (selectedFile) {
-        const fileToUpload = await prepareFileForUpload(selectedFile);
-        result = await api.uploadDocument(fileToUpload, copies, colorMode);
-        displayFilename = fileToUpload.name;
-      }
-
-      if (result && result.success) {
-        setSuccessData({
-          filename: result.filename || displayFilename,
-          copies,
-          colorMode: `${colorMode} ${printMode === 'id_merge' ? '(2-Sided Merged on 1 Page)' : ''}`,
-          timestamp: new Date().toLocaleTimeString()
-        });
-        setSelectedFile(null);
-        setFrontCardFile(null);
-        setBackCardFile(null);
-        setFrontCardPreview(null);
-        setBackCardPreview(null);
-        setMergedPreviewUrl(null);
-        if (fileInputRef.current) fileInputRef.current.value = '';
-        if (frontInputRef.current) frontInputRef.current.value = '';
-        if (backInputRef.current) backInputRef.current.value = '';
-      } else {
-        setErrorMessage(result?.error || 'Failed to transfer document to server.');
+        
+        if (result && result.success) {
+          setSuccessData({
+            filename: result.filename || displayFilename,
+            fileCount: 1,
+            filenames: [result.filename || displayFilename],
+            copies,
+            colorMode: `Black & White (2-Sided ID Card onto 1 Sheet)`,
+            timestamp: new Date().toLocaleTimeString()
+          });
+          setFrontCardFile(null);
+          setBackCardFile(null);
+          setFrontCardPreview(null);
+          setBackCardPreview(null);
+          setMergedPreviewUrl(null);
+          if (frontInputRef.current) frontInputRef.current.value = '';
+          if (backInputRef.current) backInputRef.current.value = '';
+        } else {
+          setErrorMessage(result?.error || 'Failed to transfer document to server.');
+        }
+      } else if (selectedFiles.length > 0) {
+        const optimizedFiles = await Promise.all(selectedFiles.map(f => prepareFileForUpload(f)));
+        result = await api.uploadDocument(optimizedFiles, copies, colorMode);
+        
+        if (result && result.success) {
+          setSuccessData({
+            filename: selectedFiles.length === 1 ? selectedFiles[0].name : `${selectedFiles.length} Documents Sent to Printer`,
+            fileCount: selectedFiles.length,
+            filenames: selectedFiles.map(f => f.name),
+            copies,
+            colorMode: colorMode,
+            timestamp: new Date().toLocaleTimeString()
+          });
+          setSelectedFiles([]);
+          if (fileInputRef.current) fileInputRef.current.value = '';
+        } else {
+          setErrorMessage(result?.error || 'Failed to transfer document to server.');
+        }
       }
     } catch {
       setErrorMessage(
@@ -662,7 +688,7 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
           </div>
           <div>
             <h1 className="text-xl md:text-2xl font-black text-white tracking-tight uppercase flex items-center gap-2 flex-wrap">
-              <span>{isKioskMode ? '⚡ ಕಲ್ಪന ಎಂಟರ್ಪ್ರೈಸಸ್ • Express Document Intake' : 'ಕಲ್ಪನ ಎಂಟರ್ಪ್ರೈಸಸ್ • Print Your Files Here'}</span>
+              <span>{isKioskMode ? '⚡ ಕಲ್ಪನ ಎಂಟರ್ಪ್ರೈಸಸ್ • Express Document Intake' : 'ಕಲ್ಪನ ಎಂಟರ್ಪ್ರೈಸಸ್ • Print Your Files Here'}</span>
             </h1>
             <p className="text-xs font-extrabold text-cyan-300">
               {isKioskMode ? '📥 ಇಲ್ಲಿ ನಿಮ್ಮ ಡಾಕ್ಯುಮೆಂಟ್ ಅಥವಾ ಫೈಲ್ ಅಪ್‌ಲೋಡ್ ಮಾಡಿ • Instant File Drop & Automatic Print Engine' : '📱 Scan QR to Upload Files (ಫೈಲ್ ಅಪ್‌ಲೋಡ್ ಮಾಡಲು QR ಸ್ಕ್ಯಾನ್ ಮಾಡಿ)'}
@@ -947,8 +973,8 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
 
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4 p-4 rounded-2xl bg-emerald-950/60 border border-emerald-500/50 text-xs font-bold">
             <div>
-              <span className="text-emerald-400 block uppercase font-black">ಫೈಲ್ ಹೆಸರು (Document Name)</span>
-              <span className="text-white font-mono truncate block mt-0.5">{successData.filename}</span>
+              <span className="text-emerald-400 block uppercase font-black">ಒಟ್ಟು ಫೈಲ್‌ಗಳು (Total Documents)</span>
+              <span className="text-white font-mono truncate block mt-0.5">{successData.fileCount || 1} Document(s) / ಫೈಲ್‌ಗಳು</span>
             </div>
             <div>
               <span className="text-emerald-400 block uppercase font-black">ಪ್ರತಿಗಳ ಸಂಖ್ಯೆ (Copies)</span>
@@ -960,6 +986,19 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
             </div>
           </div>
 
+          {successData.filenames && successData.filenames.length > 0 && (
+            <div className="p-3 bg-emerald-950/80 rounded-xl border border-emerald-500/30 text-xs space-y-1">
+              <span className="text-[11px] font-black uppercase text-emerald-300">ಸ್ವೀಕರಿಸಿದ ಫೈಲ್‌ಗಳು (Transferred Files):</span>
+              <div className="max-h-32 overflow-y-auto space-y-1 pr-1">
+                {successData.filenames.map((name, i) => (
+                  <div key={i} className="text-white font-mono truncate text-[11px]">
+                    ✓ {name}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           <button
             type="button"
             onClick={() => setSuccessData(null)}
@@ -967,7 +1006,7 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
             className="w-full py-3.5 rounded-xl font-black text-sm uppercase tracking-wider hover:bg-emerald-100 transition shadow-lg flex items-center justify-center gap-2 cursor-pointer"
           >
             <RefreshCw className="w-4 h-4" />
-            <span>ಮತ್ತೊಂದು ಡಾಕ್ಯುಮೆಂಟ್ ಕಳುಹಿಸಿ (Submit Another Document)</span>
+            <span>ಇನ್ನಷ್ಟು ಡಾಕ್ಯುಮೆಂಟ್‌ಗಳನ್ನು ಕಳುಹಿಸಿ (Submit More Documents)</span>
           </button>
         </div>
       )}
@@ -1098,51 +1137,104 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
           {/* MODE A: STANDARD SINGLE DOCUMENT UPLOAD ZONE */}
           {/* ============================================================ */}
           {printMode === 'single' && (
-            <div
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onDrop={handleDrop}
-              onClick={() => fileInputRef.current?.click()}
-              style={{
-                backgroundColor: isDragging ? '#1e293b' : '#0f172a',
-                border: `3px dashed ${isDragging ? '#38bdf8' : selectedFile ? '#10b981' : '#64748b'}`
-              }}
-              className="p-8 rounded-2xl transition-all cursor-pointer text-center flex flex-col items-center justify-center min-h-[220px] shadow-inner hover:border-cyan-400 group"
-            >
+            <div className="space-y-4">
               <input
                 type="file"
                 ref={fileInputRef}
-                onChange={(e) => handleFileChange(e.target.files?.[0])}
-                accept=".pdf,.png,.jpg,.jpeg,.docx,.doc,.bmp"
+                multiple
+                onChange={(e) => handleAddFiles(e.target.files)}
+                accept=".pdf,.png,.jpg,.jpeg,.docx,.doc,.bmp,.webp"
                 className="hidden"
               />
 
-              {selectedFile ? (
-                <div className="space-y-3 animate-in fade-in duration-200">
-                  <div className="p-4 bg-emerald-600/30 text-emerald-300 rounded-2xl w-16 h-16 mx-auto flex items-center justify-center border border-emerald-500/40 shadow-lg">
-                    <FileText className="w-9 h-9 text-emerald-400 animate-bounce" />
+              {/* EMPTY STATE: ATTRACTIVE BIG DROPZONE */}
+              {selectedFiles.length === 0 ? (
+                <div
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                  onClick={() => fileInputRef.current?.click()}
+                  style={{
+                    backgroundColor: isDragging ? '#1e293b' : '#0f172a',
+                    border: `3px dashed ${isDragging ? '#38bdf8' : '#64748b'}`
+                  }}
+                  className="p-8 rounded-2xl transition-all cursor-pointer text-center flex flex-col items-center justify-center min-h-[220px] shadow-inner hover:border-cyan-400 group"
+                >
+                  <div className="space-y-3">
+                    <div className="p-4 bg-cyan-500/20 text-cyan-400 rounded-2xl w-16 h-16 mx-auto flex items-center justify-center border border-cyan-500/30 group-hover:scale-110 transition shadow-lg">
+                      <Upload className="w-8 h-8 text-cyan-400 animate-pulse" />
+                    </div>
+                    <div>
+                      <h4 className="text-lg md:text-xl font-black text-white">ಇಲ್ಲಿ ಟಚ್ ಮಾಡಿ ಅಥವಾ ಫೈಲ್‌ಗಳನ್ನು ಡ್ರಾಪ್ ಮಾಡಿ (Tap to Select Files)</h4>
+                      <p className="text-xs font-bold text-cyan-200 mt-1">ಬೆಂಬಲಿತ ಫೈಲ್‌ಗಳು • Supported Formats: <span className="text-amber-300 font-mono">PDF, PNG, JPG, JPEG, DOCX</span></p>
+                      <p className="text-[11px] font-extrabold text-emerald-300 mt-0.5">✨ ಯಾವುದೇ ಮಿತಿಯಿಲ್ಲದೆ ಒಂದೇ ಬಾರಿಗೆ ಹಲವು ಫೈಲ್‌ಗಳನ್ನು ಆಯ್ಕೆ ಮಾಡಬಹುದು (Select Multiple Files)</p>
+                    </div>
+                    <div className="pt-2">
+                      <span className="px-5 py-2.5 rounded-xl bg-cyan-600 text-black font-black text-xs uppercase tracking-wider shadow-lg inline-block hover:bg-cyan-400 transition">
+                        📂 ಫೈಲ್‌ಗಳನ್ನು ಆಯ್ಕೆಮಾಡಿ (Select Documents)
+                      </span>
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="text-lg font-black text-white truncate max-w-md mx-auto">{selectedFile.name}</h4>
-                    <span className="text-xs font-mono font-black text-emerald-300 bg-emerald-950 px-3.5 py-1.5 rounded-full border border-emerald-600 inline-block mt-1">
-                      🟢 ಪ್ರಿಂಟ್‌ಗೆ ಸಿದ್ಧವಾಗಿದೆ • Ready ({(selectedFile.size / (1024 * 1024)).toFixed(2)} MB)
-                    </span>
-                  </div>
-                  <p className="text-xs text-slate-400 font-bold underline group-hover:text-white transition">ಬೇರೆ ಫೈಲ್ ಆಯ್ಕೆ ಮಾಡಲು ಇಲ್ಲಿ ಕ್ಲಿಕ್ ಮಾಡಿ • (Tap to change file)</p>
                 </div>
               ) : (
-                <div className="space-y-3">
-                  <div className="p-4 bg-cyan-500/20 text-cyan-400 rounded-2xl w-16 h-16 mx-auto flex items-center justify-center border border-cyan-500/30 group-hover:scale-110 transition shadow-lg">
-                    <Upload className="w-8 h-8 text-cyan-400 animate-pulse" />
+                /* MULTI-FILE LIST CARD */
+                <div className="p-5 rounded-2xl bg-slate-900 border-2 border-emerald-500/70 shadow-2xl space-y-4 animate-in fade-in">
+                  <div className="flex items-center justify-between border-b border-slate-800 pb-3 flex-wrap gap-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">📁</span>
+                      <h4 className="text-sm font-black text-white uppercase tracking-wider">
+                        ಆಯ್ಕೆಮಾಡಿದ ಡಾಕ್ಯುಮೆಂಟ್‌ಗಳು • Selected Documents ({selectedFiles.length})
+                      </h4>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        style={{ backgroundColor: '#0284c7', color: '#ffffff' }}
+                        className="px-3.5 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-1.5 hover:brightness-110 transition shadow cursor-pointer"
+                      >
+                        <span>➕ ಇನ್ನಷ್ಟು ಫೈಲ್ ಸೇರಿಸಿ (Add More)</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedFiles([])}
+                        className="px-2.5 py-1.5 rounded-xl text-xs font-bold text-rose-400 hover:text-rose-300 hover:bg-rose-950/40 transition cursor-pointer"
+                      >
+                        ಎಲ್ಲವನ್ನೂ ತೆಗೆದುಹಾಕಿ (Clear All)
+                      </button>
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="text-lg md:text-xl font-black text-white">ಇಲ್ಲಿ ಟಚ್ ಮಾಡಿ ಅಥವಾ ಫೈಲ್ ಡ್ರಾಪ್ ಮಾಡಿ (Tap Here or Drop File)</h4>
-                    <p className="text-xs font-bold text-cyan-200 mt-1">ಬೆಂಬಲಿತ ಫೈಲ್‌ಗಳು • Supported Formats: <span className="text-amber-300 font-mono">PDF, PNG, JPG, JPEG, DOCX</span></p>
+
+                  <div className="max-h-72 overflow-y-auto space-y-2.5 pr-1 custom-scrollbar">
+                    {selectedFiles.map((file, idx) => (
+                      <div
+                        key={`${file.name}_${idx}`}
+                        className="flex items-center justify-between p-3 rounded-xl bg-slate-950/80 border border-slate-800 hover:border-slate-700 transition"
+                      >
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="p-2 rounded-lg bg-blue-500/20 text-blue-400 font-mono text-xs font-black">
+                            {file.name.toLowerCase().endsWith('.pdf') ? '📄 PDF' : file.type.startsWith('image/') ? '🖼️ IMG' : '📝 DOC'}
+                          </div>
+                          <div className="min-w-0">
+                            <h5 className="text-xs font-black text-white truncate max-w-[200px] sm:max-w-xs md:max-w-md">{file.name}</h5>
+                            <span className="text-[10px] font-mono text-slate-400">{(file.size / (1024 * 1024)).toFixed(2)} MB • Ready to print</span>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveFile(idx)}
+                          className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-rose-950/60 rounded-lg transition cursor-pointer"
+                          title="Remove file"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ))}
                   </div>
-                  <div className="pt-2">
-                    <span className="px-5 py-2.5 rounded-xl bg-cyan-600 text-black font-black text-xs uppercase tracking-wider shadow-lg inline-block hover:bg-cyan-400 transition">
-                      📂 ಮೊಬೈಲ್ / ಡೆಸ್ಕ್‌ಟಾಪ್ ಫೈಲ್ ತೆರೆಯಿರಿ (Browse Files)
-                    </span>
+
+                  <div className="pt-1 flex items-center justify-between text-xs text-emerald-300 font-extrabold border-t border-slate-800">
+                    <span>ಒಟ್ಟು ಫೈಲ್‌ಗಳು • Total: {selectedFiles.length} File(s)</span>
+                    <span>{(selectedFiles.reduce((acc, f) => acc + f.size, 0) / (1024 * 1024)).toFixed(2)} MB Total</span>
                   </div>
                 </div>
               )}
@@ -1422,7 +1514,7 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
           <div className="pt-3">
             <button
               type="submit"
-              disabled={uploading || (printMode === 'single' ? !selectedFile : (!frontCardFile || !backCardFile))}
+              disabled={uploading || (printMode === 'single' ? selectedFiles.length === 0 : (!frontCardFile || !backCardFile))}
               style={{
                 background: 'linear-gradient(to right, #0891b2, #3b82f6, #6366f1)',
                 color: '#ffffff',
@@ -1442,6 +1534,8 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
                   <span>
                     {printMode === 'id_merge'
                       ? '🪪 1 ಪುಟದಲ್ಲಿ ID ಕಾರ್ಡ್ ಪ್ರಿಂಟ್ ಮಾಡಿ • MERGE & PRINT ID CARD'
+                      : selectedFiles.length > 1
+                      ? `🚀 ಎಲ್ಲಾ ${selectedFiles.length} ಫೈಲ್‌ಗಳನ್ನು ಪ್ರಿಂಟ್‌ಗೆ ಕಳುಹಿಸಿ • PRINT ALL ${selectedFiles.length} FILES NOW`
                       : '🚀 ಪ್ರಿಂಟ್‌ಗೆ ಕಳುಹಿಸಿ • SEND TO PRINTER NOW'}
                   </span>
                 </>

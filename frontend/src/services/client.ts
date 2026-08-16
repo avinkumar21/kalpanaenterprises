@@ -407,9 +407,13 @@ class PrintsApi {
     return `${getApiBase()}/preview/${id}`;
   }
 
-  async uploadDocument(file: File, copies: number = 1, colorMode: string = 'Color'): Promise<any> {
+  async uploadDocument(fileOrFiles: File | File[], copies: number = 1, colorMode: string = 'BlackWhite'): Promise<any> {
     const formData = new FormData();
-    formData.append('document', file);
+    const files = Array.isArray(fileOrFiles) ? fileOrFiles : [fileOrFiles];
+    files.forEach(f => {
+      formData.append('document', f);
+      formData.append('files', f);
+    });
     formData.append('copies', copies.toString());
     formData.append('colorMode', colorMode);
     const res = await fetchWithFallback('/upload-document', {

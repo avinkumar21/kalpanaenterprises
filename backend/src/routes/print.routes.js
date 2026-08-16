@@ -598,22 +598,13 @@ router.post('/upload-document', (req, res) => {
             return res.status(500).json({ success: false, error: `Upload stream interrupted: ${err.message}` });
         }
         try {
-            const file = (req.files && req.files[0]) || req.file;
-            if (!file) {
-                return res.status(400).json({ success: false, error: "No document file provided in request." });
-            }
-
-            const originalName = file.originalname || 'document.pdf';
-            const ext = path.extname(originalName).toLowerCase();
-            const allowedExts = ['.pdf', '.png', '.jpg', '.jpeg', '.docx', '.doc', '.bmp'];
-            
-            if (!allowedExts.includes(ext)) {
-                if (fs.existsSync(file.path)) try { fs.unlinkSync(file.path); } catch(e){}
-                return res.status(400).json({ success: false, error: `Invalid file format (${ext}). Supported types: PDF, PNG, JPG, JPEG, DOCX.` });
+            const rawFiles = req.files && req.files.length > 0 ? req.files : (req.file ? [req.file] : []);
+            if (rawFiles.length === 0) {
+                return res.status(400).json({ success: false, error: "No document files provided in request." });
             }
 
             const copies = Math.min(Math.max(Number(req.body.copies) || 1, 1), 50);
-            const colorMode = (req.body.colorMode || 'Color').replace(/[^a-zA-Z]/g, '') || 'Color';
+            const colorMode = (req.body.colorMode || 'BlackWhite').replace(/[^a-zA-Z]/g, '') || 'BlackWhite';
 
             // Retrieve system target folder (D:\WhatsApp or custom setting)
             const settings = db.getSettings();
@@ -622,21 +613,45 @@ router.post('/upload-document', (req, res) => {
                 fs.mkdirSync(targetFolder, { recursive: true });
             }
 
-            // Clean filename and construct standardized web upload timestamped name
-            const cleanOrigName = originalName.replace(/[^a-zA-Z0-9._-]/g, '_');
-            const standardizedFilename = `webupload_${Date.now()}_${copies}c_${colorMode}_${cleanOrigName}`;
-            const targetPath = path.join(targetFolder, standardizedFilename);
+            const allowedExts = ['.pdf', '.png', '.jpg', '.jpeg', '.docx', '.doc', '.bmp', '.webp'];
+            const processedOutputs = [];
 
-            // Move uploaded temporary file directly into watched WhatsApp folder
-            fs.copyFileSync(file.path, targetPath);
-            try { fs.unlinkSync(file.path); } catch (e) {}
+            for (let i = 0; i < rawFiles.length; i++) {
+                const file = rawFiles[i];
+                const originalName = file.originalname || `document_${i + 1}.pdf`;
+                const ext = path.extname(originalName).toLowerCase();
+                
+                if (!allowedExts.includes(ext)) {
+                    if (fs.existsSync(file.path)) try { fs.unlinkSync(file.path); } catch(e){}
+                    continue;
+                }
 
-            Logger.info('WEB_PORTAL', `QR Counter Upload received: [${standardizedFilename}] (${copies} Copies, ${colorMode} Mode) => Saved directly into [${targetFolder}].`);
-            
+                // Clean filename and construct standardized web upload timestamped name
+                const cleanOrigName = originalName.replace(/[^a-zA-Z0-9._-]/g, '_');
+                const uniqueSalt = Math.random().toString(36).substring(2, 6);
+                const standardizedFilename = `webupload_${Date.now() + i}_${uniqueSalt}_${copies}c_${colorMode}_${cleanOrigName}`;
+                const targetPath = path.join(targetFolder, standardizedFilename);
+
+                // Move uploaded temporary file directly into watched WhatsApp folder
+                fs.copyFileSync(file.path, targetPath);
+                try { fs.unlinkSync(file.path); } catch (e) {}
+
+                Logger.info('WEB_PORTAL', `QR Counter Upload received (${i + 1}/${rawFiles.length}): [${standardizedFilename}] (${copies} Copies, ${colorMode} Mode) => Saved into [${targetFolder}].`);
+                processedOutputs.push(standardizedFilename);
+            }
+
+            if (processedOutputs.length === 0) {
+                return res.status(400).json({ success: false, error: "No valid documents (PDF, PNG, JPG, DOCX) found in upload." });
+            }
+
             res.json({
                 success: true,
-                message: "Your document has been sent to the print station!",
-                filename: standardizedFilename,
+                message: processedOutputs.length === 1
+                    ? "Your document has been sent to the print station!"
+                    : `All ${processedOutputs.length} documents have been sent to the print station!`,
+                filename: processedOutputs[0],
+                filenames: processedOutputs,
+                fileCount: processedOutputs.length,
                 copies,
                 colorMode,
                 destination: targetFolder
