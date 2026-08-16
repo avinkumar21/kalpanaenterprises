@@ -414,7 +414,7 @@ const PrinterManager = {
                 }
             `;
         } else if (ext === '.pdf') {
-            // Direct silent physical hardware PDF printing using installed Adobe Acrobat DC / Reader
+            // Direct silent physical hardware PDF printing with dynamic multi-page spooler tracking
             script = `
                 try {
                     # Ensure printer is not in WorkOffline state
@@ -423,19 +423,56 @@ const PrinterManager = {
                         try { $p.WorkOffline = $false; $null = $p.Put() } catch {}
                     }
 
+                    $gp = Get-Printer -Name '${targetPrinter.replace(/'/g, "''")}' -ErrorAction SilentlyContinue
+                    $driver = if ($gp -and $gp.DriverName) { $gp.DriverName } else { '${targetPrinter.replace(/'/g, "''")}' }
+                    $port = if ($gp -and $gp.PortName) { $gp.PortName } else { 'USB001' }
+
                     $acro = "C:\\Program Files\\Adobe\\Acrobat DC\\Acrobat\\Acrobat.exe"
                     if (-not (Test-Path $acro)) { $acro = "C:\\Program Files (x86)\\Adobe\\Acrobat Reader DC\\Reader\\AcroRd32.exe" }
+
                     if (Test-Path $acro) {
                         for ($i = 0; $i -lt ${copies}; $i++) {
-                            $proc = Start-Process -FilePath $acro -ArgumentList "/t \`"${absPath}\`" \`"${targetPrinter}\`"" -WindowStyle Hidden -PassThru
-                            Start-Sleep -Seconds 4
-                            if ($proc -and -not $proc.HasExited) { Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue }
+                            # Launch Acrobat with complete 4-tuple args for direct silent background hardware spooling
+                            $proc = Start-Process -FilePath $acro -ArgumentList @('/t', "${absPath}", "${targetPrinter}", "$driver", "$port") -WindowStyle Hidden -PassThru
+                            
+                            # Dynamic Spooler Watch: Wait up to 180 seconds for large 80+ page PDFs to fully spool
+                            $maxSeconds = 180
+                            $waited = 0
+                            $spoolerSeen = $false
+
+                            while ($waited -lt $maxSeconds) {
+                                Start-Sleep -Milliseconds 1000
+                                $waited++
+
+                                $jobs = Get-PrintJob -PrinterName '${targetPrinter.replace(/'/g, "''")}' -ErrorAction SilentlyContinue
+                                if ($jobs) {
+                                    $spoolerSeen = $true
+                                } elseif ($spoolerSeen -and -not $jobs) {
+                                    # Spooler has completely finished transferring all pages to physical printer hardware
+                                    break
+                                }
+
+                                if ($proc -and $proc.HasExited) {
+                                    break
+                                }
+                            }
+
+                            # Cleanly close Acrobat background helper once pages are queued
+                            if ($proc -and -not $proc.HasExited) {
+                                Start-Sleep -Seconds 2
+                                $null = $proc.CloseMainWindow()
+                                Start-Sleep -Milliseconds 1000
+                                if (-not $proc.HasExited) {
+                                    Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue
+                                }
+                            }
                         }
                         Write-Host "PRINT_SUCCESS"
                     } else {
+                        # Native Edge / Shell Verb Print Fallback
                         for ($i = 0; $i -lt ${copies}; $i++) {
                             Start-Process -FilePath "${absPath}" -Verb Print -WindowStyle Hidden
-                            Start-Sleep -Seconds 3
+                            Start-Sleep -Seconds 6
                         }
                         Write-Host "PRINT_SUCCESS"
                     }
