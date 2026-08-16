@@ -412,7 +412,6 @@ class PrintsApi {
     const files = Array.isArray(fileOrFiles) ? fileOrFiles : [fileOrFiles];
     files.forEach(f => {
       formData.append('document', f);
-      formData.append('files', f);
     });
     formData.append('copies', copies.toString());
     formData.append('colorMode', colorMode);

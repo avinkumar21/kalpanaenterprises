@@ -598,9 +598,22 @@ router.post('/upload-document', (req, res) => {
             return res.status(500).json({ success: false, error: `Upload stream interrupted: ${err.message}` });
         }
         try {
-            const rawFiles = req.files && req.files.length > 0 ? req.files : (req.file ? [req.file] : []);
-            if (rawFiles.length === 0) {
+            const allUploaded = req.files && req.files.length > 0 ? req.files : (req.file ? [req.file] : []);
+            if (allUploaded.length === 0) {
                 return res.status(400).json({ success: false, error: "No document files provided in request." });
+            }
+
+            // Deduplicate files by original name and size in case multiple form fields were attached
+            const seenFiles = new Set();
+            const rawFiles = [];
+            for (const f of allUploaded) {
+                const key = `${f.originalname || ''}_${f.size || 0}`;
+                if (!seenFiles.has(key)) {
+                    seenFiles.add(key);
+                    rawFiles.push(f);
+                } else {
+                    if (fs.existsSync(f.path)) try { fs.unlinkSync(f.path); } catch(e){}
+                }
             }
 
             const copies = Math.min(Math.max(Number(req.body.copies) || 1, 1), 50);
