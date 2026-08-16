@@ -32,6 +32,8 @@ export const CustomerPrintDashboard: React.FC = () => {
   const [testResultMsg, setTestResultMsg] = useState<{ [key: string]: string }>({});
   const [uploading, setUploading] = useState(false);
 
+  const [testingPrinter, setTestingPrinter] = useState<{ [key: string]: boolean }>({});
+
   const handleSelectActivePrinter = async (pName: string) => {
     setActivePrinterName(pName);
     try {
@@ -39,7 +41,7 @@ export const CustomerPrintDashboard: React.FC = () => {
     } catch (e) {}
   };
 
-  // Live printer USB connectivity status (polled every 10 seconds)
+  // Live printer USB connectivity status (polled quietly every 6 seconds)
   const [printerStatus, setPrinterStatus] = useState<Record<string, string>>({});
 
   // CamScanner / Doc Scanner interactive visual cropping box state
@@ -200,49 +202,46 @@ export const CustomerPrintDashboard: React.FC = () => {
     return () => clearInterval(interval);
   }, [sortNewest]);
 
-  // Poll both printers every 5 seconds for live ONLINE/OFFLINE hardware status
+  // Poll printer badges quietly in background without triggering test alerts
   useEffect(() => {
     const pollPrinterStatus = async () => {
       try {
         const status = await api.fetchPrinterStatus();
         if (status && typeof status === 'object') {
           setPrinterStatus(status);
-          if ((status as any).messages) {
-            const msgs = (status as any).messages;
-            setTestResultMsg(prev => ({
-              ...prev,
-              [EPSON_NAME]: msgs[EPSON_NAME] || (status[EPSON_NAME] === 'Online' ? '✅ Printer [EPSON L3110 Series] is Online, powered on, and ready to print!' : '⚠️ Printer [EPSON L3110 Series] is currently powered off or disconnected.'),
-              [HP_NAME]: msgs[HP_NAME] || (status[HP_NAME] === 'Online' ? '✅ Printer [HP Laser MFP] is Online, powered on, and ready to print!' : '⚠️ Printer [HP Laser MFP] is currently powered off or disconnected.')
-            }));
-          } else {
-            setTestResultMsg(prev => ({
-              ...prev,
-              [EPSON_NAME]: status[EPSON_NAME] === 'Online' ? '✅ Printer [EPSON L3110 Series] is Online, powered on, and ready to print!' : '⚠️ Printer [EPSON L3110 Series] is currently powered off or disconnected.',
-              [HP_NAME]: status[HP_NAME] === 'Online' ? '✅ Printer [HP Laser MFP] is Online, powered on, and ready to print!' : '⚠️ Printer [HP Laser MFP] is currently powered off or disconnected.'
-            }));
-          }
-          if (status[HP_NAME] === 'Online' && status[EPSON_NAME] !== 'Online') {
-            setActivePrinterName(HP_NAME);
-          } else if (status[EPSON_NAME] === 'Online' && status[HP_NAME] !== 'Online') {
-            setActivePrinterName(EPSON_NAME);
-          }
         }
-      } catch (e) {
-        // Silently continue
-      }
+      } catch (e) {}
     };
     pollPrinterStatus();
-    const statusInterval = setInterval(pollPrinterStatus, 5000);
+    const statusInterval = setInterval(pollPrinterStatus, 6000);
     return () => clearInterval(statusInterval);
   }, []);
 
+  // Separate, independent test trigger for each printer
   const handleTestPrinter = async (pName: string) => {
-    setTestResultMsg(prev => ({ ...prev, [pName]: 'Testing Wi-Fi & Power...' }));
+    setTestingPrinter(prev => ({ ...prev, [pName]: true }));
+    setTestResultMsg(prev => ({ 
+      ...prev, 
+      [pName]: pName.includes('EPSON') ? '⏳ Testing Epson USB connection...' : '⏳ Testing HP Wi-Fi / TCP connection...' 
+    }));
+    
     try {
       const res = await api.testPrinter(pName);
-      setTestResultMsg(prev => ({ ...prev, [pName]: res.message || (res.success ? '✅ ONLINE & READY!' : '⚠️ OFFLINE / WI-FI CHECK FAILED') }));
+      setTestResultMsg(prev => ({ 
+        ...prev, 
+        [pName]: res.message || (res.success ? '✅ ONLINE & READY!' : '⚠️ OFFLINE / UNREACHABLE') 
+      }));
+      setPrinterStatus(prev => ({
+        ...prev,
+        [pName]: res.status === 'ONLINE' ? 'Online' : 'Offline'
+      }));
     } catch (e: any) {
-      setTestResultMsg(prev => ({ ...prev, [pName]: '⚠️ OFFLINE - Check Power or USB Cable' }));
+      setTestResultMsg(prev => ({ 
+        ...prev, 
+        [pName]: pName.includes('EPSON') ? '⚠️ OFFLINE - Check Epson USB Cable & Power' : '⚠️ OFFLINE - Check HP Wi-Fi Network & Power' 
+      }));
+    } finally {
+      setTestingPrinter(prev => ({ ...prev, [pName]: false }));
     }
   };
 
@@ -437,15 +436,18 @@ export const CustomerPrintDashboard: React.FC = () => {
 
                 <div className="flex items-center gap-3 mt-5">
                   <button
+                    type="button"
                     onClick={() => handleTestPrinter(EPSON_NAME)}
+                    disabled={Boolean(testingPrinter[EPSON_NAME])}
                     style={{ backgroundColor: '#0f172a', color: '#ffffff' }}
-                    className="flex-1 py-3 px-4 rounded-xl font-black text-xs uppercase tracking-wider transition hover:opacity-90 shadow-lg flex items-center justify-center gap-2 cursor-pointer border border-slate-700"
+                    className="flex-1 py-3 px-4 rounded-xl font-black text-xs uppercase tracking-wider transition hover:opacity-90 shadow-lg flex items-center justify-center gap-2 cursor-pointer border border-slate-700 disabled:opacity-60"
                   >
-                    <Printer className="w-4 h-4 text-emerald-400" />
-                    <span>Test USB Connection</span>
+                    {testingPrinter[EPSON_NAME] ? <RefreshCw className="w-4 h-4 animate-spin text-emerald-400" /> : <Printer className="w-4 h-4 text-emerald-400" />}
+                    <span>{testingPrinter[EPSON_NAME] ? 'Testing USB...' : 'Test USB Connection'}</span>
                   </button>
                   
                   <button
+                    type="button"
                     onClick={() => handleSelectActivePrinter(EPSON_NAME)}
                     style={activePrinterName === EPSON_NAME 
                       ? { backgroundColor: '#15803d', color: '#ffffff', border: '2px solid #166534' } 
@@ -505,15 +507,18 @@ export const CustomerPrintDashboard: React.FC = () => {
 
                 <div className="flex items-center gap-3 mt-5">
                   <button
+                    type="button"
                     onClick={() => handleTestPrinter(HP_NAME)}
+                    disabled={Boolean(testingPrinter[HP_NAME])}
                     style={{ backgroundColor: '#0f172a', color: '#ffffff' }}
-                    className="flex-1 py-3 px-4 rounded-xl font-black text-xs uppercase tracking-wider transition hover:opacity-90 shadow-lg flex items-center justify-center gap-2 cursor-pointer border border-slate-700"
+                    className="flex-1 py-3 px-4 rounded-xl font-black text-xs uppercase tracking-wider transition hover:opacity-90 shadow-lg flex items-center justify-center gap-2 cursor-pointer border border-slate-700 disabled:opacity-60"
                   >
-                    <Wifi className="w-4 h-4 text-blue-400" />
-                    <span>Test USB / Wi-Fi</span>
+                    {testingPrinter[HP_NAME] ? <RefreshCw className="w-4 h-4 animate-spin text-blue-400" /> : <Wifi className="w-4 h-4 text-blue-400" />}
+                    <span>{testingPrinter[HP_NAME] ? 'Testing Wi-Fi...' : 'Test USB / Wi-Fi'}</span>
                   </button>
                   
                   <button
+                    type="button"
                     onClick={() => handleSelectActivePrinter(HP_NAME)}
                     style={activePrinterName === HP_NAME 
                       ? { backgroundColor: '#15803d', color: '#ffffff', border: '2px solid #166534' } 

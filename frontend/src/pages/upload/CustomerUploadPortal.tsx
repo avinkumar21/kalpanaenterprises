@@ -14,7 +14,7 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [copies, setCopies] = useState<number>(1);
-  const [colorMode, setColorMode] = useState<'Color' | 'Black & White'>('Color');
+  const [colorMode] = useState<'Color' | 'Black & White'>('Black & White');
   
   const [uploading, setUploading] = useState(false);
   const [successData, setSuccessData] = useState<{ filename: string; copies: number; colorMode: string; timestamp: string } | null>(null);
@@ -1384,41 +1384,26 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
               <span className="text-[11px] text-slate-400 block font-bold">ಗರಿಷ್ಠ 50 ಪ್ರತಿಗಳು • Up to 50 copies per single submission.</span>
             </div>
 
-            {/* COLOR MODE SELECTION */}
-            <div className="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-3">
-              <label className="text-xs font-black uppercase tracking-wider text-amber-300 flex items-center gap-2">
-                <Palette className="w-4 h-4 text-amber-400" />
-                <span>ಪ್ರಿಂಟ್ ಮೋಡ್ • Color Mode Selection</span>
+            {/* PRINT MODE (LOCKED TO BLACK & WHITE STANDARD) */}
+            <div className="p-4 rounded-2xl bg-slate-900/90 border border-slate-700 space-y-2">
+              <label className="text-xs font-black uppercase tracking-wider text-cyan-300 flex items-center gap-2">
+                <FileText className="w-4 h-4 text-cyan-400" />
+                <span>ಪ್ರಿಂಟ್ ಮೋಡ್ • Print Mode</span>
               </label>
               
-              <div className="grid grid-cols-2 gap-3">
-                <button
-                  type="button"
-                  onClick={() => setColorMode('Color')}
-                  style={colorMode === 'Color'
-                    ? { backgroundColor: '#047857', color: '#ffffff', border: '2px solid #34d399', boxShadow: '0 0 12px rgba(52, 211, 153, 0.4)' }
-                    : { backgroundColor: '#1e293b', color: '#94a3b8', border: '1px solid #475569' }
-                  }
-                  className="p-3 rounded-xl font-black text-xs uppercase tracking-wide transition flex flex-col items-center justify-center gap-1.5 cursor-pointer active:scale-95"
-                >
-                  <span className="text-sm">🌈 ಕಲರ್ (Color)</span>
-                  <span className="text-[10px] font-bold opacity-90">EPSON ಪ್ರಿಂಟರ್</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setColorMode('Black & White')}
-                  style={colorMode === 'Black & White'
-                    ? { backgroundColor: '#1e40af', color: '#ffffff', border: '2px solid #60a5fa', boxShadow: '0 0 12px rgba(96, 165, 250, 0.4)' }
-                    : { backgroundColor: '#1e293b', color: '#94a3b8', border: '1px solid #475569' }
-                  }
-                  className="p-3 rounded-xl font-black text-xs uppercase tracking-wide transition flex flex-col items-center justify-center gap-1.5 cursor-pointer active:scale-95"
-                >
-                  <span className="text-sm">⚫⚪ B&W (ಕಪ್ಪು-ಬಿಳಿ)</span>
-                  <span className="text-[10px] font-bold opacity-90">HP ಲೇಸರ್</span>
-                </button>
+              <div className="p-3.5 rounded-xl bg-slate-800 border-2 border-slate-600 flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <span className="text-xl">⚫⚪</span>
+                  <div>
+                    <span className="text-xs font-black text-white block uppercase">ಕಪ್ಪು ಮತ್ತು ಬಿಳಿ ಪ್ರಿಂಟ್ • Black & White Standard</span>
+                    <span className="text-[10px] font-bold text-slate-300">Fast & High-Quality Monochrome Output</span>
+                  </div>
+                </div>
+                <span className="text-[10px] font-black px-2.5 py-1 rounded-md bg-blue-500/20 text-blue-300 border border-blue-400/40 uppercase">
+                  B&W Only (ಕಪ್ಪು-ಬಿಳಿ)
+                </span>
               </div>
-              <span className="text-[11px] text-slate-400 block font-bold">ಕಲರ್ ಪ್ರಿಂಟ್ EPSON ಗೆ ಹಾಗೂ ಕಪ್ಪು-ಬಿಳಿ ಪ್ರಿಂಟ್ HP Laser ಪ್ರಿಂಟರ್‌ಗೆ ಕಳುಹಿಸಲ್ಪಡುತ್ತದೆ.</span>
+              <span className="text-[11px] text-slate-400 block font-bold">ಎಲ್ಲಾ ಗ್ರಾಹಕರ ಡಾಕ್ಯುಮೆಂಟ್‌ಗಳು ಕಪ್ಪು-ಬಿಳಿ ಮೋಡ್‌ನಲ್ಲಿ ಸ್ಪಷ್ಟವಾಗಿ ಮುದ್ರಿಸಲ್ಪಡುತ್ತವೆ.</span>
             </div>
 
           </div>

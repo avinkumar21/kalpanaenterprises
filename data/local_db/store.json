@@ -1,6 +1,20 @@
 {
   "files": {},
-  "history": {},
+  "history": {
+    "hist_1786877856958_yt9j": {
+      "id": "hist_1786877856958_yt9j",
+      "fileId": "doc_1786877854486",
+      "customerFile": "webupload_1786877853784_1c_BlackWhite_Customer_Test_Upload.png",
+      "originalPath": "D:\\Arka\\storage\\incoming\\1786877853787_webupload_1786877853784_1c_BlackWhite_Customer_Test_Upload.png",
+      "processedPath": "D:\\Arka\\storage\\processed\\enhanced_1786877853787_1786877853787_webupload_1786877853784_1c_BlackWhite_Customer_Test_Upload.png",
+      "pages": 1,
+      "printerName": "EPSON L3110 Series",
+      "printTime": "2026-08-16T10:57:36.958Z",
+      "status": "Success",
+      "copies": 1,
+      "retryCount": 1
+    }
+  },
   "printers": {
     "onenote__desktop____protected": {
       "id": "onenote__desktop____protected",
@@ -39,12 +53,12 @@
       "id": "hp508140de1d63_hp_laser_mfp_131_133_135_138_",
       "name": "HP508140DE1D63(HP Laser MFP 131 133 135-138)",
       "driverName": "HP Laser MFP 131 133 135-138",
-      "status": "Ready",
+      "status": "Offline",
       "isDefault": false,
       "isPrimary": false,
       "isSecondary": true,
       "isFallback": false,
-      "lastChecked": "2026-08-16T10:33:45.221Z"
+      "lastChecked": "2026-08-16T10:56:39.936Z"
     },
     "generic___text_only": {
       "id": "generic___text_only",
@@ -77,7 +91,7 @@
       "isPrimary": true,
       "isSecondary": false,
       "isFallback": false,
-      "lastChecked": "2026-08-16T10:33:45.221Z"
+      "lastChecked": "2026-08-16T10:56:39.935Z"
     }
   },
   "settings": {
@@ -101,7 +115,7 @@
     "pollingIntervalMs": 2000,
     "port": 8082,
     "adminPasswordHash": "admin",
-    "publicTunnelUrl": "https://champagne-key-action-seminars.trycloudflare.com"
+    "publicTunnelUrl": "https://political-abilities-mag-devel.trycloudflare.com"
   },
   "logs": [
     {
@@ -5489,7 +5503,23 @@
       "details": ""
     }
   ],
-  "queue": {},
+  "queue": {
+    "job_1786877854486_dccbq": {
+      "id": "job_1786877854486_dccbq",
+      "fileId": "doc_1786877854486",
+      "customerName": "WhatsApp Customer",
+      "fileName": "webupload_1786877853784_1c_BlackWhite_Customer_Test_Upload.png",
+      "processedPath": "D:\\Arka\\storage\\processed\\enhanced_1786877853787_1786877853787_webupload_1786877853784_1c_BlackWhite_Customer_Test_Upload.png",
+      "originalPath": "D:\\Arka\\storage\\incoming\\1786877853787_webupload_1786877853784_1c_BlackWhite_Customer_Test_Upload.png",
+      "printer": "EPSON L3110 Series",
+      "copies": 1,
+      "status": "Completed",
+      "priority": 1,
+      "attempts": 1,
+      "createdAt": "2026-08-16T10:57:34.486Z",
+      "updatedAt": "2026-08-16T10:57:36.955Z"
+    }
+  },
   "statistics": {
     "2026-07-27": {
       "date": "2026-07-27",
@@ -5518,6 +5548,13 @@
       "totalProcessed": 9,
       "totalPrinted": 13,
       "totalFailed": 2
+    },
+    "2026-08-16": {
+      "date": "2026-08-16",
+      "totalReceived": 1,
+      "totalProcessed": 1,
+      "totalPrinted": 1,
+      "totalFailed": 0
     }
   }
 }

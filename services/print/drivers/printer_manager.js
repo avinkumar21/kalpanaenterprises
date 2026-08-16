@@ -1,6 +1,7 @@
 const { execFile } = require('child_process');
 const path = require('path');
 const fs = require('fs');
+const net = require('net');
 const db = require('../../../data/local_db/index.js');
 const Logger = require('../../logs/logger.js');
 
@@ -13,9 +14,45 @@ function execPowerShell(script, timeoutMs = 25000) {
     });
 }
 
+function checkNetworkHost(host, ports = [9100, 8018, 80, 631], timeoutMs = 700) {
+    if (!host) return Promise.resolve(false);
+    return new Promise((resolve) => {
+        let resolved = false;
+        let attemptsLeft = ports.length;
+
+        ports.forEach(port => {
+            const socket = new net.Socket();
+            socket.setTimeout(timeoutMs);
+            const cleanUp = (result) => {
+                if (!resolved) {
+                    socket.destroy();
+                    if (result) {
+                        resolved = true;
+                        resolve(true);
+                    } else {
+                        attemptsLeft--;
+                        if (attemptsLeft <= 0) {
+                            resolved = true;
+                            resolve(false);
+                        }
+                    }
+                }
+            };
+            socket.on('connect', () => cleanUp(true));
+            socket.on('timeout', () => cleanUp(false));
+            socket.on('error', () => cleanUp(false));
+            try {
+                socket.connect(port, host);
+            } catch {
+                cleanUp(false);
+            }
+        });
+    });
+}
+
 let cachedStatus = null;
 let lastStatusFetchTime = 0;
-const CACHE_TTL_MS = 3000;
+const CACHE_TTL_MS = 2500;
 
 const PrinterManager = {
     async getAllPrintersLiveStatus(forceRefresh = false) {
@@ -34,6 +71,7 @@ const PrinterManager = {
                             Status = $p.PrinterStatus.ToString()
                             Port = $p.PortName
                             Driver = $p.DriverName
+                            Location = $p.Location
                         }
                     }
                 }
@@ -45,6 +83,7 @@ const PrinterManager = {
                     $name = $w.Name
                     $gpInfo = if ($printerMap.ContainsKey($name)) { $printerMap[$name] } else { $null }
                     $gpStatus = if ($gpInfo) { $gpInfo.Status } else { $null }
+                    $location = if ($gpInfo) { $gpInfo.Location } else { $w.Location }
                     $workOffline = [bool]$w.WorkOffline
                     $printerStatus = [int]$w.PrinterStatus
                     $extendedStatus = [int]$w.ExtendedPrinterStatus
@@ -54,7 +93,7 @@ const PrinterManager = {
                     if ($workOffline -and ($gpStatus -eq 'Normal' -or $printerStatus -eq 3 -or $extendedStatus -eq 2 -or $extendedStatus -eq 3)) {
                         try {
                             $w.WorkOffline = $false
-                            $w.Put()
+                            $null = $w.Put()
                             $workOffline = $false
                         } catch {}
                     }
@@ -82,6 +121,7 @@ const PrinterManager = {
                         name = $name
                         driverName = $w.DriverName
                         portName = $w.PortName
+                        location = $location
                         status = if ($isOnline) { "Ready" } else { "Offline" }
                         isOnline = $isOnline
                         isDefault = [bool]$w.Default
@@ -103,9 +143,27 @@ const PrinterManager = {
             if (out) {
                 const parsed = JSON.parse(out);
                 const list = (Array.isArray(parsed) ? parsed : [parsed]).filter(Boolean);
-                list.forEach(item => {
+                
+                for (const item of list) {
+                    const lName = (item.name || '').toLowerCase();
+                    const lPort = (item.portName || '').toLowerCase();
+                    const lLoc = (item.location || '').toLowerCase();
+                    const isNetwork = lPort.startsWith('wsd') || lPort.startsWith('ip_') || lPort.startsWith('tcp_') || lLoc.includes('http') || lLoc.includes('192.') || lName.includes('131') || lName.includes('135') || lName.includes('hp');
+
+                    // If it's a network/Wi-Fi printer (HP Laser MFP), perform a real TCP socket ping test to verify it is physically powered on!
+                    if (isNetwork && item.isOnline) {
+                        let ipMatch = (item.location || '').match(/\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b/) || (item.portName || '').match(/\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b/);
+                        const ipToTest = ipMatch ? ipMatch[0] : '192.168.31.2';
+                        
+                        const isReachable = await checkNetworkHost(ipToTest, [9100, 8018, 80, 631], 650);
+                        if (!isReachable) {
+                            item.isOnline = false;
+                            item.status = 'Offline';
+                        }
+                    }
+
                     statusMap[item.name] = item;
-                });
+                }
             }
             cachedStatus = statusMap;
             lastStatusFetchTime = Date.now();
@@ -268,12 +326,29 @@ const PrinterManager = {
                 }
             }
 
+            const tLower = (targetPrinter || printerName || '').toLowerCase();
+            const isEpson = tLower.includes('epson') || tLower.includes('l3110');
+
             if (isOnline) {
                 Logger.logPrinterEvent(`Real-time connection confirmed: [${targetPrinter}] is Online and Ready.`);
-                return { success: true, status: 'ONLINE', printer: targetPrinter, message: `✅ Printer [${targetPrinter}] is Online, powered on, and ready to print via USB / Wi-Fi!` };
+                return { 
+                    success: true, 
+                    status: 'ONLINE', 
+                    printer: targetPrinter, 
+                    message: isEpson 
+                        ? `✅ Printer [${targetPrinter}] is Online, powered on, and ready to print via USB Cable!`
+                        : `✅ Printer [${targetPrinter}] is Online and ready via Wi-Fi!`
+                };
             } else {
                 Logger.warn('PRINTER_MANAGER', `Real-time check for [${targetPrinter}] returned offline status.`);
-                return { success: false, status: 'OFFLINE', printer: targetPrinter, message: `⚠️ Printer [${targetPrinter}] is currently powered off or disconnected. Please turn on printer power switch or connect cable.` };
+                return { 
+                    success: false, 
+                    status: 'OFFLINE', 
+                    printer: targetPrinter, 
+                    message: isEpson
+                        ? `⚠️ Printer [${targetPrinter}] is currently powered off or USB cable disconnected. Please turn on printer power switch or connect cable.`
+                        : `⚠️ Printer [${targetPrinter}] is currently powered off or disconnected from Wi-Fi network.`
+                };
             }
         } catch (error) {
             Logger.warn('PRINTER_MANAGER', `Test check fallback for ${printerName}: ${error.message}`);
@@ -289,7 +364,7 @@ const PrinterManager = {
         const settings = db.getSettings();
         const configuredPrinter = printerName || settings.defaultPrinter || settings.primaryPrinter || 'EPSON L3110 Series';
         
-        // Resolve dual USB Cable / Wi-Fi active hardware driver
+        // Resolve active hardware driver
         const targetPrinter = await this.resolveActivePrinter(configuredPrinter);
 
         Logger.logPrinting(`Initiating direct hardware print job for [${path.basename(filePath)}] onto printer [${targetPrinter}] (${copies} copies)...`, { options });
@@ -305,7 +380,7 @@ const PrinterManager = {
                     # Ensure printer is not in WorkOffline state
                     $p = Get-WmiObject -Class Win32_Printer -Filter "Name='${targetPrinter.replace(/'/g, "''")}'" -ErrorAction SilentlyContinue
                     if ($p -and $p.WorkOffline) {
-                        try { $p.WorkOffline = $false; $p.Put() } catch {}
+                        try { $p.WorkOffline = $false; $null = $p.Put() } catch {}
                     }
 
                     Add-Type -AssemblyName System.Drawing
@@ -341,7 +416,7 @@ const PrinterManager = {
                     # Ensure printer is not in WorkOffline state
                     $p = Get-WmiObject -Class Win32_Printer -Filter "Name='${targetPrinter.replace(/'/g, "''")}'" -ErrorAction SilentlyContinue
                     if ($p -and $p.WorkOffline) {
-                        try { $p.WorkOffline = $false; $p.Put() } catch {}
+                        try { $p.WorkOffline = $false; $null = $p.Put() } catch {}
                     }
 
                     $acro = "C:\\Program Files\\Adobe\\Acrobat DC\\Acrobat\\Acrobat.exe"
@@ -407,7 +482,7 @@ const PrinterManager = {
             Logger.logPrinting(`Successfully spooled [${path.basename(filePath)}] directly to physical printer [${targetPrinter}]!`);
             return { success: true, printer: targetPrinter, copies, mode: 'Direct Hardware Spooler' };
         } catch (error) {
-            // Try the other USB printer before giving up (HP ↔ EPSON)
+            // Try secondary printer before giving up
             const secondaryPrinter = settings.secondaryPrinter;
             if (secondaryPrinter && secondaryPrinter !== targetPrinter && !options.isFallbackAttempt) {
                 Logger.warn('PRINTER_MANAGER', `Printer [${targetPrinter}] unreachable. Trying secondary printer [${secondaryPrinter}]...`);

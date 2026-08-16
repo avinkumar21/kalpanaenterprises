@@ -140,29 +140,40 @@ export interface LogEntry {
 
 export async function fetchWithFallback(endpointPath: string, options?: RequestInit): Promise<Response> {
   const primaryBase = getApiBase();
-  const candidateBases = [primaryBase];
+  const candidateBases: string[] = [];
 
   if (typeof window !== 'undefined') {
+    const host = window.location.hostname;
+    const isLocal = host === 'localhost' || host === '127.0.0.1' || host.startsWith('192.168.') || host.startsWith('10.');
+
+    if (isLocal) {
+      candidateBases.push(`http://${host}:8082/api/prints`);
+      candidateBases.push('http://192.168.31.242:8082/api/prints');
+      candidateBases.push('http://localhost:8082/api/prints');
+    }
+
     const savedTunnel = window.localStorage?.getItem('arka_tunnel_url');
     if (savedTunnel && savedTunnel.includes('trycloudflare.com')) {
-      candidateBases.unshift(`${savedTunnel.replace(/\/+$/, '')}/api/prints`);
+      candidateBases.push(`${savedTunnel.replace(/\/+$/, '')}/api/prints`);
     }
 
-    const host = window.location.hostname;
-    if (host && !host.includes('vercel.app') && host !== 'localhost' && host !== '127.0.0.1') {
-      candidateBases.push(`http://${host}:8082/api/prints`);
+    candidateBases.push(primaryBase);
+
+    if (!isLocal) {
+      candidateBases.push('http://192.168.31.242:8082/api/prints');
+      candidateBases.push('http://localhost:8082/api/prints');
     }
-    candidateBases.push('http://192.168.31.242:8082/api/prints');
-    candidateBases.push('http://localhost:8082/api/prints');
+  } else {
+    candidateBases.push(primaryBase);
   }
 
-  const uniqueBases = Array.from(new Set(candidateBases.map(b => b.trim().replace(/\/+$/, ''))));
+  const uniqueBases = Array.from(new Set(candidateBases.filter(Boolean).map(b => b.trim().replace(/\/+$/, ''))));
 
   let lastError: any = null;
   for (const base of uniqueBases) {
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 18000);
+      const timeoutId = setTimeout(() => controller.abort(), 12000);
       
       const cleanPath = endpointPath.startsWith('/') ? endpointPath : `/${endpointPath}`;
       const res = await fetch(`${base}${cleanPath}`, {
