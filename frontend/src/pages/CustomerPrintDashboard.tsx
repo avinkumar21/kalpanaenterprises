@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { api, QueueJob, PrinterInfo } from '../services/client';
+import { api, type QueueJob, type PrinterInfo } from '../services/client';
 import { Printer, RotateCw, Trash2, CheckCircle2, Upload, FileText, AlertCircle, Wifi, Check, Scissors, Sun, Contrast, RefreshCw, ArrowUpDown, Sparkles } from 'lucide-react';
 
 const EPSON_NAME = 'EPSON L3110 Series';
@@ -10,7 +10,7 @@ export const CustomerPrintDashboard: React.FC = () => {
   const [printers, setPrinters] = useState<PrinterInfo[]>([]);
   const [selectedJob, setSelectedJob] = useState<QueueJob | null>(null);
   const [sortNewest, setSortNewest] = useState(true);
-  
+
   // Ref to protect against React timer stale closure overriding selected image
   const selectedIdRef = useRef<string | null>(null);
   const previousJobsRef = useRef<QueueJob[]>([]);
@@ -38,7 +38,7 @@ export const CustomerPrintDashboard: React.FC = () => {
     setActivePrinterName(pName);
     try {
       await api.saveSettings({ defaultPrinter: pName, primaryPrinter: pName });
-    } catch (e) {}
+    } catch (e) { }
   };
 
   // Live printer USB connectivity status (polled quietly every 6 seconds)
@@ -75,10 +75,10 @@ export const CustomerPrintDashboard: React.FC = () => {
       const rect = imgContainerRef.current.getBoundingClientRect();
       const relX = Math.max(0, Math.min(rect.width, e.clientX - rect.left));
       const relY = Math.max(0, Math.min(rect.height, e.clientY - rect.top));
-      
+
       const pctX = Math.round((relX / rect.width) * 100);
       const pctY = Math.round((relY / rect.height) * 100);
-      
+
       if (edge.includes('top')) setCropTop(Math.min(45, Math.max(0, pctY)));
       if (edge.includes('bottom')) setCropBottom(Math.min(45, Math.max(0, 100 - pctY)));
       if (edge.includes('left')) setCropLeft(Math.min(45, Math.max(0, pctX)));
@@ -110,7 +110,7 @@ export const CustomerPrintDashboard: React.FC = () => {
       const queueData = await api.getQueue();
       const historyData = await api.getHistory(50);
       const printerData = await api.getPrinters();
-      
+
       const histAsJobs: QueueJob[] = historyData.map((h: any) => ({
         id: h.id,
         fileId: h.fileId || h.id,
@@ -143,11 +143,11 @@ export const CustomerPrintDashboard: React.FC = () => {
       });
 
       // Show notification if there are new files compared to the previous poll
-      const newIncomingJobs = combined.filter(job => 
-        !previousJobsRef.current.some(prev => prev.id === job.id || prev.fileId === job.fileId) && 
+      const newIncomingJobs = combined.filter(job =>
+        !previousJobsRef.current.some(prev => prev.id === job.id || prev.fileId === job.fileId) &&
         (new Date().getTime() - new Date(job.createdAt || job.updatedAt).getTime() < 30000)
       );
-      
+
       if (newIncomingJobs.length > 0 && previousJobsRef.current.length > 0) {
         setNotification({
           count: newIncomingJobs.length,
@@ -160,12 +160,12 @@ export const CustomerPrintDashboard: React.FC = () => {
 
       setJobs(combined);
       setPrinters(printerData);
-      
+
       const activePrinters = printerData.filter(p => p.status === 'Ready');
       if (activePrinters.length > 0 && !activePrinterName) {
         setActivePrinterName(activePrinters[0].name);
       }
-      
+
       // Keep selected document synced without timer jumping to index 0!
       // CRITICAL: Skip updating selectedJob while user is actively dragging crop handles
       if (isDraggingRef.current) {
@@ -210,7 +210,7 @@ export const CustomerPrintDashboard: React.FC = () => {
         if (status && typeof status === 'object') {
           setPrinterStatus(status);
         }
-      } catch (e) {}
+      } catch (e) { }
     };
     pollPrinterStatus();
     const statusInterval = setInterval(pollPrinterStatus, 6000);
@@ -220,25 +220,25 @@ export const CustomerPrintDashboard: React.FC = () => {
   // Separate, independent test trigger for each printer
   const handleTestPrinter = async (pName: string) => {
     setTestingPrinter(prev => ({ ...prev, [pName]: true }));
-    setTestResultMsg(prev => ({ 
-      ...prev, 
-      [pName]: pName.includes('EPSON') ? '⏳ Testing Epson USB connection...' : '⏳ Testing HP Wi-Fi / TCP connection...' 
+    setTestResultMsg(prev => ({
+      ...prev,
+      [pName]: pName.includes('EPSON') ? '⏳ Testing Epson USB connection...' : '⏳ Testing HP Wi-Fi / TCP connection...'
     }));
-    
+
     try {
       const res = await api.testPrinter(pName);
-      setTestResultMsg(prev => ({ 
-        ...prev, 
-        [pName]: res.message || (res.success ? '✅ ONLINE & READY!' : '⚠️ OFFLINE / UNREACHABLE') 
+      setTestResultMsg(prev => ({
+        ...prev,
+        [pName]: res.message || (res.success ? '✅ ONLINE & READY!' : '⚠️ OFFLINE / UNREACHABLE')
       }));
       setPrinterStatus(prev => ({
         ...prev,
         [pName]: res.status === 'ONLINE' ? 'Online' : 'Offline'
       }));
     } catch (e: any) {
-      setTestResultMsg(prev => ({ 
-        ...prev, 
-        [pName]: pName.includes('EPSON') ? '⚠️ OFFLINE - Check Epson USB Cable & Power' : '⚠️ OFFLINE - Check HP Wi-Fi Network & Power' 
+      setTestResultMsg(prev => ({
+        ...prev,
+        [pName]: pName.includes('EPSON') ? '⚠️ OFFLINE - Check Epson USB Cable & Power' : '⚠️ OFFLINE - Check HP Wi-Fi Network & Power'
       }));
     } finally {
       setTestingPrinter(prev => ({ ...prev, [pName]: false }));
@@ -363,7 +363,7 @@ export const CustomerPrintDashboard: React.FC = () => {
 
   return (
     <div className="space-y-6 text-[#0f172a]" style={{ color: '#0f172a' }}>
-      
+
       {/* NOTIFICATION BAR FOR NEW DOCUMENTS */}
       {notification.show && (
         <div className="bg-emerald-600 text-white p-4 rounded-xl shadow-lg flex items-center gap-4 animate-bounce">
@@ -391,12 +391,12 @@ export const CustomerPrintDashboard: React.FC = () => {
 
         {/* 2 Hardware Printer Control Cards with LIVE Status */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          
+
           {/* PRINTER 1: EPSON L3110 (USB Only) */}
           {(() => {
             const epsonOnline = printerStatus[EPSON_NAME] === 'Online';
             return (
-              <div 
+              <div
                 style={epsonOnline
                   ? { backgroundColor: '#f0fdf4', border: '3px solid #16a34a', boxShadow: '0 0 15px rgba(22, 163, 74, 0.25)' }
                   : { backgroundColor: '#fef2f2', border: '3px solid #dc2626', boxShadow: '0 0 15px rgba(220, 38, 38, 0.2)' }
@@ -413,11 +413,10 @@ export const CustomerPrintDashboard: React.FC = () => {
                       <p className="text-xs font-black text-slate-600">🔌 USB Only — Color Sublimation Inkjet</p>
                     </div>
                   </div>
-                  <span className={`px-3 py-1.5 rounded-lg text-xs font-black uppercase shadow-sm border flex items-center gap-1.5 ${
-                    epsonOnline 
-                      ? 'border-emerald-500 text-emerald-800' 
+                  <span className={`px-3 py-1.5 rounded-lg text-xs font-black uppercase shadow-sm border flex items-center gap-1.5 ${epsonOnline
+                      ? 'border-emerald-500 text-emerald-800'
                       : 'border-red-500 text-red-800 animate-pulse'
-                  }`} style={{ backgroundColor: epsonOnline ? '#dcfce7' : '#fee2e2' }}>
+                    }`} style={{ backgroundColor: epsonOnline ? '#dcfce7' : '#fee2e2' }}>
                     {epsonOnline ? '🟢 ONLINE' : '🔴 OFFLINE'}
                   </span>
                 </div>
@@ -445,12 +444,12 @@ export const CustomerPrintDashboard: React.FC = () => {
                     {testingPrinter[EPSON_NAME] ? <RefreshCw className="w-4 h-4 animate-spin text-emerald-400" /> : <Printer className="w-4 h-4 text-emerald-400" />}
                     <span>{testingPrinter[EPSON_NAME] ? 'Testing USB...' : 'Test USB Connection'}</span>
                   </button>
-                  
+
                   <button
                     type="button"
                     onClick={() => handleSelectActivePrinter(EPSON_NAME)}
-                    style={activePrinterName === EPSON_NAME 
-                      ? { backgroundColor: '#15803d', color: '#ffffff', border: '2px solid #166534' } 
+                    style={activePrinterName === EPSON_NAME
+                      ? { backgroundColor: '#15803d', color: '#ffffff', border: '2px solid #166534' }
                       : { backgroundColor: '#e2e8f0', color: '#0f172a', border: '2px solid #94a3b8' }
                     }
                     className="py-3 px-5 rounded-xl font-black text-xs uppercase tracking-wider transition flex items-center justify-center gap-1.5 cursor-pointer shadow-lg"
@@ -467,7 +466,7 @@ export const CustomerPrintDashboard: React.FC = () => {
           {(() => {
             const hpOnline = printerStatus[HP_NAME] === 'Online';
             return (
-              <div 
+              <div
                 style={hpOnline
                   ? { backgroundColor: '#f0fdf4', border: '3px solid #16a34a', boxShadow: '0 0 15px rgba(22, 163, 74, 0.25)' }
                   : { backgroundColor: '#fef2f2', border: '3px solid #dc2626', boxShadow: '0 0 15px rgba(220, 38, 38, 0.2)' }
@@ -484,11 +483,10 @@ export const CustomerPrintDashboard: React.FC = () => {
                       <p className="text-xs font-black text-slate-600">🔌 USB + 📡 Wi-Fi — Fast Monochrome Laser</p>
                     </div>
                   </div>
-                  <span className={`px-3 py-1.5 rounded-lg text-xs font-black uppercase shadow-sm border flex items-center gap-1.5 ${
-                    hpOnline 
-                      ? 'border-emerald-500 text-emerald-800' 
+                  <span className={`px-3 py-1.5 rounded-lg text-xs font-black uppercase shadow-sm border flex items-center gap-1.5 ${hpOnline
+                      ? 'border-emerald-500 text-emerald-800'
                       : 'border-red-500 text-red-800 animate-pulse'
-                  }`} style={{ backgroundColor: hpOnline ? '#dcfce7' : '#fee2e2' }}>
+                    }`} style={{ backgroundColor: hpOnline ? '#dcfce7' : '#fee2e2' }}>
                     {hpOnline ? '🟢 ONLINE' : '🔴 OFFLINE'}
                   </span>
                 </div>
@@ -516,12 +514,12 @@ export const CustomerPrintDashboard: React.FC = () => {
                     {testingPrinter[HP_NAME] ? <RefreshCw className="w-4 h-4 animate-spin text-blue-400" /> : <Wifi className="w-4 h-4 text-blue-400" />}
                     <span>{testingPrinter[HP_NAME] ? 'Testing Wi-Fi...' : 'Test USB / Wi-Fi'}</span>
                   </button>
-                  
+
                   <button
                     type="button"
                     onClick={() => handleSelectActivePrinter(HP_NAME)}
-                    style={activePrinterName === HP_NAME 
-                      ? { backgroundColor: '#15803d', color: '#ffffff', border: '2px solid #166534' } 
+                    style={activePrinterName === HP_NAME
+                      ? { backgroundColor: '#15803d', color: '#ffffff', border: '2px solid #166534' }
                       : { backgroundColor: '#e2e8f0', color: '#0f172a', border: '2px solid #94a3b8' }
                     }
                     className="py-3 px-5 rounded-xl font-black text-xs uppercase tracking-wider transition flex items-center justify-center gap-1.5 cursor-pointer shadow-lg"
@@ -551,16 +549,16 @@ export const CustomerPrintDashboard: React.FC = () => {
 
       {/* SECTION 2: SHOP OPERATOR WORKSPACE (Incoming List + Big Preview) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        
+
         {/* LEFT PANEL (4 cols): Incoming Documents, Sorting Toggle & Delete All */}
         <div className="lg:col-span-4 rounded-2xl shadow-2xl p-5 flex flex-col min-h-[660px] border-2 border-slate-300" style={{ backgroundColor: '#ffffff' }}>
-          
+
           <div className="flex items-center justify-between border-b-2 border-slate-200 pb-3 mb-3 flex-wrap gap-2">
             <h3 className="text-lg font-black text-slate-950 uppercase tracking-tight flex items-center gap-2">
               <FileText className="w-6 h-6 text-blue-700" />
               <span>ಬಂದಿರುವ ಫೈಲ್‌ಗಳು • Incoming Files ({jobs.length})</span>
             </h3>
-            
+
             {/* SORTING TOGGLE BUTTON */}
             <button
               onClick={() => setSortNewest(s => !s)}
@@ -575,7 +573,7 @@ export const CustomerPrintDashboard: React.FC = () => {
 
           {/* Action Buttons: Upload & Delete All */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
-            <label 
+            <label
               style={{ backgroundColor: '#1e3a8a', color: '#ffffff', border: '2px solid #1e40af' }}
               className="w-full flex items-center justify-center gap-2 py-3 px-2 rounded-xl font-black text-xs uppercase tracking-wider shadow-lg cursor-pointer hover:opacity-90 transition text-center"
             >
@@ -616,7 +614,7 @@ export const CustomerPrintDashboard: React.FC = () => {
                   >
                     <div className="flex items-center justify-between text-base mb-2 font-black text-slate-950">
                       <span className="truncate max-w-[180px] text-black font-extrabold" title={job.fileName}>📄 {job.fileName}</span>
-                      
+
                       {/* INLINE QUICK DELETE BUTTON ON EACH ROW */}
                       <button
                         onClick={(e) => { e.stopPropagation(); handleDeleteFile(job); }}
@@ -651,10 +649,10 @@ export const CustomerPrintDashboard: React.FC = () => {
             </div>
           ) : (
             <div className="w-full space-y-6">
-              
+
               {/* Top Controls & Manual Crop Toolbar */}
               <div className="flex flex-col gap-4 p-5 rounded-2xl border-2 border-slate-300 shadow-md" style={{ backgroundColor: '#f8fafc' }}>
-                
+
                 <div className="flex flex-wrap items-center justify-between gap-3 border-b-2 border-slate-200 pb-3">
                   <div>
                     <h3 className="text-xl font-black text-slate-950 flex items-center gap-2">
@@ -727,167 +725,167 @@ export const CustomerPrintDashboard: React.FC = () => {
                   return (
                     <>
                       <div className="w-full space-y-4">
-                  
-                  {/* Row 1: Document Enhancement Filters (Magic Color, B&W, Noise Removal) */}
-                  <div className="p-4 rounded-2xl border-2 border-cyan-500/50 shadow-xl w-full flex items-center justify-between flex-wrap gap-3" style={{ backgroundColor: '#0f172a', color: '#ffffff' }}>
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-xs font-black uppercase tracking-wider text-amber-300 mr-2 flex items-center gap-1.5">
-                        <Sparkles className="w-4 h-4 text-amber-400 animate-pulse" />
-                        <span>doc_scanner_kit Filters:</span>
-                      </span>
 
-                      <button
-                        onClick={() => handleApplyAdjustments({ filterType: 'magic_color' })}
-                        style={{ backgroundColor: '#4f46e5', color: '#ffffff', border: '2px solid #818cf8' }}
-                        className="px-3.5 py-2 rounded-xl font-black text-xs uppercase tracking-wide hover:opacity-90 shadow-lg cursor-pointer transform active:scale-95 transition"
-                        title="Magic Color Boost: Whitens gray backgrounds and makes print text vivid"
-                      >
-                        <span>✨ Magic Color Boost</span>
-                      </button>
+                        {/* Row 1: Document Enhancement Filters (Magic Color, B&W, Noise Removal) */}
+                        <div className="p-4 rounded-2xl border-2 border-cyan-500/50 shadow-xl w-full flex items-center justify-between flex-wrap gap-3" style={{ backgroundColor: '#0f172a', color: '#ffffff' }}>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-xs font-black uppercase tracking-wider text-amber-300 mr-2 flex items-center gap-1.5">
+                              <Sparkles className="w-4 h-4 text-amber-400 animate-pulse" />
+                              <span>doc_scanner_kit Filters:</span>
+                            </span>
 
-                      <button
-                        onClick={() => handleApplyAdjustments({ filterType: 'bw_scan' })}
-                        style={{ backgroundColor: '#1e293b', color: '#f8fafc', border: '2px solid #64748b' }}
-                        className="px-3.5 py-2 rounded-xl font-black text-xs uppercase tracking-wide hover:bg-slate-700 shadow-lg cursor-pointer transform active:scale-95 transition"
-                        title="High Contrast B&W: Removes wood desk texture & shadows completely"
-                      >
-                        <span>📄 High-Contrast B&W</span>
-                      </button>
+                            <button
+                              onClick={() => handleApplyAdjustments({ filterType: 'magic_color' })}
+                              style={{ backgroundColor: '#4f46e5', color: '#ffffff', border: '2px solid #818cf8' }}
+                              className="px-3.5 py-2 rounded-xl font-black text-xs uppercase tracking-wide hover:opacity-90 shadow-lg cursor-pointer transform active:scale-95 transition"
+                              title="Magic Color Boost: Whitens gray backgrounds and makes print text vivid"
+                            >
+                              <span>✨ Magic Color Boost</span>
+                            </button>
 
-                      <button
-                        onClick={() => handleApplyAdjustments({ filterType: 'clean_noise' })}
-                        style={{ backgroundColor: '#059669', color: '#ffffff', border: '2px solid #34d399' }}
-                        className="px-3.5 py-2 rounded-xl font-black text-xs uppercase tracking-wide hover:opacity-90 shadow-lg cursor-pointer transform active:scale-95 transition"
-                        title="Clean stains, fingerprint shadows, and camera grain"
-                      >
-                        <span>🧹 Stain & Noise Clean</span>
-                      </button>
+                            <button
+                              onClick={() => handleApplyAdjustments({ filterType: 'bw_scan' })}
+                              style={{ backgroundColor: '#1e293b', color: '#f8fafc', border: '2px solid #64748b' }}
+                              className="px-3.5 py-2 rounded-xl font-black text-xs uppercase tracking-wide hover:bg-slate-700 shadow-lg cursor-pointer transform active:scale-95 transition"
+                              title="High Contrast B&W: Removes wood desk texture & shadows completely"
+                            >
+                              <span>📄 High-Contrast B&W</span>
+                            </button>
 
-                      <button
-                        onClick={() => handleApplyAdjustments({ filterType: 'grayscale' })}
-                        style={{ backgroundColor: '#475569', color: '#ffffff', border: '2px solid #94a3b8' }}
-                        className="px-3 py-2 rounded-xl font-black text-xs uppercase tracking-wide hover:opacity-90 shadow-lg cursor-pointer transform active:scale-95 transition"
-                      >
-                        <span>🌟 Smooth Grayscale</span>
-                      </button>
-                    </div>
+                            <button
+                              onClick={() => handleApplyAdjustments({ filterType: 'clean_noise' })}
+                              style={{ backgroundColor: '#059669', color: '#ffffff', border: '2px solid #34d399' }}
+                              className="px-3.5 py-2 rounded-xl font-black text-xs uppercase tracking-wide hover:opacity-90 shadow-lg cursor-pointer transform active:scale-95 transition"
+                              title="Clean stains, fingerprint shadows, and camera grain"
+                            >
+                              <span>🧹 Stain & Noise Clean</span>
+                            </button>
 
-                    {/* Copies Selector */}
-                    <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl border-2 border-slate-600 shadow-md ml-auto" style={{ backgroundColor: '#1e293b', color: '#ffffff' }}>
-                      <span className="text-xs font-black text-slate-200 uppercase">Copies:</span>
-                      <input
-                        type="number"
-                        min="1"
-                        max="50"
-                        value={copies}
-                        onChange={(e) => setCopies(Number(e.target.value))}
-                        style={{ backgroundColor: '#0f172a', color: '#10b981', fontWeight: '900' }}
-                        className="w-12 font-black text-center text-base border-2 border-slate-600 rounded-lg py-0.5 focus:ring-2 focus:ring-indigo-500"
-                      />
-                    </div>
-                  </div>
+                            <button
+                              onClick={() => handleApplyAdjustments({ filterType: 'grayscale' })}
+                              style={{ backgroundColor: '#475569', color: '#ffffff', border: '2px solid #94a3b8' }}
+                              className="px-3 py-2 rounded-xl font-black text-xs uppercase tracking-wide hover:opacity-90 shadow-lg cursor-pointer transform active:scale-95 transition"
+                            >
+                              <span>🌟 Smooth Grayscale</span>
+                            </button>
+                          </div>
 
-                  {/* Row 2: AI Edge Detection & Crop Controls */}
-                  <div className="p-4 rounded-2xl border-2 border-indigo-500/50 shadow-xl w-full flex items-center justify-between flex-wrap gap-3" style={{ backgroundColor: '#111827', color: '#ffffff' }}>
-                    <div className="flex items-center gap-2.5 flex-wrap">
-                      <span className="text-xs font-black uppercase tracking-tight text-cyan-400 mr-1 flex items-center gap-1.5">
-                        <Scissors className="w-4 h-4 text-cyan-300" />
-                        <span>AI Edge Detection & Crop:</span>
-                      </span>
+                          {/* Copies Selector */}
+                          <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl border-2 border-slate-600 shadow-md ml-auto" style={{ backgroundColor: '#1e293b', color: '#ffffff' }}>
+                            <span className="text-xs font-black text-slate-200 uppercase">Copies:</span>
+                            <input
+                              type="number"
+                              min="1"
+                              max="50"
+                              value={copies}
+                              onChange={(e) => setCopies(Number(e.target.value))}
+                              style={{ backgroundColor: '#0f172a', color: '#10b981', fontWeight: '900' }}
+                              className="w-12 font-black text-center text-base border-2 border-slate-600 rounded-lg py-0.5 focus:ring-2 focus:ring-indigo-500"
+                            />
+                          </div>
+                        </div>
 
-                      <button
-                        onClick={() => handleApplyAdjustments({ autoCrop: true })}
-                        style={{ backgroundColor: '#0284c7', color: '#ffffff', border: '2px solid #38bdf8' }}
-                        className="px-4 py-2 rounded-xl font-black text-xs uppercase tracking-tight hover:opacity-95 shadow-lg cursor-pointer flex items-center gap-2 transform active:scale-95 transition"
-                        title="AI automatically detect paper edges against table surfaces"
-                      >
-                        <span>🤖 AI Auto Edge Crop</span>
-                      </button>
+                        {/* Row 2: AI Edge Detection & Crop Controls */}
+                        <div className="p-4 rounded-2xl border-2 border-indigo-500/50 shadow-xl w-full flex items-center justify-between flex-wrap gap-3" style={{ backgroundColor: '#111827', color: '#ffffff' }}>
+                          <div className="flex items-center gap-2.5 flex-wrap">
+                            <span className="text-xs font-black uppercase tracking-tight text-cyan-400 mr-1 flex items-center gap-1.5">
+                              <Scissors className="w-4 h-4 text-cyan-300" />
+                              <span>AI Edge Detection & Crop:</span>
+                            </span>
 
-                      <button
-                        onClick={() => setShowCropBox(!showCropBox)}
-                        style={showCropBox ? { backgroundColor: '#10b981', color: '#022c22', border: '2px solid #6ee7b7', fontWeight: '900' } : { backgroundColor: '#334155', color: '#cbd5e1', border: '2px solid #475569' }}
-                        className="px-3.5 py-2 rounded-xl font-black text-xs uppercase tracking-tight shadow-lg cursor-pointer flex items-center gap-1.5 transition"
-                      >
-                        <span>{showCropBox ? '🟢 Interactive Border Active' : '⚪ Toggle Crop Border'}</span>
-                      </button>
+                            <button
+                              onClick={() => handleApplyAdjustments({ autoCrop: true })}
+                              style={{ backgroundColor: '#0284c7', color: '#ffffff', border: '2px solid #38bdf8' }}
+                              className="px-4 py-2 rounded-xl font-black text-xs uppercase tracking-tight hover:opacity-95 shadow-lg cursor-pointer flex items-center gap-2 transform active:scale-95 transition"
+                              title="AI automatically detect paper edges against table surfaces"
+                            >
+                              <span>🤖 AI Auto Edge Crop</span>
+                            </button>
 
-                      <button
-                        onClick={() => handleApplyAdjustments({ trimAllPct: 5 })}
-                        style={{ backgroundColor: '#334155', color: '#ffffff', border: '1px solid #64748b' }}
-                        className="px-3 py-2 rounded-xl font-bold text-xs uppercase hover:bg-slate-700 shadow cursor-pointer transition"
-                      >
-                        <span>✂️ Trim 5% All Sides</span>
-                      </button>
-                    </div>
+                            <button
+                              onClick={() => setShowCropBox(!showCropBox)}
+                              style={showCropBox ? { backgroundColor: '#10b981', color: '#022c22', border: '2px solid #6ee7b7', fontWeight: '900' } : { backgroundColor: '#334155', color: '#cbd5e1', border: '2px solid #475569' }}
+                              className="px-3.5 py-2 rounded-xl font-black text-xs uppercase tracking-tight shadow-lg cursor-pointer flex items-center gap-1.5 transition"
+                            >
+                              <span>{showCropBox ? '🟢 Interactive Border Active' : '⚪ Toggle Crop Border'}</span>
+                            </button>
 
-                    <div className="flex items-center gap-2 flex-wrap ml-auto">
-                      <button
-                        onClick={() => handleApplyAdjustments({ overrideRotate: 90 })}
-                        style={{ backgroundColor: '#1e293b', color: '#ffffff', border: '2px solid #475569' }}
-                        className="px-4 py-2 rounded-xl font-black text-xs uppercase tracking-wider hover:bg-slate-700 flex items-center gap-2 shadow-lg cursor-pointer transform active:scale-95 transition"
-                      >
-                        <RotateCw className="w-4 h-4 text-emerald-400" />
-                        <span>Rotate 90°</span>
-                      </button>
+                            <button
+                              onClick={() => handleApplyAdjustments({ trimAllPct: 5 })}
+                              style={{ backgroundColor: '#334155', color: '#ffffff', border: '1px solid #64748b' }}
+                              className="px-3 py-2 rounded-xl font-bold text-xs uppercase hover:bg-slate-700 shadow cursor-pointer transition"
+                            >
+                              <span>✂️ Trim 5% All Sides</span>
+                            </button>
+                          </div>
 
-                      <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border-2 border-slate-700 shadow text-xs font-black" style={{ backgroundColor: '#1e293b', color: '#ffffff' }}>
-                        <Sun className="w-3.5 h-3.5 text-amber-400" />
-                        <span>Bright:</span>
-                        <button onClick={() => { setBrightness(b => Number((b + 0.1).toFixed(1))); handleApplyAdjustments({}); }} className="px-2 py-0.5 bg-slate-800 hover:bg-slate-700 rounded text-xs border border-slate-600 cursor-pointer">+</button>
-                        <span className="text-amber-300 font-mono w-7 text-center">{brightness}x</span>
-                        <button onClick={() => { setBrightness(b => Math.max(0.3, Number((b - 0.1).toFixed(1)))); handleApplyAdjustments({}); }} className="px-2 py-0.5 bg-slate-800 hover:bg-slate-700 rounded text-xs border border-slate-600 cursor-pointer">-</button>
+                          <div className="flex items-center gap-2 flex-wrap ml-auto">
+                            <button
+                              onClick={() => handleApplyAdjustments({ overrideRotate: 90 })}
+                              style={{ backgroundColor: '#1e293b', color: '#ffffff', border: '2px solid #475569' }}
+                              className="px-4 py-2 rounded-xl font-black text-xs uppercase tracking-wider hover:bg-slate-700 flex items-center gap-2 shadow-lg cursor-pointer transform active:scale-95 transition"
+                            >
+                              <RotateCw className="w-4 h-4 text-emerald-400" />
+                              <span>Rotate 90°</span>
+                            </button>
+
+                            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border-2 border-slate-700 shadow text-xs font-black" style={{ backgroundColor: '#1e293b', color: '#ffffff' }}>
+                              <Sun className="w-3.5 h-3.5 text-amber-400" />
+                              <span>Bright:</span>
+                              <button onClick={() => { setBrightness(b => Number((b + 0.1).toFixed(1))); handleApplyAdjustments({}); }} className="px-2 py-0.5 bg-slate-800 hover:bg-slate-700 rounded text-xs border border-slate-600 cursor-pointer">+</button>
+                              <span className="text-amber-300 font-mono w-7 text-center">{brightness}x</span>
+                              <button onClick={() => { setBrightness(b => Math.max(0.3, Number((b - 0.1).toFixed(1)))); handleApplyAdjustments({}); }} className="px-2 py-0.5 bg-slate-800 hover:bg-slate-700 rounded text-xs border border-slate-600 cursor-pointer">-</button>
+                            </div>
+
+                            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border-2 border-slate-700 shadow text-xs font-black" style={{ backgroundColor: '#1e293b', color: '#ffffff' }}>
+                              <Contrast className="w-3.5 h-3.5 text-cyan-400" />
+                              <span>Contrast:</span>
+                              <button onClick={() => { setContrast(c => Number((c + 0.1).toFixed(1))); handleApplyAdjustments({}); }} className="px-2 py-0.5 bg-slate-800 hover:bg-slate-700 rounded text-xs border border-slate-600 cursor-pointer">+</button>
+                              <span className="text-cyan-300 font-mono w-7 text-center">{contrast}x</span>
+                              <button onClick={() => { setContrast(c => Math.max(0.3, Number((c - 0.1).toFixed(1)))); handleApplyAdjustments({}); }} className="px-2 py-0.5 bg-slate-800 hover:bg-slate-700 rounded text-xs border border-slate-600 cursor-pointer">-</button>
+                            </div>
+                          </div>
+                        </div>
+
                       </div>
 
-                      <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border-2 border-slate-700 shadow text-xs font-black" style={{ backgroundColor: '#1e293b', color: '#ffffff' }}>
-                        <Contrast className="w-3.5 h-3.5 text-cyan-400" />
-                        <span>Contrast:</span>
-                        <button onClick={() => { setContrast(c => Number((c + 0.1).toFixed(1))); handleApplyAdjustments({}); }} className="px-2 py-0.5 bg-slate-800 hover:bg-slate-700 rounded text-xs border border-slate-600 cursor-pointer">+</button>
-                        <span className="text-cyan-300 font-mono w-7 text-center">{contrast}x</span>
-                        <button onClick={() => { setContrast(c => Math.max(0.3, Number((c - 0.1).toFixed(1)))); handleApplyAdjustments({}); }} className="px-2 py-0.5 bg-slate-800 hover:bg-slate-700 rounded text-xs border border-slate-600 cursor-pointer">-</button>
-                      </div>
-                    </div>
-                  </div>
+                      {/* DOC_SCANNER_KIT INTERACTIVE CROP MARGIN SLIDERS (No screen-freezing shadows!) */}
+                      {showCropBox && (
+                        <div className="w-full p-4 rounded-2xl border-2 border-emerald-500/50 bg-emerald-950/20 shadow-xl space-y-3 mt-3">
+                          <div className="flex items-center justify-between flex-wrap gap-2">
+                            <span className="text-xs font-black uppercase text-emerald-300 flex items-center gap-1.5">
+                              <span>📐 doc_scanner_kit Manual Edge Frame (Adjust sliders to fit exact paper borders):</span>
+                            </span>
+                            <button
+                              onClick={() => handleApplyAdjustments({ trimTopPct: cropTop, trimBottomPct: cropBottom, trimLeftPct: cropLeft, trimRightPct: cropRight })}
+                              disabled={cropTop === 0 && cropBottom === 0 && cropLeft === 0 && cropRight === 0}
+                              style={cropTop === 0 && cropBottom === 0 && cropLeft === 0 && cropRight === 0 ? { backgroundColor: '#475569', color: '#94a3b8' } : { backgroundColor: '#10b981', color: '#022c22', fontWeight: '900' }}
+                              className="px-5 py-2 rounded-xl text-xs uppercase tracking-wider shadow-lg transition transform active:scale-95 cursor-pointer border border-emerald-300 disabled:cursor-not-allowed"
+                            >
+                              ✂️ APPLY EDGE CROP ({cropTop + cropBottom}% V, {cropLeft + cropRight}% H)
+                            </button>
+                          </div>
 
-                </div>
-
-                {/* DOC_SCANNER_KIT INTERACTIVE CROP MARGIN SLIDERS (No screen-freezing shadows!) */}
-                {showCropBox && (
-                  <div className="w-full p-4 rounded-2xl border-2 border-emerald-500/50 bg-emerald-950/20 shadow-xl space-y-3 mt-3">
-                    <div className="flex items-center justify-between flex-wrap gap-2">
-                      <span className="text-xs font-black uppercase text-emerald-300 flex items-center gap-1.5">
-                        <span>📐 doc_scanner_kit Manual Edge Frame (Adjust sliders to fit exact paper borders):</span>
-                      </span>
-                      <button
-                        onClick={() => handleApplyAdjustments({ trimTopPct: cropTop, trimBottomPct: cropBottom, trimLeftPct: cropLeft, trimRightPct: cropRight })}
-                        disabled={cropTop === 0 && cropBottom === 0 && cropLeft === 0 && cropRight === 0}
-                        style={cropTop === 0 && cropBottom === 0 && cropLeft === 0 && cropRight === 0 ? { backgroundColor: '#475569', color: '#94a3b8' } : { backgroundColor: '#10b981', color: '#022c22', fontWeight: '900' }}
-                        className="px-5 py-2 rounded-xl text-xs uppercase tracking-wider shadow-lg transition transform active:scale-95 cursor-pointer border border-emerald-300 disabled:cursor-not-allowed"
-                      >
-                        ✂️ APPLY EDGE CROP ({cropTop + cropBottom}% V, {cropLeft + cropRight}% H)
-                      </button>
-                    </div>
-
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs font-extrabold text-slate-200">
-                      <div className="bg-slate-900/80 p-2.5 rounded-xl border border-slate-700">
-                        <div className="flex justify-between mb-1"><span>Top Border:</span><span className="text-emerald-400 font-mono">{cropTop}%</span></div>
-                        <input type="range" min="0" max="45" value={cropTop} onChange={(e) => setCropTop(Number(e.target.value))} className="w-full accent-emerald-400 cursor-pointer" />
-                      </div>
-                      <div className="bg-slate-900/80 p-2.5 rounded-xl border border-slate-700">
-                        <div className="flex justify-between mb-1"><span>Bottom Border:</span><span className="text-emerald-400 font-mono">{cropBottom}%</span></div>
-                        <input type="range" min="0" max="45" value={cropBottom} onChange={(e) => setCropBottom(Number(e.target.value))} className="w-full accent-emerald-400 cursor-pointer" />
-                      </div>
-                      <div className="bg-slate-900/80 p-2.5 rounded-xl border border-slate-700">
-                        <div className="flex justify-between mb-1"><span>Left Border:</span><span className="text-emerald-400 font-mono">{cropLeft}%</span></div>
-                        <input type="range" min="0" max="45" value={cropLeft} onChange={(e) => setCropLeft(Number(e.target.value))} className="w-full accent-emerald-400 cursor-pointer" />
-                      </div>
-                      <div className="bg-slate-900/80 p-2.5 rounded-xl border border-slate-700">
-                        <div className="flex justify-between mb-1"><span>Right Border:</span><span className="text-emerald-400 font-mono">{cropRight}%</span></div>
-                        <input type="range" min="0" max="45" value={cropRight} onChange={(e) => setCropRight(Number(e.target.value))} className="w-full accent-emerald-400 cursor-pointer" />
-                      </div>
-                    </div>
-                  </div>
-                )}
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs font-extrabold text-slate-200">
+                            <div className="bg-slate-900/80 p-2.5 rounded-xl border border-slate-700">
+                              <div className="flex justify-between mb-1"><span>Top Border:</span><span className="text-emerald-400 font-mono">{cropTop}%</span></div>
+                              <input type="range" min="0" max="45" value={cropTop} onChange={(e) => setCropTop(Number(e.target.value))} className="w-full accent-emerald-400 cursor-pointer" />
+                            </div>
+                            <div className="bg-slate-900/80 p-2.5 rounded-xl border border-slate-700">
+                              <div className="flex justify-between mb-1"><span>Bottom Border:</span><span className="text-emerald-400 font-mono">{cropBottom}%</span></div>
+                              <input type="range" min="0" max="45" value={cropBottom} onChange={(e) => setCropBottom(Number(e.target.value))} className="w-full accent-emerald-400 cursor-pointer" />
+                            </div>
+                            <div className="bg-slate-900/80 p-2.5 rounded-xl border border-slate-700">
+                              <div className="flex justify-between mb-1"><span>Left Border:</span><span className="text-emerald-400 font-mono">{cropLeft}%</span></div>
+                              <input type="range" min="0" max="45" value={cropLeft} onChange={(e) => setCropLeft(Number(e.target.value))} className="w-full accent-emerald-400 cursor-pointer" />
+                            </div>
+                            <div className="bg-slate-900/80 p-2.5 rounded-xl border border-slate-700">
+                              <div className="flex justify-between mb-1"><span>Right Border:</span><span className="text-emerald-400 font-mono">{cropRight}%</span></div>
+                              <input type="range" min="0" max="45" value={cropRight} onChange={(e) => setCropRight(Number(e.target.value))} className="w-full accent-emerald-400 cursor-pointer" />
+                            </div>
+                          </div>
+                        </div>
+                      )}
 
                     </>
                   );
@@ -935,7 +933,7 @@ export const CustomerPrintDashboard: React.FC = () => {
                     <span className="absolute top-4 left-4 font-black text-xs uppercase px-4 py-1.5 rounded-full shadow-lg border border-emerald-400 z-20 flex items-center gap-1.5" style={{ backgroundColor: '#059669', color: '#ffffff' }}>
                       <span>✨ doc_scanner_kit Live Studio Preview</span>
                     </span>
-                    
+
                     <div className="w-full flex items-center justify-center overflow-auto max-h-[680px] py-6 relative select-none">
                       <div className="relative inline-block max-w-full select-none" ref={imgContainerRef}>
                         <img
@@ -950,7 +948,7 @@ export const CustomerPrintDashboard: React.FC = () => {
 
                         {/* LOCALIZED doc_scanner_kit INTERACTIVE CROP FRAME WITH MOUSE/TOUCH DRAGGABLE CORNER & EDGE HANDLES */}
                         {showCropBox && (
-                          <div 
+                          <div
                             className="absolute border-[3px] border-dashed border-cyan-400 select-none shadow-[0_0_15px_rgba(0,240,255,0.5)_inset]"
                             style={{
                               top: `${cropTop}%`,
@@ -960,7 +958,7 @@ export const CustomerPrintDashboard: React.FC = () => {
                             }}
                           >
                             {/* Top-Left Corner Handle */}
-                            <div 
+                            <div
                               onPointerDown={(e) => startDrag(e, 'top-left')}
                               style={{ touchAction: 'none' }}
                               className="absolute -top-3.5 -left-3.5 w-7 h-7 bg-emerald-400 border-2 border-white rounded-full shadow-lg cursor-nwse-resize hover:scale-125 transition-transform flex items-center justify-center z-30"
@@ -970,7 +968,7 @@ export const CustomerPrintDashboard: React.FC = () => {
                             </div>
 
                             {/* Top-Right Corner Handle */}
-                            <div 
+                            <div
                               onPointerDown={(e) => startDrag(e, 'top-right')}
                               style={{ touchAction: 'none' }}
                               className="absolute -top-3.5 -right-3.5 w-7 h-7 bg-emerald-400 border-2 border-white rounded-full shadow-lg cursor-nesw-resize hover:scale-125 transition-transform flex items-center justify-center z-30"
@@ -980,7 +978,7 @@ export const CustomerPrintDashboard: React.FC = () => {
                             </div>
 
                             {/* Bottom-Left Corner Handle */}
-                            <div 
+                            <div
                               onPointerDown={(e) => startDrag(e, 'bottom-left')}
                               style={{ touchAction: 'none' }}
                               className="absolute -bottom-3.5 -left-3.5 w-7 h-7 bg-emerald-400 border-2 border-white rounded-full shadow-lg cursor-nesw-resize hover:scale-125 transition-transform flex items-center justify-center z-30"
@@ -990,7 +988,7 @@ export const CustomerPrintDashboard: React.FC = () => {
                             </div>
 
                             {/* Bottom-Right Corner Handle */}
-                            <div 
+                            <div
                               onPointerDown={(e) => startDrag(e, 'bottom-right')}
                               style={{ touchAction: 'none' }}
                               className="absolute -bottom-3.5 -right-3.5 w-7 h-7 bg-emerald-400 border-2 border-white rounded-full shadow-lg cursor-nwse-resize hover:scale-125 transition-transform flex items-center justify-center z-30"
@@ -1000,7 +998,7 @@ export const CustomerPrintDashboard: React.FC = () => {
                             </div>
 
                             {/* Top Edge Grab Bar */}
-                            <div 
+                            <div
                               onPointerDown={(e) => startDrag(e, 'top')}
                               style={{ touchAction: 'none' }}
                               className="absolute -top-2.5 left-1/2 -translate-x-1/2 w-16 h-5 bg-cyan-500 border border-white rounded-full shadow-md cursor-ns-resize hover:scale-110 transition flex items-center justify-center z-30"
@@ -1010,7 +1008,7 @@ export const CustomerPrintDashboard: React.FC = () => {
                             </div>
 
                             {/* Bottom Edge Grab Bar */}
-                            <div 
+                            <div
                               onPointerDown={(e) => startDrag(e, 'bottom')}
                               style={{ touchAction: 'none' }}
                               className="absolute -bottom-2.5 left-1/2 -translate-x-1/2 w-16 h-5 bg-cyan-500 border border-white rounded-full shadow-md cursor-ns-resize hover:scale-110 transition flex items-center justify-center z-30"
@@ -1020,7 +1018,7 @@ export const CustomerPrintDashboard: React.FC = () => {
                             </div>
 
                             {/* Left Edge Grab Bar */}
-                            <div 
+                            <div
                               onPointerDown={(e) => startDrag(e, 'left')}
                               style={{ touchAction: 'none' }}
                               className="absolute top-1/2 -translate-y-1/2 -left-2.5 w-5 h-16 bg-cyan-500 border border-white rounded-full shadow-md cursor-ew-resize hover:scale-110 transition flex items-center justify-center z-30"
@@ -1030,7 +1028,7 @@ export const CustomerPrintDashboard: React.FC = () => {
                             </div>
 
                             {/* Right Edge Grab Bar */}
-                            <div 
+                            <div
                               onPointerDown={(e) => startDrag(e, 'right')}
                               style={{ touchAction: 'none' }}
                               className="absolute top-1/2 -translate-y-1/2 -right-2.5 w-5 h-16 bg-cyan-500 border border-white rounded-full shadow-md cursor-ew-resize hover:scale-110 transition flex items-center justify-center z-30"
@@ -1052,11 +1050,11 @@ export const CustomerPrintDashboard: React.FC = () => {
 
               {/* DIRECT HARDWARE PRINT STATION (One click prints immediately without dialogs) */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2 w-full">
-                
+
                 <button
                   onClick={() => handleInstantPrint(HP_NAME)}
                   disabled={applying}
-                  style={printerStatus[HP_NAME] === 'Online' 
+                  style={printerStatus[HP_NAME] === 'Online'
                     ? { backgroundColor: '#15803d', color: '#ffffff', border: '3px solid #22c55e', boxShadow: '0 0 20px rgba(34, 197, 94, 0.4)' }
                     : { backgroundColor: '#1d4ed8', color: '#ffffff', border: '3px solid #1e3a8a' }}
                   className="w-full py-4 px-5 rounded-2xl hover:opacity-95 font-black text-sm md:text-base uppercase tracking-wider shadow-2xl transform active:scale-95 transition flex items-center justify-center gap-3 cursor-pointer"

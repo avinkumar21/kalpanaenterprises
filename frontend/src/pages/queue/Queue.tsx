@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { api, QueueJob } from '../../services/client';
+import { api, type QueueJob } from '../../services/client';
 import { ListOrdered, Play, RotateCcw, XCircle, Trash2, CheckCircle2, Clock, ShieldAlert } from 'lucide-react';
 
 export const Queue: React.FC = () => {
