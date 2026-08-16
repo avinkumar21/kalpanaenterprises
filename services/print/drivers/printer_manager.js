@@ -414,7 +414,7 @@ const PrinterManager = {
                 }
             `;
         } else if (ext === '.pdf') {
-            // Direct silent physical hardware PDF printing with dynamic multi-page spooler tracking
+            // Direct silent physical hardware PDF printing using Windows Native WinRT PDF Engine + .NET PrintDocument
             script = `
                 try {
                     # Ensure printer is not in WorkOffline state
@@ -423,59 +423,74 @@ const PrinterManager = {
                         try { $p.WorkOffline = $false; $null = $p.Put() } catch {}
                     }
 
-                    $gp = Get-Printer -Name '${targetPrinter.replace(/'/g, "''")}' -ErrorAction SilentlyContinue
-                    $driver = if ($gp -and $gp.DriverName) { $gp.DriverName } else { '${targetPrinter.replace(/'/g, "''")}' }
-                    $port = if ($gp -and $gp.PortName) { $gp.PortName } else { 'USB001' }
+                    Add-Type -AssemblyName System.Drawing
+                    Add-Type -AssemblyName System.Runtime.WindowsRuntime
 
-                    $acro = "C:\\Program Files\\Adobe\\Acrobat DC\\Acrobat\\Acrobat.exe"
-                    if (-not (Test-Path $acro)) { $acro = "C:\\Program Files (x86)\\Adobe\\Acrobat Reader DC\\Reader\\AcroRd32.exe" }
-
-                    if (Test-Path $acro) {
-                        for ($i = 0; $i -lt ${copies}; $i++) {
-                            # Launch Acrobat with complete 4-tuple args for direct silent background hardware spooling
-                            $proc = Start-Process -FilePath $acro -ArgumentList @('/t', "${absPath}", "${targetPrinter}", "$driver", "$port") -WindowStyle Hidden -PassThru
-                            
-                            # Dynamic Spooler Watch: Wait up to 180 seconds for large 80+ page PDFs to fully spool
-                            $maxSeconds = 180
-                            $waited = 0
-                            $spoolerSeen = $false
-
-                            while ($waited -lt $maxSeconds) {
-                                Start-Sleep -Milliseconds 1000
-                                $waited++
-
-                                $jobs = Get-PrintJob -PrinterName '${targetPrinter.replace(/'/g, "''")}' -ErrorAction SilentlyContinue
-                                if ($jobs) {
-                                    $spoolerSeen = $true
-                                } elseif ($spoolerSeen -and -not $jobs) {
-                                    # Spooler has completely finished transferring all pages to physical printer hardware
-                                    break
-                                }
-
-                                if ($proc -and $proc.HasExited) {
-                                    break
-                                }
-                            }
-
-                            # Cleanly close Acrobat background helper once pages are queued
-                            if ($proc -and -not $proc.HasExited) {
-                                Start-Sleep -Seconds 2
-                                $null = $proc.CloseMainWindow()
-                                Start-Sleep -Milliseconds 1000
-                                if (-not $proc.HasExited) {
-                                    Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue
-                                }
-                            }
-                        }
-                        Write-Host "PRINT_SUCCESS"
-                    } else {
-                        # Native Edge / Shell Verb Print Fallback
-                        for ($i = 0; $i -lt ${copies}; $i++) {
-                            Start-Process -FilePath "${absPath}" -Verb Print -WindowStyle Hidden
-                            Start-Sleep -Seconds 6
-                        }
-                        Write-Host "PRINT_SUCCESS"
+                    $asTaskGeneric = ([System.WindowsRuntimeSystemExtensions].GetMethods() | Where-Object { $_.Name -eq 'AsTask' -and $_.GetParameters().Count -eq 1 -and $_.GetParameters()[0].ParameterType.Name -eq 'IAsyncOperation\`1' })[0]
+                    Function AwaitWinRt($WinRtTask, $ResultType) {
+                        $asTask = $asTaskGeneric.MakeGenericMethod($ResultType)
+                        $netTask = $asTask.Invoke($null, @($WinRtTask))
+                        $netTask.Wait(-1) | Out-Null
+                        return $netTask.Result
                     }
+
+                    $asActionTask = ([System.WindowsRuntimeSystemExtensions].GetMethods() | Where-Object { $_.Name -eq 'AsTask' -and $_.GetParameters().Count -eq 1 -and $_.GetParameters()[0].ParameterType.Name -eq 'IAsyncAction' })[0]
+                    Function AwaitWinRtAction($WinRtTask) {
+                        $netTask = $asActionTask.Invoke($null, @($WinRtTask))
+                        $netTask.Wait(-1) | Out-Null
+                    }
+
+                    [Windows.Storage.StorageFile, Windows.Storage, ContentType = WindowsRuntime] | Out-Null
+                    [Windows.Data.Pdf.PdfDocument, Windows.Data.Pdf, ContentType = WindowsRuntime] | Out-Null
+                    [Windows.Storage.Streams.InMemoryRandomAccessStream, Windows.Storage.Streams, ContentType = WindowsRuntime] | Out-Null
+
+                    $fileTask = [Windows.Storage.StorageFile]::GetFileFromPathAsync("${absPath}")
+                    $file = AwaitWinRt $fileTask ([Windows.Storage.StorageFile])
+                    $pdfDocTask = [Windows.Data.Pdf.PdfDocument]::LoadFromFileAsync($file)
+                    $pdfDoc = AwaitWinRt $pdfDocTask ([Windows.Data.Pdf.PdfDocument])
+
+                    $totalPages = $pdfDoc.PageCount
+                    $global:pageIndex = 0
+
+                    $pd = New-Object System.Drawing.Printing.PrintDocument
+                    $pd.PrinterSettings.PrinterName = "${targetPrinter}"
+                    $pd.PrinterSettings.Copies = ${copies}
+                    $pd.DefaultPageSettings.Color = $false
+                    try { $pd.PrinterSettings.DefaultPageSettings.Color = $false } catch {}
+
+                    $a4Paper = $pd.PrinterSettings.PaperSizes | Where-Object { $_.Kind -eq [System.Drawing.Printing.PaperKind]::A4 -or $_.PaperName -like '*A4*' } | Select-Object -First 1
+                    if ($a4Paper) { $pd.DefaultPageSettings.PaperSize = $a4Paper }
+                    $pd.DefaultPageSettings.Margins = New-Object System.Drawing.Printing.Margins(0, 0, 0, 0)
+                    $pd.OriginAtMargins = $false
+
+                    $pd.add_PrintPage({
+                        param($sender, $e)
+                        if ($global:pageIndex -lt $totalPages) {
+                            $page = $pdfDoc.GetPage($global:pageIndex)
+                            $memStream = New-Object Windows.Storage.Streams.InMemoryRandomAccessStream
+                            $renderTask = $page.RenderToStreamAsync($memStream)
+                            AwaitWinRtAction $renderTask
+                            
+                            $netStream = [System.IO.WindowsRuntimeStreamExtensions]::AsStream($memStream)
+                            $img = [System.Drawing.Image]::FromStream($netStream)
+                            
+                            $e.Graphics.DrawImage($img, $e.PageBounds)
+                            
+                            $img.Dispose()
+                            $netStream.Dispose()
+                            $memStream.Dispose()
+                            $page.Dispose()
+                            
+                            $global:pageIndex++
+                            $e.HasMorePages = ($global:pageIndex -lt $totalPages)
+                        } else {
+                            $e.HasMorePages = $false
+                        }
+                    })
+
+                    $pd.Print()
+                    $pd.Dispose()
+                    Write-Host "PRINT_SUCCESS"
                 } catch {
                     Write-Error $_.Exception.Message
                     exit 1
