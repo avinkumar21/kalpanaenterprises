@@ -41,10 +41,10 @@
       "driverName": "HP Laser MFP 131 133 135-138",
       "status": "Ready",
       "isDefault": false,
-      "isPrimary": true,
-      "isSecondary": false,
+      "isPrimary": false,
+      "isSecondary": true,
       "isFallback": false,
-      "lastChecked": "2026-08-15T16:03:55.645Z"
+      "lastChecked": "2026-08-16T10:33:45.221Z"
     },
     "generic___text_only": {
       "id": "generic___text_only",
@@ -74,10 +74,10 @@
       "driverName": "EPSON L3110 Series",
       "status": "Ready",
       "isDefault": true,
-      "isPrimary": false,
-      "isSecondary": true,
+      "isPrimary": true,
+      "isSecondary": false,
       "isFallback": false,
-      "lastChecked": "2026-08-15T15:45:00.137Z"
+      "lastChecked": "2026-08-16T10:33:45.221Z"
     }
   },
   "settings": {
@@ -89,9 +89,9 @@
     "enableAutoPrint": true,
     "enableOCR": false,
     "enableEnhancement": true,
-    "defaultPrinter": "HP508140DE1D63(HP Laser MFP 131 133 135-138)",
-    "primaryPrinter": "HP508140DE1D63(HP Laser MFP 131 133 135-138)",
-    "secondaryPrinter": "EPSON L3110 Series",
+    "defaultPrinter": "EPSON L3110 Series",
+    "primaryPrinter": "EPSON L3110 Series",
+    "secondaryPrinter": "HP508140DE1D63(HP Laser MFP 131 133 135-138)",
     "fallbackPrinter": "Microsoft Print to PDF",
     "copies": 1,
     "margins": "Minimal",
@@ -101,7 +101,7 @@
     "pollingIntervalMs": 2000,
     "port": 8082,
     "adminPasswordHash": "admin",
-    "publicTunnelUrl": "https://live-typing-aims-hans.trycloudflare.com"
+    "publicTunnelUrl": "https://champagne-key-action-seminars.trycloudflare.com"
   },
   "logs": [
     {

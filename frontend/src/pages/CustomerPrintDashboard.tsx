@@ -26,11 +26,18 @@ export const CustomerPrintDashboard: React.FC = () => {
   const [brightness, setBrightness] = useState(1.0);
   const [contrast, setContrast] = useState(1.0);
   const [copies, setCopies] = useState(1);
-  const [activePrinterName, setActivePrinterName] = useState(HP_NAME);
+  const [activePrinterName, setActivePrinterName] = useState(EPSON_NAME);
   const [applying, setApplying] = useState(false);
   const [printSuccessMsg, setPrintSuccessMsg] = useState<string | null>(null);
   const [testResultMsg, setTestResultMsg] = useState<{ [key: string]: string }>({});
   const [uploading, setUploading] = useState(false);
+
+  const handleSelectActivePrinter = async (pName: string) => {
+    setActivePrinterName(pName);
+    try {
+      await api.saveSettings({ defaultPrinter: pName, primaryPrinter: pName });
+    } catch (e) {}
+  };
 
   // Live printer USB connectivity status (polled every 10 seconds)
   const [printerStatus, setPrinterStatus] = useState<Record<string, string>>({});
@@ -439,7 +446,7 @@ export const CustomerPrintDashboard: React.FC = () => {
                   </button>
                   
                   <button
-                    onClick={() => setActivePrinterName(EPSON_NAME)}
+                    onClick={() => handleSelectActivePrinter(EPSON_NAME)}
                     style={activePrinterName === EPSON_NAME 
                       ? { backgroundColor: '#15803d', color: '#ffffff', border: '2px solid #166534' } 
                       : { backgroundColor: '#e2e8f0', color: '#0f172a', border: '2px solid #94a3b8' }
@@ -507,7 +514,7 @@ export const CustomerPrintDashboard: React.FC = () => {
                   </button>
                   
                   <button
-                    onClick={() => setActivePrinterName(HP_NAME)}
+                    onClick={() => handleSelectActivePrinter(HP_NAME)}
                     style={activePrinterName === HP_NAME 
                       ? { backgroundColor: '#15803d', color: '#ffffff', border: '2px solid #166534' } 
                       : { backgroundColor: '#e2e8f0', color: '#0f172a', border: '2px solid #94a3b8' }

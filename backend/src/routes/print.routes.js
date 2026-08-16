@@ -4,7 +4,7 @@ const fs = require('fs');
 const multer = require('multer');
 const sharp = require('sharp');
 const db = require('../../../data/local_db/index.js');
-const Logger = { info: console.log, error: console.error, warn: console.warn };
+const Logger = require('../../../services/logs/logger.js');
 const PrinterManager = require('../../../services/print/drivers/printer_manager.js');
 const PrintQueue = require('../../../services/print/queue/print_queue.js');
 const FolderWatcher = require('../../../services/watchers/folder_watcher.js');
@@ -83,17 +83,23 @@ router.get('/printer-status', async (req, res) => {
     const hpName = 'HP508140DE1D63(HP Laser MFP 131 133 135-138)';
 
     try {
-        const [epsonRes, hpRes] = await Promise.all([
-            PrinterManager.testPrinter(epsonName),
-            PrinterManager.testPrinter(hpName)
-        ]);
+        const statusMap = await PrinterManager.getAllPrintersLiveStatus();
+        const epsonInfo = statusMap[epsonName] || Object.values(statusMap).find(p => p.name.toLowerCase().includes('epson')) || { isOnline: false };
+        const hpInfo = statusMap[hpName] || Object.values(statusMap).find(p => p.name.toLowerCase().includes('hp') || p.name.includes('131')) || { isOnline: false };
+
+        const epsonOnline = Boolean(epsonInfo.isOnline || epsonInfo.status === 'Ready');
+        const hpOnline = Boolean(hpInfo.isOnline || hpInfo.status === 'Ready');
 
         const result = {
-            [epsonName]: epsonRes.status === 'ONLINE' ? 'Online' : 'Offline',
-            [hpName]: hpRes.status === 'ONLINE' ? 'Online' : 'Offline',
+            [epsonName]: epsonOnline ? 'Online' : 'Offline',
+            [hpName]: hpOnline ? 'Online' : 'Offline',
             messages: {
-                [epsonName]: epsonRes.message,
-                [hpName]: hpRes.message
+                [epsonName]: epsonOnline 
+                    ? `✅ Printer [${epsonName}] is Online, powered on, and ready to print via USB Cable!` 
+                    : `⚠️ Printer [${epsonName}] is currently powered off or disconnected. Please turn on printer power switch or connect cable.`,
+                [hpName]: hpOnline 
+                    ? `✅ Printer [${hpName}] is Online and ready to print!` 
+                    : `⚠️ Printer [${hpName}] is currently powered off or disconnected. Please turn on printer power switch or connect cable.`
             },
             timestamp: new Date().toISOString()
         };
