@@ -20,9 +20,14 @@ app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Dynamic Route Loader Placeholder (Assuming routes are moved)
+// Dynamic Route Loader for Prints API
 app.use('/api/prints', apiRouter);
-app.use('/prints', apiRouter);
+
+// Serve Frontend SPA Dist Bundle
+const distPath = path.resolve(__dirname, '../../frontend/dist');
+if (fs.existsSync(distPath)) {
+    app.use(express.static(distPath));
+}
 
 // Health Check Endpoint (Required for Phase 1 Vercel/Watchdog)
 app.get('/api/v1/health', (req, res) => {
@@ -34,7 +39,14 @@ app.get('/api/v1/health', (req, res) => {
     });
 });
 
-app.get('/', (req, res) => {
+// Catch-all SPA router for /prints and customer upload kiosk
+app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api/') || req.path.startsWith('/storage/')) {
+        return next();
+    }
+    if (fs.existsSync(path.join(distPath, 'index.html'))) {
+        return res.sendFile(path.join(distPath, 'index.html'));
+    }
     res.redirect('/api/v1/health');
 });
 

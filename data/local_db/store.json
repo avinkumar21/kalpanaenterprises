@@ -253,7 +253,7 @@
       "isPrimary": false,
       "isSecondary": true,
       "isFallback": false,
-      "lastChecked": "2026-08-16T12:04:10.409Z"
+      "lastChecked": "2026-08-16T12:24:41.976Z"
     },
     "generic___text_only": {
       "id": "generic___text_only",
@@ -281,12 +281,12 @@
       "id": "epson_l3110_series",
       "name": "EPSON L3110 Series",
       "driverName": "EPSON L3110 Series",
-      "status": "Ready",
+      "status": "Offline",
       "isDefault": true,
       "isPrimary": true,
       "isSecondary": false,
       "isFallback": false,
-      "lastChecked": "2026-08-16T12:04:10.409Z"
+      "lastChecked": "2026-08-16T12:24:41.975Z"
     }
   },
   "settings": {

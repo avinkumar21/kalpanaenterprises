@@ -25,14 +25,14 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
   const [showQrModal, setShowQrModal] = useState(false);
   const [shopLanIp, setShopLanIp] = useState(() => {
     try {
-      if (typeof __LOCAL_IP__ !== 'undefined' && __LOCAL_IP__ && __LOCAL_IP__ !== 'localhost') {
-        return __LOCAL_IP__;
+      if (typeof window !== 'undefined' && window.location.hostname) {
+        const host = window.location.hostname;
+        if (host.startsWith('192.168.')) {
+          return host;
+        }
       }
-    } catch { /* ignore fallback */ }
-    if (typeof window !== 'undefined' && window.location.hostname && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1' && !window.location.hostname.includes('vercel.app')) {
-      return window.location.hostname;
-    }
-    return '192.168.31.233'; // Active Shop Wi-Fi IP
+    } catch {}
+    return '192.168.31.233'; // Active Shop Wi-Fi Subnet IP
   });
   const [port] = useState(() => {
     if (typeof window !== 'undefined' && window.location.port && window.location.port !== '80' && window.location.port !== '8082') {
