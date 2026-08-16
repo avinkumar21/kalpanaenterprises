@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { api, LogEntry } from '../../services/client';
+import { api, type LogEntry } from '../../services/client';
 import { Activity, Download, Filter, Search, Info, AlertTriangle, XCircle, CheckCircle2, FileText, Sparkles, Printer, RefreshCw } from 'lucide-react';
 
 const CATEGORIES = ['ALL', 'FOLDER_EVENTS', 'FILE_DETECTION', 'ENHANCEMENT', 'CONVERSION', 'PRINTING', 'RETRIES', 'PRINTER_EVENTS', 'SERVICE_EVENTS'];
