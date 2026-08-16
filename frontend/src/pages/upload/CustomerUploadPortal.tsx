@@ -29,10 +29,10 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
         return __LOCAL_IP__;
       }
     } catch { /* ignore fallback */ }
-    if (typeof window !== 'undefined' && window.location.hostname && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+    if (typeof window !== 'undefined' && window.location.hostname && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1' && !window.location.hostname.includes('vercel.app')) {
       return window.location.hostname;
     }
-    return '192.168.31.242'; // Permanent Shop Desktop IP (192.168.31.242)
+    return '192.168.31.233'; // Active Shop Wi-Fi IP
   });
   const [port] = useState(() => {
     if (typeof window !== 'undefined' && window.location.port && window.location.port !== '80' && window.location.port !== '8082') {
@@ -47,33 +47,36 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
     return 'mobile';
   });
 
-  const [accessMode, setAccessMode] = useState<'wifi' | 'mobile_web' | 'email'>(() => {
-    if (typeof window !== 'undefined' && (window.location.hostname.includes('trycloudflare') || window.location.hostname.includes('tunnel') || window.location.hostname.includes('loca.lt'))) {
-      return 'mobile_web';
-    }
-    return 'mobile_web';
-  });
+  const [accessMode, setAccessMode] = useState<'wifi' | 'mobile_web' | 'email'>('mobile_web');
 
   const [publicTunnelUrl, setPublicTunnelUrl] = useState(() => {
-    if (typeof window !== 'undefined' && window.localStorage) {
-      const saved = window.localStorage.getItem('arka_tunnel_url');
-      if (saved && saved.includes('trycloudflare.com')) return saved;
+    if (typeof window !== 'undefined') {
+      try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const tunnelParam = urlParams.get('tunnel') || urlParams.get('api');
+        if (tunnelParam && tunnelParam.trim()) {
+          const clean = tunnelParam.trim().replace(/\/+$/, '');
+          window.localStorage?.setItem('arka_tunnel_url', clean);
+          return clean;
+        }
+      } catch {}
+      if (window.localStorage) {
+        const saved = window.localStorage.getItem('arka_tunnel_url');
+        if (saved && saved.includes('trycloudflare.com')) return saved;
+      }
     }
-    return '';
+    return 'https://political-abilities-mag-devel.trycloudflare.com';
   });
   const [shopEmail, setShopEmail] = useState('print@kalpanaenterprise.com');
 
   const portSuffix = port && port !== '80' ? `:${port}` : '';
   const portalUrl = (() => {
     if (accessMode === 'wifi') {
-      return `http://${shopLanIp || '192.168.31.242'}${portSuffix}/prints?kiosk=true#upload`;
+      return `http://${shopLanIp || '192.168.31.233'}${portSuffix}/prints?kiosk=true#upload`;
     }
     if (accessMode === 'mobile_web') {
-      const cleanTunnel = (publicTunnelUrl || '').trim().replace(/\/+$/, '');
-      if (cleanTunnel && cleanTunnel.includes('trycloudflare.com')) {
-        return `https://kalpanaenterprises.vercel.app/prints?tunnel=${encodeURIComponent(cleanTunnel)}&kiosk=true#upload`;
-      }
-      return 'https://kalpanaenterprises.vercel.app/prints?kiosk=true#upload';
+      const cleanTunnel = (publicTunnelUrl || 'https://political-abilities-mag-devel.trycloudflare.com').trim().replace(/\/+$/, '');
+      return `${cleanTunnel}/prints?kiosk=true#upload`;
     }
     if (accessMode === 'email') {
       return `mailto:${shopEmail}?subject=Customer%20Print%20Order`;
@@ -399,13 +402,17 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
 
     setUploading(true);
     try {
-      if (connectionMode === 'mobile' && publicTunnelUrl && publicTunnelUrl.includes('trycloudflare.com')) {
-        setCustomApiBase(publicTunnelUrl);
-        api.setCustomApiBase(publicTunnelUrl);
+      if (connectionMode === 'mobile') {
+        const tunnel = publicTunnelUrl || 'https://political-abilities-mag-devel.trycloudflare.com';
+        setCustomApiBase(tunnel);
+        api.setCustomApiBase(tunnel);
       } else if (connectionMode === 'wifi') {
-        const lanUrl = `http://${shopLanIp || '192.168.31.242'}:8082`;
-        setCustomApiBase(lanUrl);
-        api.setCustomApiBase(lanUrl);
+        const isLocalHost = typeof window !== 'undefined' && (window.location.hostname.includes('192.168.') || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+        const lanUrl = isLocalHost ? '' : `http://${shopLanIp || '192.168.31.233'}:8082`;
+        if (lanUrl) {
+          setCustomApiBase(lanUrl);
+          api.setCustomApiBase(lanUrl);
+        }
       }
 
       let result: any;
@@ -1018,9 +1025,12 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
                 type="button"
                 onClick={() => {
                   setConnectionMode('wifi');
-                  const lanUrl = `http://${shopLanIp || '192.168.31.242'}:8082`;
-                  setCustomApiBase(lanUrl);
-                  api.setCustomApiBase(lanUrl);
+                  const isLocalHost = typeof window !== 'undefined' && (window.location.hostname.includes('192.168.') || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+                  const lanUrl = isLocalHost ? '' : `http://${shopLanIp || '192.168.31.233'}:8082`;
+                  if (lanUrl) {
+                    setCustomApiBase(lanUrl);
+                    api.setCustomApiBase(lanUrl);
+                  }
                 }}
                 className={`py-2.5 px-3 rounded-xl text-xs font-black uppercase tracking-wider border transition cursor-pointer flex items-center justify-center gap-1.5 ${
                   connectionMode === 'wifi'

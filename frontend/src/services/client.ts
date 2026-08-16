@@ -45,10 +45,11 @@ export function getApiBase(): string {
     }
 
     if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname.startsWith('192.168.') || hostname.startsWith('10.') || hostname.startsWith('172.')) {
-      return `http://${hostname}:8082/api/prints`;
+      const port = window.location.port === '80' ? '' : ':8082';
+      return `http://${hostname}${port}/api/prints`;
     }
   }
-  return 'http://192.168.31.242:8082/api/prints';
+  return 'https://political-abilities-mag-devel.trycloudflare.com/api/prints';
 }
 
 export function setCustomApiBase(url: string | null): void {
@@ -147,8 +148,10 @@ export async function fetchWithFallback(endpointPath: string, options?: RequestI
     const isLocal = host === 'localhost' || host === '127.0.0.1' || host.startsWith('192.168.') || host.startsWith('10.');
 
     if (isLocal) {
-      candidateBases.push(`http://${host}:8082/api/prints`);
-      candidateBases.push('http://192.168.31.242:8082/api/prints');
+      const p = window.location.port === '80' ? '' : ':8082';
+      candidateBases.push(`http://${host}${p}/api/prints`);
+      candidateBases.push('http://192.168.31.233:8082/api/prints');
+      candidateBases.push('http://192.168.31.233/api/prints');
       candidateBases.push('http://localhost:8082/api/prints');
     }
 
@@ -158,10 +161,13 @@ export async function fetchWithFallback(endpointPath: string, options?: RequestI
     }
 
     candidateBases.push(primaryBase);
+    candidateBases.push('https://political-abilities-mag-devel.trycloudflare.com/api/prints');
 
     if (!isLocal) {
-      candidateBases.push('http://192.168.31.242:8082/api/prints');
-      candidateBases.push('http://localhost:8082/api/prints');
+      if (window.location.protocol === 'http:') {
+        candidateBases.push('http://192.168.31.233:8082/api/prints');
+        candidateBases.push('http://192.168.31.233/api/prints');
+      }
     }
   } else {
     candidateBases.push(primaryBase);
