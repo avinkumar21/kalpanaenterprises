@@ -6,28 +6,29 @@
  * 3. Fallback IP addresses
  */
 
-const allowedOrigins = [
-  'http://localhost',
-  'http://localhost:80',
-  'http://localhost:8080',
-  'http://localhost:5173',
-  'http://127.0.0.1',
-  'http://127.0.0.1:80',
-  'https://kalpanaenterprises.com',
-  'https://www.kalpanaenterprises.com'
-];
-
 const corsOptions = {
   origin: function (origin, callback) {
     // Allow requests with no origin (like mobile apps, curl, or server-to-server)
     if (!origin) return callback(null, true);
     
-    // Allow known origins or any vercel.app preview URL
-    if (allowedOrigins.indexOf(origin) !== -1 || origin.endsWith('.vercel.app')) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS: ' + origin));
+    // Allow Cloudflare tunnels, Vercel deployments, localhost, and local LAN subnets
+    if (
+      origin.includes('trycloudflare.com') ||
+      origin.includes('vercel.app') ||
+      origin.includes('kalpanaenterprises.com') ||
+      origin.includes('localhost') ||
+      origin.includes('127.0.0.1') ||
+      origin.startsWith('http://192.168.') ||
+      origin.startsWith('https://192.168.') ||
+      origin.startsWith('http://10.') ||
+      origin.startsWith('http://172.') ||
+      origin.startsWith('http://100.')
+    ) {
+      return callback(null, true);
     }
+
+    // Allow everything else for open walk-in customer mobile uploads
+    return callback(null, true);
   },
   credentials: true,
   optionsSuccessStatus: 200

@@ -253,7 +253,7 @@
       "isPrimary": false,
       "isSecondary": true,
       "isFallback": false,
-      "lastChecked": "2026-08-16T12:24:41.976Z"
+      "lastChecked": "2026-08-16T12:36:17.954Z"
     },
     "generic___text_only": {
       "id": "generic___text_only",
@@ -286,7 +286,7 @@
       "isPrimary": true,
       "isSecondary": false,
       "isFallback": false,
-      "lastChecked": "2026-08-16T12:24:41.975Z"
+      "lastChecked": "2026-08-16T12:36:17.954Z"
     }
   },
   "settings": {
