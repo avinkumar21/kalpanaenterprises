@@ -155,12 +155,16 @@ const FolderWatcher = {
                 return;
             }
 
-            // Step 2: Enhance & process document
+            // Step 2: Enhance & process document (Default to Black & White)
+            const isExplicitColor = fileName.toLowerCase().includes('_color_') || fileName.toLowerCase().includes('_colour_');
+            const colorMode = isExplicitColor ? 'Color' : 'BlackWhite';
+
             const settings = db.getSettings();
             const processRes = await processDocument(stagedPath, processedDir, {
                 enhancementLevel: settings.imageEnhancementLevel || 'Moderate',
                 autoCrop: settings.enableEnhancement !== false,
-                enableOCR: settings.enableOCR === true
+                enableOCR: settings.enableOCR === true,
+                colorMode: colorMode
             });
 
             db.incrementStatistic('totalProcessed');

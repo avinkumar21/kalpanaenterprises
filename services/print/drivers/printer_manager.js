@@ -389,6 +389,10 @@ const PrinterManager = {
                     $pd.PrinterSettings.PrinterName = "${targetPrinter}"
                     $pd.PrinterSettings.Copies = ${copies}
                     
+                    # Strictly enforce Black & White Monochrome printing
+                    $pd.DefaultPageSettings.Color = $false
+                    try { $pd.PrinterSettings.DefaultPageSettings.Color = $false } catch {}
+
                     # Strictly enforce A4 Sheet Paper (Kind 9 = A4 standard)
                     $a4Paper = $pd.PrinterSettings.PaperSizes | Where-Object { $_.Kind -eq [System.Drawing.Printing.PaperKind]::A4 -or $_.PaperName -like '*A4*' } | Select-Object -First 1
                     if ($a4Paper) {

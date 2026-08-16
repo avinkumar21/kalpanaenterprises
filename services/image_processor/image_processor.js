@@ -112,15 +112,24 @@ async function processImage(inputPath, outputDir, options = {}) {
         }
 
         // Apply contrast & brightness optimization based on enhancement level
+        const isColor = options.colorMode === 'Color';
+        if (!isColor) {
+            // Default to ultra-clean, high-contrast Black & White monochrome
+            instance = instance.greyscale();
+        }
+
         const level = options.enhancementLevel || 'High';
         if (level === 'Moderate') {
-            instance = instance.linear(1.15, -(0.08 * 255)).modulate({ brightness: 1.05, saturation: 1.05 });
+            instance = instance.linear(1.15, -(0.08 * 255));
+            if (isColor) instance = instance.modulate({ brightness: 1.05, saturation: 1.05 });
         } else if (level === 'High') {
             // Boosted quality: normalize white balance, sharpen text, increase contrast for crisp receipt/document printing
-            instance = instance.normalize().linear(1.3, -(0.12 * 255)).sharpen({ sigma: 2 }).modulate({ brightness: 1.08, saturation: 1.1 });
+            instance = instance.normalize().linear(1.3, -(0.12 * 255)).sharpen({ sigma: 2 });
+            if (isColor) instance = instance.modulate({ brightness: 1.08, saturation: 1.1 });
         } else if (level === 'Aggressive') {
             // Maximum white background cleaning + ultra-sharp text for ID cards and receipts
-            instance = instance.normalize().linear(1.45, -(0.18 * 255)).sharpen({ sigma: 2.5 }).modulate({ brightness: 1.12, saturation: 1.15 });
+            instance = instance.normalize().linear(1.45, -(0.18 * 255)).sharpen({ sigma: 2.5 });
+            if (isColor) instance = instance.modulate({ brightness: 1.12, saturation: 1.15 });
         } else if (level === 'Low') {
             instance = instance.linear(1.05, -(0.03 * 255));
         }
