@@ -1,8 +1,4 @@
 // API Client for ARKA Prints Auto Document Engine
-export const QueueJob = {} as any;
-export const PrinterInfo = {} as any;
-export const LogEntry = {} as any;
-export const HistoryItem = {} as any;
 
 export function getApiBase(): string {
   if (typeof window !== 'undefined') {
@@ -102,18 +98,19 @@ export interface PrinterInfo {
 
 export interface QueueJob {
   id: string;
-  fileId: string;
-  customerName: string;
-  fileName: string;
-  processedPath: string;
-  originalPath: string;
-  printer: string;
-  copies: number;
-  status: 'Pending' | 'Processing' | 'Printing' | 'Completed' | 'Failed' | 'Cancelled' | 'Retry';
-  priority: number;
-  attempts: number;
-  createdAt: string;
-  updatedAt: string;
+  fileId?: string;
+  customerName?: string;
+  fileName?: string;
+  customerFile?: string;
+  processedPath?: string;
+  originalPath?: string;
+  printer?: string;
+  copies?: number;
+  status?: 'Pending' | 'Processing' | 'Printing' | 'Completed' | 'Failed' | 'Cancelled' | 'Retry' | string;
+  priority?: number;
+  attempts?: number;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface HistoryItem {

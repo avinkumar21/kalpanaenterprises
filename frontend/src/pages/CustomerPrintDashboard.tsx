@@ -687,7 +687,7 @@ export const CustomerPrintDashboard: React.FC = () => {
 
                 {/* DOC_SCANNER_KIT COMPLETE FEATURE SUITE OR NATIVE PDF CONTROLS BAR */}
                 {(() => {
-                  const isPdfFile = selectedJob?.fileName?.toLowerCase().endsWith('.pdf') || selectedJob?.customerFile?.toLowerCase().endsWith('.pdf') || selectedJob?.processedPath?.toLowerCase().endsWith('.pdf') || selectedJob?.originalPath?.toLowerCase().endsWith('.pdf');
+                  const isPdfFile = Boolean((selectedJob?.fileName || selectedJob?.customerFile || selectedJob?.processedPath || selectedJob?.originalPath || '').toLowerCase().endsWith('.pdf'));
                   if (isPdfFile) {
                     return (
                       <div className="p-5 rounded-2xl border-4 border-indigo-500 shadow-2xl w-full flex items-center justify-between flex-wrap gap-4 transition-all" style={{ backgroundColor: '#0f172a', color: '#ffffff' }}>
@@ -896,7 +896,7 @@ export const CustomerPrintDashboard: React.FC = () => {
 
               {/* DOCUMENT & IMAGE PREVIEW BOARD (Dedicated High-Viewport Monitor for PDF vs Standard Image Board) */}
               {(() => {
-                const isPdfFile = selectedJob?.fileName?.toLowerCase().endsWith('.pdf') || selectedJob?.customerFile?.toLowerCase().endsWith('.pdf') || selectedJob?.processedPath?.toLowerCase().endsWith('.pdf') || selectedJob?.originalPath?.toLowerCase().endsWith('.pdf');
+                const isPdfFile = Boolean((selectedJob?.fileName || selectedJob?.customerFile || selectedJob?.processedPath || selectedJob?.originalPath || '').toLowerCase().endsWith('.pdf'));
                 if (isPdfFile) {
                   return (
                     <div className="w-full rounded-2xl border-4 border-emerald-400 p-4 md:p-6 flex flex-col relative shadow-[0_0_45px_rgba(16,185,129,0.25)] mt-4 block" style={{ backgroundColor: '#0b1329' }}>

@@ -195,6 +195,19 @@
       "status": "Success",
       "copies": 1,
       "retryCount": 1
+    },
+    "hist_1786881893242_b9z5": {
+      "id": "hist_1786881893242_b9z5",
+      "fileId": "doc_1786881891078",
+      "customerFile": "webupload_1786881859313_kkev_1c_BlackWhite_Single_Set_File_B.png",
+      "originalPath": "D:\\Arka\\storage\\incoming\\1786881890615_webupload_1786881859313_kkev_1c_BlackWhite_Single_Set_File_B.png",
+      "processedPath": "D:\\Arka\\storage\\processed\\enhanced_1786881890616_1786881890615_webupload_1786881859313_kkev_1c_BlackWhite_Single_Set_File_B.png",
+      "pages": 1,
+      "printerName": "EPSON L3110 Series",
+      "printTime": "2026-08-16T12:04:53.242Z",
+      "status": "Success",
+      "copies": 1,
+      "retryCount": 1
     }
   },
   "printers": {
@@ -5910,6 +5923,21 @@
       "attempts": 1,
       "createdAt": "2026-08-16T12:04:19.806Z",
       "updatedAt": "2026-08-16T12:04:22.052Z"
+    },
+    "job_1786881891078_0icxx": {
+      "id": "job_1786881891078_0icxx",
+      "fileId": "doc_1786881891078",
+      "customerName": "WhatsApp Customer",
+      "fileName": "webupload_1786881859313_kkev_1c_BlackWhite_Single_Set_File_B.png",
+      "processedPath": "D:\\Arka\\storage\\processed\\enhanced_1786881890616_1786881890615_webupload_1786881859313_kkev_1c_BlackWhite_Single_Set_File_B.png",
+      "originalPath": "D:\\Arka\\storage\\incoming\\1786881890615_webupload_1786881859313_kkev_1c_BlackWhite_Single_Set_File_B.png",
+      "printer": "EPSON L3110 Series",
+      "copies": 1,
+      "status": "Completed",
+      "priority": 1,
+      "attempts": 1,
+      "createdAt": "2026-08-16T12:04:51.078Z",
+      "updatedAt": "2026-08-16T12:04:53.240Z"
     }
   },
   "statistics": {
@@ -5943,9 +5971,9 @@
     },
     "2026-08-16": {
       "date": "2026-08-16",
-      "totalReceived": 16,
-      "totalProcessed": 15,
-      "totalPrinted": 15,
+      "totalReceived": 17,
+      "totalProcessed": 16,
+      "totalPrinted": 16,
       "totalFailed": 0
     }
   }
