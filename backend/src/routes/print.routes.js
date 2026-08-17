@@ -748,4 +748,25 @@ router.post('/email-watcher/test', async (req, res) => {
     }
 });
 
+// GET /api/prints/channel-diagnostics - Real-time verified multi-channel health status (Wi-Fi, 4G/5G Tunnel, Email)
+router.get('/channel-diagnostics', (req, res) => {
+    try {
+        const ChannelHealthService = require('../../../services/watchers/channel_health_service.js');
+        res.json(ChannelHealthService.getDiagnostics());
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// POST /api/prints/channel-diagnostics/verify-now - Force immediate diagnostic probe of all 3 channels
+router.post('/channel-diagnostics/verify-now', async (req, res) => {
+    try {
+        const ChannelHealthService = require('../../../services/watchers/channel_health_service.js');
+        const diagnostics = await ChannelHealthService.runImmediateCheck();
+        res.json(diagnostics);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 module.exports = router;

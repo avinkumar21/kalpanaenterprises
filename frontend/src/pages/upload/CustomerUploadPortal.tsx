@@ -47,7 +47,7 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
     return 'mobile';
   });
 
-  const [accessMode, setAccessMode] = useState<'wifi' | 'mobile_web' | 'email'>('mobile_web');
+  const [accessMode, setAccessMode] = useState<'all' | 'wifi' | 'mobile_web' | 'email'>('all');
 
   const [publicTunnelUrl, setPublicTunnelUrl] = useState<string>(() => {
     if (typeof window !== 'undefined') {
@@ -73,23 +73,25 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
     return '';
   });
   const [shopEmail, setShopEmail] = useState('print@kalpanaenterprise.com');
+  const [channelHealth, setChannelHealth] = useState<any>(null);
+  const [isVerifyingChannels, setIsVerifyingChannels] = useState(false);
 
-  const portSuffix = port && port !== '80' ? `:${port}` : '';
+  // Distinct Channel 1: Wi-Fi Direct (Direct port 8082 to Express)
+  const wifiUrl = `http://${shopLanIp || '192.168.31.233'}:8082/prints?kiosk=true#upload`;
+
+  // Distinct Channel 2: 4G/5G Mobile Cellular Web Tunnel (Cloudflare HTTPS)
+  const mobileUrl = publicTunnelUrl && publicTunnelUrl.trim()
+    ? `${publicTunnelUrl.trim().replace(/\/+$/, '')}/prints?kiosk=true#upload`
+    : 'https://maiden-heat-television-evaluations.trycloudflare.com/prints?kiosk=true#upload';
+
+  // Distinct Channel 3: 4G/5G Email Intake Drop (Native mailto trigger)
+  const emailUrl = `mailto:${shopEmail}?subject=Customer%20Print%20Order&body=Please%20attach%20your%20document%20(PDF,%20Photos)%20and%20tap%20Send.%20Our%20shop%20engine%20will%20print%20it%20automatically.`;
+
   const portalUrl = (() => {
-    if (accessMode === 'wifi') {
-      return `http://${shopLanIp || '192.168.31.233'}${portSuffix}/prints?kiosk=true#upload`;
-    }
-    if (accessMode === 'mobile_web') {
-      if (publicTunnelUrl && publicTunnelUrl.trim()) {
-        const cleanTunnel = publicTunnelUrl.trim().replace(/\/+$/, '');
-        return `${cleanTunnel}/prints?kiosk=true#upload`;
-      }
-      return `http://${shopLanIp || '192.168.31.233'}${portSuffix}/prints?kiosk=true#upload`;
-    }
-    if (accessMode === 'email') {
-      return `mailto:${shopEmail}?subject=Customer%20Print%20Order`;
-    }
-    return `http://${shopLanIp || '192.168.31.233'}${portSuffix}/prints?kiosk=true#upload`;
+    if (accessMode === 'wifi') return wifiUrl;
+    if (accessMode === 'mobile_web') return mobileUrl;
+    if (accessMode === 'email') return emailUrl;
+    return mobileUrl; // Default primary
   })();
 
   useEffect(() => {
@@ -111,25 +113,40 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
 
   useEffect(() => {
     let isMounted = true;
-    const syncTunnelUrl = async () => {
+    const syncDiagnostics = async () => {
       try {
-        const status = await api.fetchStatus();
-        if (isMounted && status && status.publicTunnelUrl && status.publicTunnelUrl.includes('trycloudflare.com') && !status.publicTunnelUrl.includes('political-abilities')) {
-          const cleanUrl = status.publicTunnelUrl.trim().replace(/\/+$/, '');
-          setPublicTunnelUrl(cleanUrl);
-          if (typeof window !== 'undefined' && window.localStorage) {
-            window.localStorage.setItem('arka_tunnel_url', cleanUrl);
+        const diag = await api.fetchChannelDiagnostics();
+        if (isMounted && diag) {
+          setChannelHealth(diag);
+          if (diag.channels?.mobile_tunnel?.rawTunnelUrl && !diag.channels.mobile_tunnel.rawTunnelUrl.includes('political-abilities')) {
+            const clean = diag.channels.mobile_tunnel.rawTunnelUrl.trim().replace(/\/+$/, '');
+            setPublicTunnelUrl(clean);
+            if (typeof window !== 'undefined' && window.localStorage) {
+              window.localStorage.setItem('arka_tunnel_url', clean);
+            }
           }
         }
       } catch { /* ignore fallback */ }
     };
-    syncTunnelUrl();
-    const interval = setInterval(syncTunnelUrl, 3000);
+    syncDiagnostics();
+    const interval = setInterval(syncDiagnostics, 4000);
     return () => {
       isMounted = false;
       clearInterval(interval);
     };
   }, []);
+
+  const handleVerifyChannelsNow = async () => {
+    setIsVerifyingChannels(true);
+    try {
+      const res = await api.verifyChannelsNow();
+      if (res) setChannelHealth(res);
+    } catch (e) {
+      console.error('Manual channel verification error:', e);
+    } finally {
+      setIsVerifyingChannels(false);
+    }
+  };
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -516,11 +533,13 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
   };
 
   const handleDownloadQrPng = () => {
-    const svgElement = document.querySelector('.qr-canvas-container svg') as SVGSVGElement | null;
-    if (!svgElement) {
+    const svgElements = document.querySelectorAll('.qr-canvas-container svg');
+    if (!svgElements || svgElements.length === 0) {
       alert("QR Code element not found for download!");
       return;
     }
+
+    const svgElement = svgElements[0] as SVGSVGElement;
     const svgString = new XMLSerializer().serializeToString(svgElement);
     const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
     const UrlObj = window.URL || (window as any).webkitURL;
@@ -532,20 +551,17 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
       canvas.height = 1800;
       const context = canvas.getContext('2d');
       if (context) {
-        // Pristine white background
         context.fillStyle = '#FFFFFF';
         context.fillRect(0, 0, canvas.width, canvas.height);
         
-        // Luxury Double-Border Frame: Outer Dark Navy + Inner Emerald Accent
         context.strokeStyle = '#0f172a';
         context.lineWidth = 32;
         context.strokeRect(16, 16, canvas.width - 32, canvas.height - 32);
 
-        context.strokeStyle = '#10b981';
+        context.strokeStyle = accessMode === 'wifi' ? '#10b981' : accessMode === 'mobile_web' ? '#3b82f6' : '#a855f7';
         context.lineWidth = 8;
         context.strokeRect(48, 48, canvas.width - 96, canvas.height - 96);
 
-        // Header Title (Kannada & English Centered & Beautifully Spaced)
         context.fillStyle = '#047857';
         context.font = 'bold 64px Arial, sans-serif';
         context.textAlign = 'center';
@@ -555,8 +571,7 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
         context.font = 'bold 44px Arial, sans-serif';
         context.fillText('KALPANA ENTERPRISES', 700, 220);
 
-        // Vibrant Pill Badge for Scan Instruction
-        context.fillStyle = '#047857';
+        context.fillStyle = accessMode === 'wifi' ? '#047857' : accessMode === 'mobile_web' ? '#1e40af' : '#6b21a8';
         context.beginPath();
         if (typeof (context as any).roundRect === 'function') {
           (context as any).roundRect(140, 255, 1120, 85, 42);
@@ -567,9 +582,13 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
 
         context.fillStyle = '#FFFFFF';
         context.font = 'bold 34px Arial, sans-serif';
-        context.fillText('📲 ಪ್ರಿಂಟ್ ಮಾಡಲು ಸ್ಕ್ಯಾನ್ ಮಾಡಿ • SCAN TO PRINT', 700, 312);
+        const badgeTitle = accessMode === 'wifi'
+          ? '📡 ಶಾಪ್ ವೈ-ಫೈ ಪ್ರಿಂಟ್ • SCAN ON SHOP WI-FI'
+          : accessMode === 'mobile_web'
+          ? '🌐 4G/5G ಮೊಬೈಲ್ ಪ್ರಿಂಟ್ • SCAN ON 4G/5G (NO WI-FI NEEDED)'
+          : '📧 ಇಮೇಲ್ ಮೂಲಕ ಪ್ರಿಂಟ್ • SCAN TO EMAIL DOCUMENT';
+        context.fillText(badgeTitle, 700, 312);
 
-        // QR Code Box Frame (Centered with Drop-Shadow Effect & Padding)
         context.fillStyle = '#f8fafc';
         context.strokeStyle = '#10b981';
         context.lineWidth = 6;
@@ -582,10 +601,8 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
         context.fill();
         context.stroke();
 
-        // Draw crisp QR code perfectly centered with balanced white space
         context.drawImage(image, 310, 435, 780, 780);
 
-        // Network URL Card (No Clipping, Auto-Scaled Monospace)
         context.fillStyle = '#f1f5f9';
         context.strokeStyle = '#cbd5e1';
         context.lineWidth = 3;
@@ -600,11 +617,10 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
 
         context.fillStyle = '#475569';
         context.font = 'bold 28px Arial, sans-serif';
-        context.fillText('🌐 ಶಾಪ್ ವೈ-ಫೈ / 4G ಮೊಬೈಲ್ ಲಿಂಕ್ (Direct Portal URL):', 700, 1365);
+        context.fillText('🔗 ಸ್ಕ್ಯಾನ್ / ಡೈರೆಕ್ಟ್ ಲಿಂಕ್ (Direct Link):', 700, 1365);
 
         const displayUrl = portalUrl;
         context.fillStyle = '#0f172a';
-        // Auto-adjust font size if URL is long so it NEVER clips or touches borders!
         const urlFontSize = displayUrl.length > 65 ? 23 : displayUrl.length > 55 ? 25 : displayUrl.length > 45 ? 28 : 32;
         context.font = `bold ${urlFontSize}px monospace`;
         context.fillText(displayUrl, 700, 1445);
@@ -613,7 +629,6 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
         context.font = 'bold 26px Arial, sans-serif';
         context.fillText('⚡ ಆಟೋಮ್ಯಾಟಿಕ್ ಪ್ರಿಂಟ್ ಸಿಸ್ಟಮ್ (Instant Spooling Engine)', 700, 1495);
 
-        // Bottom Footer Guidance (Sized to fit cleanly with zero edge clipping!)
         context.fillStyle = '#047857';
         context.font = 'bold 32px Arial, sans-serif';
         context.fillText('ಡಾಕ್ಯುಮೆಂಟ್ ಅಪ್‌ಲೋಡ್ ಮಾಡಲು ಮೊಬೈಲ್ ಕ್ಯಾಮರಾದಿಂದ ಸ್ಕ್ಯಾನ್ ಮಾಡಿ!', 700, 1605);
@@ -640,56 +655,94 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
   };
 
   const handlePrintA4Sign = () => {
-    const displayUrl = portalUrl;
-    const svgElement = document.querySelector('.qr-canvas-container svg') as SVGSVGElement | null;
-    const svgContent = svgElement ? new XMLSerializer().serializeToString(svgElement) : '';
+    const wifiSvg = (document.querySelector('.qr-wifi svg') as SVGSVGElement | null)?.outerHTML || '';
+    const mobileSvg = (document.querySelector('.qr-mobile svg') as SVGSVGElement | null)?.outerHTML || '';
+    const emailSvg = (document.querySelector('.qr-email svg') as SVGSVGElement | null)?.outerHTML || '';
+    const singleSvg = (document.querySelector('.qr-single svg') as SVGSVGElement | null)?.outerHTML || '';
+
+    const isTriple = accessMode === 'all';
     
-    const win = window.open('', '_blank', 'width=850,height=1100');
+    const win = window.open('', '_blank', 'width=950,height=1100');
     if (win) {
       win.document.write(`
         <!DOCTYPE html>
         <html>
         <head>
-          <title>Kalpana Enterprises - Shop Counter Sign</title>
+          <title>Kalpana Enterprises - Multi-Channel Counter Poster</title>
           <style>
-            @page { size: A4 portrait; margin: 15mm; }
+            @page { size: A4 landscape; margin: 10mm; }
             body { 
               font-family: Arial, sans-serif; 
               text-align: center; 
               margin: 0; 
-              padding: 35px; 
-              border: 12px solid #0f172a;
-              outline: 5px solid #059669;
-              outline-offset: -25px; 
-              border-radius: 24px;
+              padding: 20px; 
+              border: 10px solid #0f172a;
+              outline: 4px solid #059669;
+              outline-offset: -18px; 
+              border-radius: 20px;
               background-color: #ffffff;
               box-sizing: border-box;
             }
-            .title-kannada { font-size: 50px; font-weight: 900; color: #047857; margin-top: 10px; margin-bottom: 5px; }
-            .title-english { font-size: 34px; font-weight: 900; color: #0f172a; margin-top: 0; margin-bottom: 25px; letter-spacing: 2px; }
-            .badge { display: inline-block; padding: 14px 40px; background: #047857; color: #ffffff; font-size: 26px; font-weight: bold; border-radius: 50px; margin-bottom: 35px; box-shadow: 0 6px 15px rgba(4, 120, 87, 0.3); }
-            .qr-box { width: 500px; height: 500px; margin: 0 auto 35px auto; padding: 28px; border: 6px solid #10b981; border-radius: 30px; background: #f8fafc; box-shadow: 0 10px 25px rgba(0,0,0,0.08); }
-            .qr-box svg { width: 100% !important; height: 100% !important; }
-            .url-box { margin-bottom: 30px; background: #f1f5f9; padding: 18px 20px; border: 2px solid #cbd5e1; border-radius: 16px; }
-            .url-label { font-size: 20px; color: #64748b; font-weight: bold; margin-bottom: 8px; text-transform: uppercase; }
-            .url-text { font-size: 24px; font-family: 'Courier New', monospace; font-weight: bold; color: #0f172a; word-break: break-all; }
-            .instructions-kn { font-size: 24px; font-weight: 900; color: #047857; margin-bottom: 12px; line-height: 1.4; word-wrap: break-word; }
-            .instructions-en { font-size: 22px; color: #475569; font-weight: bold; }
-            .footer { margin-top: 45px; font-size: 16px; color: #94a3b8; border-top: 2px solid #e2e8f0; padding-top: 20px; font-weight: bold; }
+            .title-kannada { font-size: 38px; font-weight: 900; color: #047857; margin-top: 5px; margin-bottom: 2px; }
+            .title-english { font-size: 26px; font-weight: 900; color: #0f172a; margin-top: 0; margin-bottom: 15px; letter-spacing: 2px; }
+            .badge { display: inline-block; padding: 10px 30px; background: #047857; color: #ffffff; font-size: 20px; font-weight: bold; border-radius: 50px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(4, 120, 87, 0.25); }
+            
+            .grid-3 { display: flex; justify-content: space-around; gap: 15px; margin-bottom: 20px; }
+            .card { flex: 1; border: 3px solid #cbd5e1; border-radius: 18px; padding: 15px; background: #f8fafc; text-align: center; }
+            .card-wifi { border-color: #10b981; background: #ecfdf5; }
+            .card-mobile { border-color: #3b82f6; background: #eff6ff; }
+            .card-email { border-color: #a855f7; background: #faf5ff; }
+            
+            .card-title { font-size: 18px; font-weight: 900; margin-bottom: 8px; }
+            .card-title-wifi { color: #047857; }
+            .card-title-mobile { color: #1e40af; }
+            .card-title-email { color: #6b21a8; }
+            
+            .qr-wrapper { width: 170px; height: 170px; margin: 0 auto 10px auto; padding: 10px; background: #ffffff; border: 2px solid #94a3b8; border-radius: 12px; }
+            .qr-wrapper svg { width: 100% !important; height: 100% !important; }
+            
+            .url-mono { font-family: monospace; font-size: 10px; font-weight: bold; word-break: break-all; color: #0f172a; background: #ffffff; padding: 6px; border-radius: 8px; border: 1px solid #cbd5e1; }
+            .instructions { font-size: 16px; font-weight: 900; color: #047857; margin-top: 10px; }
+            .footer { margin-top: 15px; font-size: 13px; color: #94a3b8; border-top: 2px solid #e2e8f0; padding-top: 10px; font-weight: bold; }
           </style>
         </head>
         <body>
           <div class="title-kannada">ಕಲ್ಪನ ಎಂಟರ್ಪ್ರೈಸಸ್</div>
-          <div class="title-english">KALPANA ENTERPRISES</div>
-          <div class="badge">📲 ಪ್ರಿಂಟ್ ಮಾಡಲು ಸ್ಕ್ಯಾನ್ ಮಾಡಿ • SCAN TO PRINT</div>
-          <div class="qr-box">${svgContent}</div>
-          <div class="url-box">
-            <div class="url-label">🌐 ಶಾಪ್ ವೈ-ಫೈ / 4G ಮೊಬೈಲ್ ಲಿಂಕ್:</div>
-            <div class="url-text">${displayUrl}</div>
+          <div class="title-english">KALPANA ENTERPRISES • MULTI-CHANNEL PRINT INTAKE</div>
+          <div class="badge">📲 ಪ್ರಿಂಟ್ ಮಾಡಲು ಯಾವುದೇ QR ಸ್ಕ್ಯಾನ್ ಮಾಡಿ • SCAN ANY QR CODE TO PRINT</div>
+          
+          ${isTriple ? `
+          <div class="grid-3">
+            <div class="card card-wifi">
+              <div class="card-title card-title-wifi">📡 1. ಶಾಪ್ ವೈ-ಫೈ (Shop Wi-Fi)</div>
+              <div class="qr-wrapper">${wifiSvg || singleSvg}</div>
+              <div style="font-size: 12px; font-weight: bold; color: #047857; margin-bottom: 5px;">Wi-Fi ಕನೆಕ್ಟ್ ಮಾಡಿ ಸ್ಕ್ಯಾನ್ ಮಾಡಿ</div>
+              <div class="url-mono">${wifiUrl}</div>
+            </div>
+
+            <div class="card card-mobile">
+              <div class="card-title card-title-mobile">🌐 2. 4G/5G ಮೊಬೈಲ್ ವೆಬ್ (Cellular)</div>
+              <div class="qr-wrapper">${mobileSvg || singleSvg}</div>
+              <div style="font-size: 12px; font-weight: bold; color: #1e40af; margin-bottom: 5px;">ಯಾವುದೇ Wi-Fi ಬೇಡ • Direct 4G/5G</div>
+              <div class="url-mono">${mobileUrl}</div>
+            </div>
+
+            <div class="card card-email">
+              <div class="card-title card-title-email">📧 3. ಇಮೇಲ್ ಡ್ರಾಪ್ (Email Drop)</div>
+              <div class="qr-wrapper">${emailSvg || singleSvg}</div>
+              <div style="font-size: 12px; font-weight: bold; color: #6b21a8; margin-bottom: 5px;">ಇಮೇಲ್‌ನಲ್ಲಿ ಫೈಲ್ ಕಳುಹಿಸಿ</div>
+              <div class="url-mono">${shopEmail}</div>
+            </div>
           </div>
-          <div class="instructions-kn">ಡಾಕ್ಯುಮೆಂಟ್ ಅಪ್‌ಲೋಡ್ ಮಾಡಲು ಮೊಬೈಲ್ ಕ್ಯಾಮರಾದಿಂದ ಸ್ಕ್ಯಾನ್ ಮಾಡಿ!</div>
-          <div class="instructions-en">Scan with smartphone camera to upload & print documents instantly!</div>
-          <div class="footer">⚡ Powered by Kalpana Enterprises Auto WhatsApp Print Engine V2</div>
+          ` : `
+          <div style="max-width: 450px; margin: 0 auto 20px auto; padding: 20px; border: 4px solid #10b981; border-radius: 20px; background: #f8fafc;">
+            <div class="qr-wrapper" style="width: 260px; height: 260px;">${singleSvg || wifiSvg}</div>
+            <div class="url-mono" style="font-size: 14px; margin-top: 15px;">${portalUrl}</div>
+          </div>
+          `}
+          
+          <div class="instructions">ಡಾಕ್ಯುಮೆಂಟ್ ಅಪ್‌ಲೋಡ್ ಮಾಡಲು ಮೊಬೈಲ್ ಕ್ಯಾಮರಾದಿಂದ ಸ್ಕ್ಯಾನ್ ಮಾಡಿ! (Scan with camera to send files to printer)</div>
+          <div class="footer">⚡ Powered by Kalpana Enterprises Auto WhatsApp & Mobile Cloud Print Engine V2</div>
         </body>
         </html>
       `);
@@ -702,7 +755,7 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
   };
 
   return (
-    <div className="max-w-3xl mx-auto p-4 md:p-6 space-y-6 animate-in fade-in duration-300 text-white font-sans">
+    <div className="max-w-4xl mx-auto p-4 md:p-6 space-y-6 animate-in fade-in duration-300 text-white font-sans">
       
       {/* Top Banner / Operator Toggle */}
       <div className="flex items-center justify-between p-4 rounded-2xl border-2 border-purple-500 shadow-2xl flex-wrap gap-3" style={{ backgroundColor: '#0f172a' }}>
@@ -728,7 +781,7 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
             className="px-4 py-2.5 rounded-xl font-black text-xs uppercase tracking-wide flex items-center gap-2 hover:opacity-90 transition shadow-lg cursor-pointer"
           >
             <QrCode className="w-4 h-4 text-emerald-400" />
-            <span>{showQrModal ? 'Close Counter Sign (ಮುಚ್ಚಿರಿ)' : '🖥️ Show QR Code to Customer'}</span>
+            <span>{showQrModal ? 'Close Counter Sign (ಮುಚ್ಚಿರಿ)' : '🖥️ Show 3 QR Codes to Customer'}</span>
           </button>
         )}
       </div>
@@ -737,41 +790,88 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
       {!isKioskMode && showQrModal && (
         <div className="p-6 md:p-8 rounded-3xl border-4 border-emerald-400 shadow-2xl space-y-6 animate-in slide-in-from-top-4 duration-300" style={{ backgroundColor: '#022c22', color: '#ffffff', boxShadow: '0 0 40px rgba(16, 185, 129, 0.3)' }}>
           
-          <div className="flex items-center justify-between border-b-2 border-emerald-500/80 pb-4 flex-wrap gap-3">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-emerald-400 text-slate-950 rounded-xl font-black shadow-lg">
-                <Monitor className="w-7 h-7 text-slate-950" />
+          {/* MODAL HEADER WITH LIVE CHANNEL HEALTH TELEMETRY BAR */}
+          <div className="border-b-2 border-emerald-500/80 pb-4 space-y-3">
+            <div className="flex items-center justify-between flex-wrap gap-3">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-emerald-400 text-slate-950 rounded-xl font-black shadow-lg">
+                  <Monitor className="w-7 h-7 text-slate-950" />
+                </div>
+                <div>
+                  <h3 className="text-xl md:text-2xl font-black text-white uppercase tracking-tight">
+                    Shop Desktop Counter Access Display
+                  </h3>
+                  <p style={{ color: '#a7f3d0' }} className="text-xs font-bold mt-0.5">
+                    Multi-Channel Express Intake • 3 Independent QR Codes for Wi-Fi, 4G/5G Mobile & Email!
+                  </p>
+                </div>
               </div>
-              <div>
-                <h3 className="text-xl md:text-2xl font-black text-white uppercase tracking-tight">
-                  Shop Desktop Counter Access Display
-                </h3>
-                <p style={{ color: '#a7f3d0' }} className="text-xs font-bold mt-0.5">
-                  Multi-Channel Express Intake • Support for Wi-Fi & 4G/5G Mobile Cellular Users!
-                </p>
+
+              <div className="flex items-center gap-2 flex-wrap">
+                <button
+                  type="button"
+                  onClick={handleVerifyChannelsNow}
+                  disabled={isVerifyingChannels}
+                  className="px-3.5 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-xl font-black text-xs uppercase tracking-wider flex items-center gap-1.5 shadow transition cursor-pointer"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${isVerifyingChannels ? 'animate-spin' : ''}`} />
+                  <span>{isVerifyingChannels ? 'Probing...' : '⚡ Probe All Channels'}</span>
+                </button>
+                <span style={{ backgroundColor: '#047857', color: '#fef08a', border: '2px solid #34d399' }} className="text-xs font-black px-3.5 py-1.5 rounded-xl uppercase tracking-wider shadow-lg">
+                  🟢 24/7 Engine Active
+                </span>
               </div>
             </div>
-            <span style={{ backgroundColor: '#047857', color: '#fef08a', border: '2px solid #34d399' }} className="text-xs font-black px-4 py-1.5 rounded-xl uppercase tracking-wider shadow-lg">
-              🟢 Zero-Cost Channel Active
-            </span>
+
+            {/* LIVE REAL-TIME CHANNEL TELEMETRY STATUS PILLS */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
+              <div className="p-2.5 rounded-xl bg-emerald-950/80 border border-emerald-500/50 flex items-center justify-between text-xs">
+                <span className="font-extrabold text-emerald-300">📡 Wi-Fi Direct:</span>
+                <span className="font-black text-white font-mono">
+                  {channelHealth?.channels?.wifi?.status === 'ONLINE' ? `🟢 ONLINE (${channelHealth.channels.wifi.latencyMs}ms)` : '🟢 READY'}
+                </span>
+              </div>
+              <div className="p-2.5 rounded-xl bg-blue-950/80 border border-blue-500/50 flex items-center justify-between text-xs">
+                <span className="font-extrabold text-cyan-300">🌐 4G/5G Tunnel:</span>
+                <span className="font-black text-white font-mono">
+                  {channelHealth?.channels?.mobile_tunnel?.status === 'ONLINE' ? `🟢 LIVE (${channelHealth.channels.mobile_tunnel.latencyMs}ms)` : publicTunnelUrl ? '🟢 LIVE' : '🟡 STARTING'}
+                </span>
+              </div>
+              <div className="p-2.5 rounded-xl bg-purple-950/80 border border-purple-500/50 flex items-center justify-between text-xs">
+                <span className="font-extrabold text-purple-300">📧 Email Drop:</span>
+                <span className="font-black text-white font-mono">🟢 READY</span>
+              </div>
+            </div>
           </div>
 
-          {/* 3-MODE ACCESS SWITCHER (SOLVES WI-FI SHARING RESTRICTIONS) */}
+          {/* 4-MODE SELECTOR: ALL 3 TOGETHER OR INDIVIDUAL FOCUS */}
           <div className="space-y-3 bg-emerald-950/90 p-4 rounded-2xl border border-emerald-500/60 shadow-inner">
             <label style={{ color: '#fef08a' }} className="text-xs font-black uppercase tracking-wider block">
-              🛠️ Select Customer Scan & Connect Method:
+              🛠️ Select Counter Display View Mode:
             </label>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
+              <button
+                type="button"
+                onClick={() => setAccessMode('all')}
+                style={accessMode === 'all' 
+                  ? { backgroundColor: '#047857', border: '2px solid #fde047', color: '#ffffff', boxShadow: '0 0 15px rgba(253, 224, 71, 0.5)' }
+                  : { backgroundColor: '#0f172a', border: '1px solid #475569', color: '#94a3b8' }}
+                className="p-3 rounded-xl font-black text-xs transition uppercase tracking-wide cursor-pointer flex flex-col items-center gap-1 text-center"
+              >
+                <span className="text-sm font-black">🔲 3-in-1 Triple Sign</span>
+                <span className="text-[10px] opacity-90 font-bold">All 3 QR Codes at Once</span>
+              </button>
+
               <button
                 type="button"
                 onClick={() => setAccessMode('wifi')}
                 style={accessMode === 'wifi' 
-                  ? { backgroundColor: '#047857', border: '2px solid #34d399', color: '#ffffff', boxShadow: '0 0 15px rgba(52, 211, 153, 0.4)' }
+                  ? { backgroundColor: '#065f46', border: '2px solid #34d399', color: '#ffffff', boxShadow: '0 0 15px rgba(52, 211, 153, 0.4)' }
                   : { backgroundColor: '#0f172a', border: '1px solid #475569', color: '#94a3b8' }}
                 className="p-3 rounded-xl font-black text-xs transition uppercase tracking-wide cursor-pointer flex flex-col items-center gap-1 text-center"
               >
                 <span className="text-sm">📡 Shop Wi-Fi / LAN</span>
-                <span className="text-[10px] opacity-80 font-bold">Direct Network IP ({shopLanIp})</span>
+                <span className="text-[10px] opacity-80 font-bold">Direct IP ({shopLanIp}:8082)</span>
               </button>
 
               <button
@@ -782,8 +882,8 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
                   : { backgroundColor: '#0f172a', border: '1px solid #475569', color: '#94a3b8' }}
                 className="p-3 rounded-xl font-black text-xs transition uppercase tracking-wide cursor-pointer flex flex-col items-center gap-1 text-center"
               >
-                <span className="text-sm">🌐 4G/5G Mobile Web Tunnel</span>
-                <span className="text-[10px] opacity-80 font-bold">No Wi-Fi Password Required!</span>
+                <span className="text-sm">🌐 4G/5G Cellular Web</span>
+                <span className="text-[10px] opacity-80 font-bold">No Wi-Fi Password Needed</span>
               </button>
 
               <button
@@ -794,219 +894,347 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
                   : { backgroundColor: '#0f172a', border: '1px solid #475569', color: '#94a3b8' }}
                 className="p-3 rounded-xl font-black text-xs transition uppercase tracking-wide cursor-pointer flex flex-col items-center gap-1 text-center"
               >
-                <span className="text-sm">📧 4G/5G Email Scan Drop</span>
-                <span className="text-[10px] opacity-80 font-bold">Instant Email Attachment Watcher</span>
+                <span className="text-sm">📧 4G/5G Email Intake</span>
+                <span className="text-[10px] opacity-80 font-bold">Direct Mailto Scan Drop</span>
               </button>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center pt-2">
-            
-            {/* LEFT CONFIGURATION PANEL BASED ON MODE */}
-            <div className="space-y-5">
-              
-              {accessMode === 'wifi' && (
-                <>
-                  <div style={{ backgroundColor: '#064e3b', border: '2px solid #10b981' }} className="p-5 rounded-2xl shadow-xl space-y-3">
-                    <p style={{ color: '#ffffff' }} className="text-sm md:text-base font-black leading-relaxed">
-                      For devices connected to your shop Wi-Fi! Customers point their phone camera at the QR code on the right to open this portal instantly over the local network.
-                    </p>
+          {/* ============================================================ */}
+          {/* VIEW OPTION 1: 3-IN-1 TRIPLE QR CODE DISPLAY (SIDE-BY-SIDE) */}
+          {/* ============================================================ */}
+          {accessMode === 'all' ? (
+            <div className="space-y-6 pt-2">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                
+                {/* 1. WI-FI QR CARD */}
+                <div style={{ backgroundColor: '#042f2c', border: '3px solid #10b981' }} className="p-5 rounded-2xl shadow-xl flex flex-col items-center justify-between text-center space-y-4">
+                  <div className="space-y-1">
+                    <span className="px-2.5 py-0.5 bg-emerald-500 text-slate-950 font-black text-[10px] uppercase rounded-full tracking-wider">
+                      📡 Option 1: Shop Wi-Fi
+                    </span>
+                    <h4 className="text-base font-black text-white uppercase mt-1">Shop Wi-Fi Direct</h4>
+                    <p className="text-[11px] text-emerald-200 font-bold">Connect to Shop Wi-Fi & scan</p>
                   </div>
-                  <div className="space-y-4 p-5 rounded-2xl border-2 border-emerald-500 shadow-inner" style={{ backgroundColor: '#042f2c' }}>
-                    <div>
-                      <label style={{ color: '#fde047' }} className="text-xs font-black uppercase tracking-wider block mb-2">
-                        Select Shop Hardware Host IP Address:
-                      </label>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3">
-                        <button
-                          type="button"
-                          onClick={() => setShopLanIp('192.168.31.233')}
-                          style={{ backgroundColor: shopLanIp === '192.168.31.233' ? '#0284c7' : '#1e293b', border: '2px solid #38bdf8', color: '#ffffff' }}
-                          className="px-3 py-2.5 rounded-xl text-xs font-extrabold flex items-center justify-center gap-1.5 transition shadow cursor-pointer hover:brightness-110"
-                        >
-                          <span>💻 Active Here: Laptop (192.168.31.233)</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setShopLanIp('192.168.31.242')}
-                          style={{ backgroundColor: shopLanIp === '192.168.31.242' ? '#059669' : '#1e293b', border: '2px solid #34d399', color: '#ffffff' }}
-                          className="px-3 py-2.5 rounded-xl text-xs font-extrabold flex items-center justify-center gap-1.5 transition shadow cursor-pointer hover:brightness-110"
-                        >
-                          <span>🖥️ Optiplex PC (192.168.31.242)</span>
-                        </button>
-                      </div>
-                      <input
-                        type="text"
-                        value={shopLanIp}
-                        onChange={(e) => setShopLanIp(e.target.value)}
-                        placeholder="e.g. 192.168.31.242"
-                        style={{ backgroundColor: '#0f172a', color: '#ffffff', border: '2px solid #38bdf8' }}
-                        className="w-full rounded-xl px-4 py-3 font-mono text-base font-black focus:outline-none focus:ring-2 focus:ring-cyan-400 shadow-inner"
-                      />
-                      <span style={{ color: '#6ee7b7' }} className="text-[11px] block mt-1.5 font-bold">
-                        💡 Both PCs operate under your ARKA Wi-Fi router subnet (192.168.31.1).
-                      </span>
-                    </div>
-                  </div>
-                </>
-              )}
 
-              {accessMode === 'mobile_web' && (
-                <>
-                  <div style={{ backgroundColor: '#1e3a8a', border: '2px solid #60a5fa' }} className="p-5 rounded-2xl shadow-xl space-y-3">
-                    <div className="flex items-center justify-between flex-wrap gap-2">
-                      <p style={{ color: '#ffffff' }} className="text-sm md:text-base font-black leading-relaxed">
-                        Allow customers on their 4G/5G cellular network to upload files without giving them your shop Wi-Fi password!
-                      </p>
-                      {publicTunnelUrl ? (
-                        <span className="px-3 py-1 bg-emerald-500 text-slate-950 rounded-full font-black text-xs uppercase tracking-wider flex items-center gap-1 shadow">
-                          <span>🟢 Live Tunnel Connected</span>
-                        </span>
-                      ) : (
-                        <span className="px-3 py-1 bg-amber-500 text-slate-950 rounded-full font-black text-xs uppercase tracking-wider flex items-center gap-1 shadow">
-                          <span>🟡 Searching for Live Tunnel...</span>
-                        </span>
-                      )}
-                    </div>
-                    <p style={{ color: '#93c5fd' }} className="text-xs font-bold">
-                      🚀 <span className="text-white">To start a live tunnel:</span> Run our 1-click helper script <span className="font-mono text-yellow-300">d:\Arka\tools\start_mobile_tunnel.ps1</span> on your desktop!
-                    </p>
-                    <p style={{ color: '#34d399' }} className="text-[11px] font-black">
-                      ✨ Powered by Cloudflare Quick Tunnels — Customers open your portal INSTANTLY on 4G/5G with ZERO warning pages, ZERO CAPTCHAs, and ZERO IP address prompts!
-                    </p>
+                  <div style={{ backgroundColor: '#ffffff', padding: '12px', borderRadius: '16px', border: '3px solid #10b981' }} className="qr-canvas-container qr-wifi flex items-center justify-center aspect-square w-48 shadow-lg">
+                    <QRCode
+                      value={wifiUrl}
+                      size={160}
+                      style={{ height: "auto", maxWidth: "100%", width: "160px" }}
+                      viewBox={`0 0 256 256`}
+                      fgColor="#047857"
+                      bgColor="#ffffff"
+                    />
                   </div>
-                  <div className="space-y-4 p-5 rounded-2xl border-2 border-blue-500 shadow-inner" style={{ backgroundColor: '#0f172a' }}>
-                    <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <label style={{ color: '#fde047' }} className="text-xs font-black uppercase tracking-wider block">
-                          Cloudflare Public HTTPS Address:
-                        </label>
-                        <button
-                          type="button"
-                          onClick={async () => {
-                            try {
-                              const s = await api.fetchStatus();
-                              if (s && s.publicTunnelUrl) {
-                                setPublicTunnelUrl(s.publicTunnelUrl.trim().replace(/\/+$/, ''));
-                              }
-                            } catch {}
-                          }}
-                          className="text-[11px] font-black text-cyan-300 hover:text-white flex items-center gap-1 underline cursor-pointer"
-                        >
-                          <RefreshCw className="w-3 h-3" />
-                          <span>🔄 Sync Live Tunnel</span>
-                        </button>
-                      </div>
-                      <input
-                        type="text"
-                        value={publicTunnelUrl}
-                        onChange={(e) => setPublicTunnelUrl(e.target.value)}
-                        placeholder="e.g. https://xxxx-xxxx.trycloudflare.com (Auto-detected from server)"
-                        style={{ backgroundColor: '#1e293b', color: '#ffffff', border: '2px solid #60a5fa' }}
-                        className="w-full rounded-xl px-4 py-3 font-mono text-base font-black focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-inner"
-                      />
-                    </div>
-                  </div>
-                </>
-              )}
 
-              {accessMode === 'email' && (
-                <>
-                  <div style={{ backgroundColor: '#581c87', border: '2px solid #c084fc' }} className="p-5 rounded-2xl shadow-xl space-y-3">
-                    <p style={{ color: '#ffffff' }} className="text-sm md:text-base font-black leading-relaxed">
-                      100% Free 4G/5G Cellular Intake via your Automated Email Watcher! When customers scan this QR code on 4G/5G, their mobile email app opens immediately with your shop address pre-filled!
-                    </p>
-                    <p style={{ color: '#e9d5ff' }} className="text-xs font-bold">
-                      They attach their file and press Send. Your desktop background IMAP Watcher extracts the attachment directly into <span className="font-mono text-amber-300">D:\whatspp</span> within seconds!
-                    </p>
-                  </div>
-                  <div className="space-y-4 p-5 rounded-2xl border-2 border-purple-500 shadow-inner" style={{ backgroundColor: '#0f172a' }}>
-                    <div>
-                      <label style={{ color: '#fde047' }} className="text-xs font-black uppercase tracking-wider block mb-2">
-                        Shop Inbox Address for Automatic Downloader:
-                      </label>
-                      <input
-                        type="text"
-                        value={shopEmail}
-                        onChange={(e) => setShopEmail(e.target.value)}
-                        placeholder="print@kalpanaenterprise.com"
-                        style={{ backgroundColor: '#1e293b', color: '#ffffff', border: '2px solid #c084fc' }}
-                        className="w-full rounded-xl px-4 py-3 font-mono text-base font-black focus:outline-none focus:ring-2 focus:ring-purple-400 shadow-inner"
-                      />
+                  <div className="w-full space-y-1">
+                    <div className="font-mono text-[9px] bg-slate-950 p-2 rounded-lg text-emerald-300 border border-emerald-500/30 break-all select-all">
+                      {wifiUrl}
                     </div>
+                    <span className="text-[10px] text-slate-300 font-extrabold block">Instant Local Spooling</span>
                   </div>
-                </>
-              )}
+                </div>
 
-            </div>
+                {/* 2. 4G/5G CELLULAR TUNNEL QR CARD */}
+                <div style={{ backgroundColor: '#0f172a', border: '3px solid #3b82f6' }} className="p-5 rounded-2xl shadow-xl flex flex-col items-center justify-between text-center space-y-4">
+                  <div className="space-y-1">
+                    <span className="px-2.5 py-0.5 bg-blue-500 text-white font-black text-[10px] uppercase rounded-full tracking-wider">
+                      🌐 Option 2: 4G/5G Mobile
+                    </span>
+                    <h4 className="text-base font-black text-white uppercase mt-1">Cellular Web Tunnel</h4>
+                    <p className="text-[11px] text-cyan-200 font-bold">No Wi-Fi password required</p>
+                  </div>
 
-            {/* Real Scanning Counter QR Frame (High Contrast Obsidian & Gold Banner) */}
-            <div 
-              style={{ backgroundColor: '#090d16', border: '4px solid #34d399', boxShadow: '0 0 35px rgba(52, 211, 153, 0.4)' }} 
-              className="flex flex-col items-center justify-center p-7 rounded-3xl text-center space-y-5 shadow-2xl mx-auto max-w-sm w-full"
-            >
-              <div className="space-y-1">
-                <span style={{ backgroundColor: '#312e81', color: '#c7d2fe', border: '1px solid #6366f1' }} className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest inline-block shadow">
-                  {accessMode === 'wifi' ? 'Wi-Fi Instant Drop' : accessMode === 'mobile_web' ? '4G/5G Public Tunnel' : '4G/5G Email Express'}
-                </span>
-                <h4 style={{ color: '#ffffff' }} className="font-black text-2xl md:text-3xl uppercase tracking-wider drop-shadow-md pt-1">
-                  📲 SCAN TO PRINT
-                </h4>
-                <p style={{ color: '#34d399' }} className="text-xs font-extrabold uppercase tracking-wide">
-                  {accessMode === 'email' ? 'Scan to Email File Automatically' : 'Point Camera to Send Files to Printer'}
-                </p>
+                  <div style={{ backgroundColor: '#ffffff', padding: '12px', borderRadius: '16px', border: '3px solid #3b82f6' }} className="qr-canvas-container qr-mobile flex items-center justify-center aspect-square w-48 shadow-lg">
+                    <QRCode
+                      value={mobileUrl}
+                      size={160}
+                      style={{ height: "auto", maxWidth: "100%", width: "160px" }}
+                      viewBox={`0 0 256 256`}
+                      fgColor="#1e40af"
+                      bgColor="#ffffff"
+                    />
+                  </div>
+
+                  <div className="w-full space-y-1">
+                    <div className="font-mono text-[9px] bg-slate-950 p-2 rounded-lg text-cyan-300 border border-blue-500/30 break-all select-all">
+                      {mobileUrl}
+                    </div>
+                    <span className="text-[10px] text-slate-300 font-extrabold block">Zero Warnings Cloudflare HTTPS</span>
+                  </div>
+                </div>
+
+                {/* 3. EMAIL INTAKE QR CARD */}
+                <div style={{ backgroundColor: '#3b0764', border: '3px solid #c084fc' }} className="p-5 rounded-2xl shadow-xl flex flex-col items-center justify-between text-center space-y-4">
+                  <div className="space-y-1">
+                    <span className="px-2.5 py-0.5 bg-purple-500 text-white font-black text-[10px] uppercase rounded-full tracking-wider">
+                      📧 Option 3: Email Drop
+                    </span>
+                    <h4 className="text-base font-black text-white uppercase mt-1">Email Scan Drop</h4>
+                    <p className="text-[11px] text-purple-200 font-bold">Opens mobile email app</p>
+                  </div>
+
+                  <div style={{ backgroundColor: '#ffffff', padding: '12px', borderRadius: '16px', border: '3px solid #a855f7' }} className="qr-canvas-container qr-email flex items-center justify-center aspect-square w-48 shadow-lg">
+                    <QRCode
+                      value={emailUrl}
+                      size={160}
+                      style={{ height: "auto", maxWidth: "100%", width: "160px" }}
+                      viewBox={`0 0 256 256`}
+                      fgColor="#6b21a8"
+                      bgColor="#ffffff"
+                    />
+                  </div>
+
+                  <div className="w-full space-y-1">
+                    <div className="font-mono text-[9px] bg-slate-950 p-2 rounded-lg text-purple-300 border border-purple-500/30 break-all select-all">
+                      {shopEmail}
+                    </div>
+                    <span className="text-[10px] text-slate-300 font-extrabold block">Automated IMAP Downloader</span>
+                  </div>
+                </div>
+
               </div>
 
-              {/* Real QR Code Canvas Wrapper with High Contrast Pure White Background */}
-              <div style={{ backgroundColor: '#ffffff', padding: '20px', borderRadius: '24px', border: '5px solid #10b981', boxShadow: '0 10px 25px rgba(0, 0, 0, 0.8)' }} className="qr-canvas-container flex items-center justify-center w-full max-w-[240px] aspect-square transition-transform hover:scale-105">
-                <QRCode
-                  value={portalUrl}
-                  size={200}
-                  style={{ height: "auto", maxWidth: "100%", width: "200px" }}
-                  viewBox={`0 0 256 256`}
-                  fgColor="#000000"
-                  bgColor="#ffffff"
-                />
-              </div>
-
-              {/* INSTANT DOWNLOAD & PRINT BUTTONS (FOR PASTE / WALL DISPLAY) */}
-              <div className="flex flex-col gap-2.5 w-full pt-1">
-                <button
-                  type="button"
-                  onClick={handleDownloadQrPng}
-                  style={{ backgroundColor: '#047857', border: '2px solid #34d399', color: '#ffffff', boxShadow: '0 0 15px rgba(52, 211, 153, 0.4)' }}
-                  className="w-full py-3 rounded-xl font-black text-xs uppercase tracking-wider hover:brightness-110 transition shadow-lg flex items-center justify-center gap-2 cursor-pointer active:scale-95"
-                  title="Download ultra-high resolution PNG file to take printouts and share"
-                >
-                  <span>📥 Download QR Code PNG (QR ಕೋಡ್ ಡೌನ್‌ಲೋಡ್)</span>
-                </button>
-
+              {/* POSTER & PRINT BUTTONS FOR 3-IN-1 */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
                 <button
                   type="button"
                   onClick={handlePrintA4Sign}
-                  style={{ backgroundColor: '#1e40af', border: '2px solid #60a5fa', color: '#ffffff', boxShadow: '0 0 15px rgba(96, 165, 250, 0.4)' }}
-                  className="w-full py-3 rounded-xl font-black text-xs uppercase tracking-wider hover:brightness-110 transition shadow-lg flex items-center justify-center gap-2 cursor-pointer active:scale-95"
-                  title="Print a ready-made A4 shop wall & desk poster sign immediately"
+                  style={{ backgroundColor: '#1e40af', border: '2px solid #60a5fa', color: '#ffffff' }}
+                  className="py-3.5 px-4 rounded-xl font-black text-xs uppercase tracking-wider hover:brightness-110 transition shadow-lg flex items-center justify-center gap-2 cursor-pointer active:scale-95"
                 >
-                  <span>🖨️ Print A4 Counter Poster (A4 ಪೋಸ್ಟರ್ ಪ್ರಿಂಟ್ ಮಾಡಿ)</span>
+                  <Printer className="w-4 h-4 text-amber-300" />
+                  <span>🖨️ Print 3-in-1 Triple A4 Counter Poster (A4 ಪೋಸ್ಟರ್ ಪ್ರಿಂಟ್)</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleDownloadQrPng}
+                  style={{ backgroundColor: '#047857', border: '2px solid #34d399', color: '#ffffff' }}
+                  className="py-3.5 px-4 rounded-xl font-black text-xs uppercase tracking-wider hover:brightness-110 transition shadow-lg flex items-center justify-center gap-2 cursor-pointer active:scale-95"
+                >
+                  <Upload className="w-4 h-4 text-emerald-300" />
+                  <span>📥 Download Counter Poster PNG (PNG ಡೌನ್‌ಲೋಡ್)</span>
                 </button>
               </div>
+            </div>
+          ) : (
+            /* ============================================================ */
+            /* VIEW OPTION 2: FOCUSED SINGLE CHANNEL VIEW */
+            /* ============================================================ */
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center pt-2">
+              
+              {/* LEFT CONFIGURATION PANEL BASED ON MODE */}
+              <div className="space-y-5">
+                
+                {accessMode === 'wifi' && (
+                  <>
+                    <div style={{ backgroundColor: '#064e3b', border: '2px solid #10b981' }} className="p-5 rounded-2xl shadow-xl space-y-3">
+                      <p style={{ color: '#ffffff' }} className="text-sm md:text-base font-black leading-relaxed">
+                        For devices connected to your shop Wi-Fi! Customers point their phone camera at the QR code on the right to open this portal instantly over the local network.
+                      </p>
+                    </div>
+                    <div className="space-y-4 p-5 rounded-2xl border-2 border-emerald-500 shadow-inner" style={{ backgroundColor: '#042f2c' }}>
+                      <div>
+                        <label style={{ color: '#fde047' }} className="text-xs font-black uppercase tracking-wider block mb-2">
+                          Select Shop Hardware Host IP Address:
+                        </label>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3">
+                          <button
+                            type="button"
+                            onClick={() => setShopLanIp('192.168.31.233')}
+                            style={{ backgroundColor: shopLanIp === '192.168.31.233' ? '#0284c7' : '#1e293b', border: '2px solid #38bdf8', color: '#ffffff' }}
+                            className="px-3 py-2.5 rounded-xl text-xs font-extrabold flex items-center justify-center gap-1.5 transition shadow cursor-pointer hover:brightness-110"
+                          >
+                            <span>💻 Laptop (192.168.31.233:8082)</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setShopLanIp('192.168.31.242')}
+                            style={{ backgroundColor: shopLanIp === '192.168.31.242' ? '#059669' : '#1e293b', border: '2px solid #34d399', color: '#ffffff' }}
+                            className="px-3 py-2.5 rounded-xl text-xs font-extrabold flex items-center justify-center gap-1.5 transition shadow cursor-pointer hover:brightness-110"
+                          >
+                            <span>🖥️ Optiplex PC (192.168.31.242:8082)</span>
+                          </button>
+                        </div>
+                        <input
+                          type="text"
+                          value={shopLanIp}
+                          onChange={(e) => setShopLanIp(e.target.value)}
+                          placeholder="e.g. 192.168.31.242"
+                          style={{ backgroundColor: '#0f172a', color: '#ffffff', border: '2px solid #38bdf8' }}
+                          className="w-full rounded-xl px-4 py-3 font-mono text-base font-black focus:outline-none focus:ring-2 focus:ring-cyan-400 shadow-inner"
+                        />
+                        <span style={{ color: '#6ee7b7' }} className="text-[11px] block mt-1.5 font-bold">
+                          💡 Connects directly to Express Engine Port 8082 for instant file reception.
+                        </span>
+                      </div>
+                    </div>
+                  </>
+                )}
 
-              <div className="w-full space-y-2">
-                <div style={{ backgroundColor: '#1e293b', color: '#fde047', border: '2px solid #38bdf8' }} className="py-2.5 px-3 rounded-xl shadow-inner text-center">
-                  <span className="text-[10px] uppercase font-black text-cyan-300 block mb-0.5">
-                    {accessMode === 'wifi' ? 'Or Open Link on Shop Wi-Fi (ಲಿಂಕ್ ತೆರೆಯಿರಿ):' : accessMode === 'mobile_web' ? 'Or Open in 4G/5G Browser:' : 'Or Send File by Email To:'}
+                {accessMode === 'mobile_web' && (
+                  <>
+                    <div style={{ backgroundColor: '#1e3a8a', border: '2px solid #60a5fa' }} className="p-5 rounded-2xl shadow-xl space-y-3">
+                      <div className="flex items-center justify-between flex-wrap gap-2">
+                        <p style={{ color: '#ffffff' }} className="text-sm md:text-base font-black leading-relaxed">
+                          Allow customers on their 4G/5G cellular network to upload files without giving them your shop Wi-Fi password!
+                        </p>
+                        {publicTunnelUrl ? (
+                          <span className="px-3 py-1 bg-emerald-500 text-slate-950 rounded-full font-black text-xs uppercase tracking-wider flex items-center gap-1 shadow">
+                            <span>🟢 Live Tunnel Connected</span>
+                          </span>
+                        ) : (
+                          <span className="px-3 py-1 bg-amber-500 text-slate-950 rounded-full font-black text-xs uppercase tracking-wider flex items-center gap-1 shadow">
+                            <span>🟡 Searching for Live Tunnel...</span>
+                          </span>
+                        )}
+                      </div>
+                      <p style={{ color: '#93c5fd' }} className="text-xs font-bold">
+                        🚀 <span className="text-white">To start a live tunnel:</span> Run our 1-click helper script <span className="font-mono text-yellow-300">d:\Arka\tools\start_mobile_tunnel.ps1</span> on your desktop!
+                      </p>
+                      <p style={{ color: '#34d399' }} className="text-[11px] font-black">
+                        ✨ Powered by Cloudflare Quick Tunnels — Customers open your portal INSTANTLY on 4G/5G with ZERO warning pages, ZERO CAPTCHAs, and ZERO IP address prompts!
+                      </p>
+                    </div>
+                    <div className="space-y-4 p-5 rounded-2xl border-2 border-blue-500 shadow-inner" style={{ backgroundColor: '#0f172a' }}>
+                      <div>
+                        <div className="flex items-center justify-between mb-2">
+                          <label style={{ color: '#fde047' }} className="text-xs font-black uppercase tracking-wider block">
+                            Cloudflare Public HTTPS Address:
+                          </label>
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              try {
+                                const s = await api.fetchChannelDiagnostics();
+                                if (s?.channels?.mobile_tunnel?.rawTunnelUrl) {
+                                  setPublicTunnelUrl(s.channels.mobile_tunnel.rawTunnelUrl.trim().replace(/\/+$/, ''));
+                                }
+                              } catch {}
+                            }}
+                            className="text-[11px] font-black text-cyan-300 hover:text-white flex items-center gap-1 underline cursor-pointer"
+                          >
+                            <RefreshCw className="w-3 h-3" />
+                            <span>🔄 Sync Live Tunnel</span>
+                          </button>
+                        </div>
+                        <input
+                          type="text"
+                          value={publicTunnelUrl}
+                          onChange={(e) => setPublicTunnelUrl(e.target.value)}
+                          placeholder="e.g. https://xxxx-xxxx.trycloudflare.com (Auto-detected from server)"
+                          style={{ backgroundColor: '#1e293b', color: '#ffffff', border: '2px solid #60a5fa' }}
+                          className="w-full rounded-xl px-4 py-3 font-mono text-base font-black focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-inner"
+                        />
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {accessMode === 'email' && (
+                  <>
+                    <div style={{ backgroundColor: '#581c87', border: '2px solid #c084fc' }} className="p-5 rounded-2xl shadow-xl space-y-3">
+                      <p style={{ color: '#ffffff' }} className="text-sm md:text-base font-black leading-relaxed">
+                        100% Free 4G/5G Cellular Intake via your Automated Email Watcher! When customers scan this QR code on 4G/5G, their mobile email app opens immediately with your shop address pre-filled!
+                      </p>
+                      <p style={{ color: '#e9d5ff' }} className="text-xs font-bold">
+                        They attach their file and press Send. Your desktop background IMAP Watcher extracts the attachment directly into <span className="font-mono text-amber-300">D:\WhatsApp</span> within seconds!
+                      </p>
+                    </div>
+                    <div className="space-y-4 p-5 rounded-2xl border-2 border-purple-500 shadow-inner" style={{ backgroundColor: '#0f172a' }}>
+                      <div>
+                        <label style={{ color: '#fde047' }} className="text-xs font-black uppercase tracking-wider block mb-2">
+                          Shop Inbox Address for Automatic Downloader:
+                        </label>
+                        <input
+                          type="text"
+                          value={shopEmail}
+                          onChange={(e) => setShopEmail(e.target.value)}
+                          placeholder="print@kalpanaenterprise.com"
+                          style={{ backgroundColor: '#1e293b', color: '#ffffff', border: '2px solid #c084fc' }}
+                          className="w-full rounded-xl px-4 py-3 font-mono text-base font-black focus:outline-none focus:ring-2 focus:ring-purple-400 shadow-inner"
+                        />
+                      </div>
+                    </div>
+                  </>
+                )}
+
+              </div>
+
+              {/* FOCUSED SINGLE QR CODE FRAME */}
+              <div 
+                style={{ 
+                  backgroundColor: '#090d16', 
+                  border: `4px solid ${accessMode === 'wifi' ? '#34d399' : accessMode === 'mobile_web' ? '#60a5fa' : '#c084fc'}`, 
+                  boxShadow: `0 0 35px ${accessMode === 'wifi' ? 'rgba(52, 211, 153, 0.4)' : accessMode === 'mobile_web' ? 'rgba(96, 165, 250, 0.4)' : 'rgba(192, 132, 252, 0.4)'}` 
+                }} 
+                className="flex flex-col items-center justify-center p-7 rounded-3xl text-center space-y-5 shadow-2xl mx-auto max-w-sm w-full"
+              >
+                <div className="space-y-1">
+                  <span style={{ backgroundColor: '#312e81', color: '#c7d2fe', border: '1px solid #6366f1' }} className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest inline-block shadow">
+                    {accessMode === 'wifi' ? 'Wi-Fi Instant Drop' : accessMode === 'mobile_web' ? '4G/5G Public Tunnel' : '4G/5G Email Express'}
                   </span>
-                  <div className="font-mono text-center break-all select-all selection:bg-emerald-500 selection:text-white" style={{ fontSize: '10px' }}>
-                    {portalUrl}
-                  </div>
+                  <h4 style={{ color: '#ffffff' }} className="font-black text-2xl md:text-3xl uppercase tracking-wider drop-shadow-md pt-1">
+                    📲 SCAN TO PRINT
+                  </h4>
+                  <p style={{ color: accessMode === 'wifi' ? '#34d399' : accessMode === 'mobile_web' ? '#60a5fa' : '#c084fc' }} className="text-xs font-extrabold uppercase tracking-wide">
+                    {accessMode === 'email' ? 'Scan to Email File Automatically' : 'Point Camera to Send Files to Printer'}
+                  </p>
                 </div>
-                <p style={{ color: '#cbd5e1' }} className="text-[11px] font-extrabold">
-                  ⚡ Auto-Spooling via EPSON & HP Printers (ಆಟೋಮ್ಯಾಟಿಕ್ ಪ್ರಿಂಟಿಂಗ್)
-                </p>
+
+                {/* QR Code Canvas Wrapper */}
+                <div style={{ backgroundColor: '#ffffff', padding: '20px', borderRadius: '24px', border: '5px solid #10b981', boxShadow: '0 10px 25px rgba(0, 0, 0, 0.8)' }} className="qr-canvas-container qr-single flex items-center justify-center w-full max-w-[240px] aspect-square transition-transform hover:scale-105">
+                  <QRCode
+                    value={portalUrl}
+                    size={200}
+                    style={{ height: "auto", maxWidth: "100%", width: "200px" }}
+                    viewBox={`0 0 256 256`}
+                    fgColor={accessMode === 'wifi' ? '#047857' : accessMode === 'mobile_web' ? '#1e40af' : '#6b21a8'}
+                    bgColor="#ffffff"
+                  />
+                </div>
+
+                {/* INSTANT DOWNLOAD & PRINT BUTTONS */}
+                <div className="flex flex-col gap-2.5 w-full pt-1">
+                  <button
+                    type="button"
+                    onClick={handleDownloadQrPng}
+                    style={{ backgroundColor: '#047857', border: '2px solid #34d399', color: '#ffffff' }}
+                    className="w-full py-3 rounded-xl font-black text-xs uppercase tracking-wider hover:brightness-110 transition shadow-lg flex items-center justify-center gap-2 cursor-pointer active:scale-95"
+                    title="Download ultra-high resolution PNG file"
+                  >
+                    <span>📥 Download QR Code PNG (QR ಕೋಡ್ ಡೌನ್‌ಲೋಡ್)</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handlePrintA4Sign}
+                    style={{ backgroundColor: '#1e40af', border: '2px solid #60a5fa', color: '#ffffff' }}
+                    className="w-full py-3 rounded-xl font-black text-xs uppercase tracking-wider hover:brightness-110 transition shadow-lg flex items-center justify-center gap-2 cursor-pointer active:scale-95"
+                    title="Print A4 shop wall sign"
+                  >
+                    <span>🖨️ Print A4 Counter Poster (A4 ಪೋಸ್ಟರ್ ಪ್ರಿಂಟ್ ಮಾಡಿ)</span>
+                  </button>
+                </div>
+
+                <div className="w-full space-y-2">
+                  <div style={{ backgroundColor: '#1e293b', color: '#fde047', border: '2px solid #38bdf8' }} className="py-2.5 px-3 rounded-xl shadow-inner text-center">
+                    <span className="text-[10px] uppercase font-black text-cyan-300 block mb-0.5">
+                      {accessMode === 'wifi' ? 'Or Open Link on Shop Wi-Fi (ಲಿಂಕ್ ತೆರೆಯಿರಿ):' : accessMode === 'mobile_web' ? 'Or Open in 4G/5G Browser:' : 'Or Send File by Email To:'}
+                    </span>
+                    <div className="font-mono text-center break-all select-all selection:bg-emerald-500 selection:text-white" style={{ fontSize: '10px' }}>
+                      {portalUrl}
+                    </div>
+                  </div>
+                  <p style={{ color: '#cbd5e1' }} className="text-[11px] font-extrabold">
+                    ⚡ Auto-Spooling via EPSON & HP Printers (ಆಟೋಮ್ಯಾಟಿಕ್ ಪ್ರಿಂಟಿಂಗ್)
+                  </p>
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
       )}
 

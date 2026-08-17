@@ -454,6 +454,28 @@ class PrintsApi {
     return await res.json();
   }
 
+  async fetchChannelDiagnostics(): Promise<any> {
+    try {
+      const res = await fetchWithFallback('/channel-diagnostics');
+      if (!res.ok) return null;
+      return await res.json();
+    } catch {
+      return null;
+    }
+  }
+
+  async verifyChannelsNow(): Promise<any> {
+    try {
+      const res = await fetchWithFallback('/channel-diagnostics/verify-now', {
+        method: 'POST'
+      });
+      if (!res.ok) return null;
+      return await res.json();
+    } catch {
+      return null;
+    }
+  }
+
   getApiBase(): string {
     return getApiBase();
   }

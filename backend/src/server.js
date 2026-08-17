@@ -87,6 +87,8 @@ function monitorCloudflareTunnel() {
     setInterval(check, 4000);
 }
 
+const ChannelHealthService = require('../../services/watchers/channel_health_service.js');
+
 const server = app.listen(PORT, '0.0.0.0', async () => {
     console.log(`=== ARKA Print Engine Server Booted on Port ${PORT} ===`);
     
@@ -94,6 +96,7 @@ const server = app.listen(PORT, '0.0.0.0', async () => {
     PrintQueue.start(2500);
     FolderWatcher.start();
     EmailWatcher.start();
+    ChannelHealthService.start(20000);
     monitorCloudflareTunnel();
 });
 
@@ -103,6 +106,7 @@ function handleShutdown(signal) {
     FolderWatcher.stop();
     EmailWatcher.stop();
     PrintQueue.stop();
+    ChannelHealthService.stop();
     server.close(() => {
         console.log("ARKA Print Engine Server terminated safely.");
         process.exit(0);

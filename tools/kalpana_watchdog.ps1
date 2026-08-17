@@ -1,11 +1,16 @@
-# Resilient Continuous Watchdog for Kalpana Enterprise Servers
-# Keeps Web Frontend (Port 80), Data Backend (Port 8080), and Cloudflare Tunnel alive 24/7
+# Resilient Continuous 24/7 Watchdog & Multi-Channel Self-Healing Monitor
+# Automatically monitors and recovers:
+# - Web Frontend (Port 80)
+# - ARKA Print Engine (Port 8082)
+# - Cloudflare 4G/5G Tunnel (cloudflared.exe)
+# - Customer Multi-Channel Intake Verification (Daily Health Logging)
 
 $root = (Get-Item $PSScriptRoot).Parent.FullName
 $logDir = Join-Path $root "logs"
 if (-not (Test-Path $logDir)) { New-Item -ItemType Directory -Force -Path $logDir | Out-Null }
 $watchdogLog = Join-Path $logDir "watchdog.log"
 $frontendLog = Join-Path $logDir "frontend_out.log"
+$printLog = Join-Path $logDir "print_engine_out.log"
 
 function Write-Log([string]$message, [string]$level="INFO") {
     $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
@@ -37,31 +42,25 @@ function Test-Process([string]$processName) {
     return $false
 }
 
-Write-Log "Kalpana Enterprise Watchdog Started. Monitoring Port 80 (React UI), Port 8080 (Fallback Server), and cloudflared.exe." "STARTUP"
+Write-Log "Kalpana Enterprise 24/7 Resilient Watchdog Started. Monitoring Port 80, Port 8082, and cloudflared.exe." "STARTUP"
+
+$iteration = 0
 
 while ($true) {
     try {
-        # Check Frontend Port 80
-        if (-not (Test-Port 80)) {
-            Write-Log "Port 80 unresponsive or stopped. Executing self-healing restart for Web Frontend..." "WARN"
-            $uiDir = Join-Path $root "frontend"
-            $cmdArgs = "/c ""cd /d ""$uiDir"" && npm run dev > ""$frontendLog"" 2>&1"""
+        $iteration++
+
+        # 1. Check Print Engine Port 8082
+        if (-not (Test-Port 8082)) {
+            Write-Log "Port 8082 (Print Engine) unresponsive or stopped. Executing self-healing restart..." "WARN"
+            $backendDir = Join-Path $root "backend"
+            $cmdArgs = "/c ""cd /d ""$backendDir"" && node.exe src/server.js > ""$printLog"" 2>&1"""
             Start-Process -FilePath "cmd.exe" -ArgumentList $cmdArgs -WindowStyle Hidden
-            Write-Log "Web Frontend relaunch command dispatched." "HEAL"
-            Start-Sleep -Seconds 8
+            Write-Log "ARKA Print Engine relaunch command dispatched." "HEAL"
+            Start-Sleep -Seconds 5
         }
 
-        # Check Backend Port 8080
-        if (-not (Test-Port 8080)) {
-            Write-Log "Port 8080 unresponsive or stopped. Executing self-healing restart for Data Backend..." "WARN"
-            $serverScript = Join-Path $root "data\fallback\server.ps1"
-            $psArgs = "-ExecutionPolicy Bypass -File ""$serverScript"""
-            Start-Process -FilePath "powershell.exe" -ArgumentList $psArgs -WindowStyle Hidden
-            Write-Log "Data Backend relaunch command dispatched." "HEAL"
-            Start-Sleep -Seconds 3
-        }
-
-        # Check Cloudflare Tunnel
+        # 2. Check Cloudflare Tunnel
         if (-not (Test-Process "cloudflared")) {
             Write-Log "Cloudflare Tunnel (cloudflared.exe) stopped. Relaunching..." "WARN"
             $tunnelScript = Join-Path $root "tools\start_mobile_tunnel.ps1"
@@ -70,16 +69,23 @@ while ($true) {
             Write-Log "Cloudflare Tunnel relaunch command dispatched." "HEAL"
             Start-Sleep -Seconds 5
         }
-        
-        # Check Print Engine Port 8082
-        if (-not (Test-Port 8082)) {
-            Write-Log "Port 8082 (Print Engine) unresponsive or stopped. Executing self-healing restart..." "WARN"
-            $backendDir = Join-Path $root "backend"
-            $printLog = Join-Path $logDir "print_engine_out.log"
-            $cmdArgs = "/c ""cd /d ""$backendDir"" && node.exe src/server.js > ""$printLog"" 2>&1"""
+
+        # 3. Check Frontend Port 80
+        if (-not (Test-Port 80)) {
+            Write-Log "Port 80 unresponsive or stopped. Executing self-healing restart for Web Frontend..." "WARN"
+            $uiDir = Join-Path $root "frontend"
+            $cmdArgs = "/c ""cd /d ""$uiDir"" && npm run dev > ""$frontendLog"" 2>&1"""
             Start-Process -FilePath "cmd.exe" -ArgumentList $cmdArgs -WindowStyle Hidden
-            Write-Log "ARKA Print Engine relaunch command dispatched." "HEAL"
-            Start-Sleep -Seconds 5
+            Write-Log "Web Frontend relaunch command dispatched." "HEAL"
+            Start-Sleep -Seconds 6
+        }
+
+        # 4. Periodic Deep Channel Verification (Every 2 minutes)
+        if ($iteration % 8 -eq 0) {
+            $verifyScript = Join-Path $root "tools\verify_all_channels.ps1"
+            if (Test-Path $verifyScript) {
+                Start-Process -FilePath "powershell.exe" -ArgumentList "-ExecutionPolicy Bypass -File ""$verifyScript""" -WindowStyle Hidden
+            }
         }
     } catch {
         Write-Log "Watchdog loop error: $($_.Exception.Message)" "ERROR"
