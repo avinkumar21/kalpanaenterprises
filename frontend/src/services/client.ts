@@ -1,11 +1,28 @@
-// API Client for ARKA Prints Auto Document Engine
-
 export function getApiBase(): string {
   if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname || '';
+
+    // 1. When accessing over Cloudflare tunnel or external public domain, use current origin
+    if (hostname.includes('trycloudflare.com') || hostname.includes('loca.lt') || hostname.includes('tunnel')) {
+      return `${window.location.origin}/api/prints`;
+    }
+
+    // 2. When accessing on local LAN or localhost, use relative path (works with Vite proxy & Express)
+    if (
+      hostname === 'localhost' ||
+      hostname === '127.0.0.1' ||
+      hostname.startsWith('192.168.') ||
+      hostname.startsWith('10.') ||
+      hostname.startsWith('172.')
+    ) {
+      return '/api/prints';
+    }
+
+    // 3. Check explicit URL query param (?tunnel=... or ?api=...)
     try {
       const urlParams = new URLSearchParams(window.location.search);
       const tunnelParam = urlParams.get('tunnel') || urlParams.get('api');
-      if (tunnelParam && tunnelParam.trim()) {
+      if (tunnelParam && tunnelParam.trim() && !tunnelParam.includes('political-abilities')) {
         let trimmed = tunnelParam.trim().replace(/\/+$/, '');
         if (window.localStorage) {
           window.localStorage.setItem('arka_tunnel_url', trimmed);
@@ -17,40 +34,37 @@ export function getApiBase(): string {
       }
     } catch {}
 
-    const customApi = window.localStorage.getItem('arka_api_url');
-    if (customApi && customApi.trim()) {
-      let trimmed = customApi.trim().replace(/\/+$/, '');
-      if (!trimmed.endsWith('/api/prints')) {
-        trimmed += '/api/prints';
+    // 4. Check localStorage if valid and active
+    try {
+      const customApi = window.localStorage?.getItem('arka_api_url');
+      if (customApi && customApi.trim() && !customApi.includes('political-abilities')) {
+        let trimmed = customApi.trim().replace(/\/+$/, '');
+        if (!trimmed.endsWith('/api/prints')) {
+          trimmed += '/api/prints';
+        }
+        return trimmed;
       }
-      return trimmed;
-    }
 
-    const savedTunnel = window.localStorage.getItem('arka_tunnel_url');
-    if (savedTunnel && savedTunnel.includes('trycloudflare.com')) {
-      let trimmed = savedTunnel.trim().replace(/\/+$/, '');
-      if (!trimmed.endsWith('/api/prints')) {
-        trimmed += '/api/prints';
+      const savedTunnel = window.localStorage?.getItem('arka_tunnel_url');
+      if (savedTunnel && savedTunnel.includes('trycloudflare.com') && !savedTunnel.includes('political-abilities')) {
+        let trimmed = savedTunnel.trim().replace(/\/+$/, '');
+        if (!trimmed.endsWith('/api/prints')) {
+          trimmed += '/api/prints';
+        }
+        return trimmed;
       }
-      return trimmed;
-    }
+    } catch {}
 
-    const hostname = window.location.hostname;
-    if (hostname.includes('trycloudflare.com')) {
+    if (window.location.origin && window.location.origin !== 'null') {
       return `${window.location.origin}/api/prints`;
     }
-
-    if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname.startsWith('192.168.') || hostname.startsWith('10.') || hostname.startsWith('172.')) {
-      const port = window.location.port === '80' ? '' : ':8082';
-      return `http://${hostname}${port}/api/prints`;
-    }
   }
-  return 'https://political-abilities-mag-devel.trycloudflare.com/api/prints';
+  return '/api/prints';
 }
 
 export function setCustomApiBase(url: string | null): void {
   if (typeof window !== 'undefined' && window.localStorage) {
-    if (!url || !url.trim()) {
+    if (!url || !url.trim() || url.includes('political-abilities')) {
       window.localStorage.removeItem('arka_api_url');
     } else {
       window.localStorage.setItem('arka_api_url', url.trim());
@@ -138,33 +152,27 @@ export interface LogEntry {
 
 export async function fetchWithFallback(endpointPath: string, options?: RequestInit): Promise<Response> {
   const primaryBase = getApiBase();
-  const candidateBases: string[] = [];
+  const candidateBases: string[] = [primaryBase, '/api/prints'];
 
   if (typeof window !== 'undefined') {
-    const host = window.location.hostname;
+    const host = window.location.hostname || '';
+    const origin = window.location.origin;
+    if (origin && origin !== 'null') {
+      candidateBases.push(`${origin}/api/prints`);
+    }
+
     const isLocal = host === 'localhost' || host === '127.0.0.1' || host.startsWith('192.168.') || host.startsWith('10.');
 
     if (isLocal) {
       const p = window.location.port === '80' ? '' : ':8082';
       candidateBases.push(`http://${host}${p}/api/prints`);
-      candidateBases.push('http://192.168.31.233:8082/api/prints');
-      candidateBases.push('http://192.168.31.233/api/prints');
       candidateBases.push('http://localhost:8082/api/prints');
+      candidateBases.push('http://127.0.0.1:8082/api/prints');
     }
 
     const savedTunnel = window.localStorage?.getItem('arka_tunnel_url');
-    if (savedTunnel && savedTunnel.includes('trycloudflare.com')) {
+    if (savedTunnel && savedTunnel.includes('trycloudflare.com') && !savedTunnel.includes('political-abilities')) {
       candidateBases.push(`${savedTunnel.replace(/\/+$/, '')}/api/prints`);
-    }
-
-    candidateBases.push(primaryBase);
-    candidateBases.push('https://political-abilities-mag-devel.trycloudflare.com/api/prints');
-
-    if (!isLocal) {
-      if (window.location.protocol === 'http:') {
-        candidateBases.push('http://192.168.31.233:8082/api/prints');
-        candidateBases.push('http://192.168.31.233/api/prints');
-      }
     }
   } else {
     candidateBases.push(primaryBase);

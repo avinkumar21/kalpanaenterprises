@@ -49,23 +49,28 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
 
   const [accessMode, setAccessMode] = useState<'wifi' | 'mobile_web' | 'email'>('mobile_web');
 
-  const [publicTunnelUrl, setPublicTunnelUrl] = useState(() => {
+  const [publicTunnelUrl, setPublicTunnelUrl] = useState<string>(() => {
     if (typeof window !== 'undefined') {
+      if (window.location.hostname.includes('trycloudflare.com')) {
+        return window.location.origin;
+      }
       try {
         const urlParams = new URLSearchParams(window.location.search);
         const tunnelParam = urlParams.get('tunnel') || urlParams.get('api');
-        if (tunnelParam && tunnelParam.trim()) {
+        if (tunnelParam && tunnelParam.trim() && !tunnelParam.includes('political-abilities')) {
           const clean = tunnelParam.trim().replace(/\/+$/, '');
           window.localStorage?.setItem('arka_tunnel_url', clean);
           return clean;
         }
       } catch {}
-      if (window.localStorage) {
-        const saved = window.localStorage.getItem('arka_tunnel_url');
-        if (saved && saved.includes('trycloudflare.com')) return saved;
-      }
+      try {
+        if (window.localStorage) {
+          const saved = window.localStorage.getItem('arka_tunnel_url');
+          if (saved && saved.includes('trycloudflare.com') && !saved.includes('political-abilities')) return saved;
+        }
+      } catch {}
     }
-    return 'https://political-abilities-mag-devel.trycloudflare.com';
+    return '';
   });
   const [shopEmail, setShopEmail] = useState('print@kalpanaenterprise.com');
 
@@ -75,17 +80,27 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
       return `http://${shopLanIp || '192.168.31.233'}${portSuffix}/prints?kiosk=true#upload`;
     }
     if (accessMode === 'mobile_web') {
-      const cleanTunnel = (publicTunnelUrl || 'https://political-abilities-mag-devel.trycloudflare.com').trim().replace(/\/+$/, '');
-      return `${cleanTunnel}/prints?kiosk=true#upload`;
+      if (publicTunnelUrl && publicTunnelUrl.trim()) {
+        const cleanTunnel = publicTunnelUrl.trim().replace(/\/+$/, '');
+        return `${cleanTunnel}/prints?kiosk=true#upload`;
+      }
+      return `http://${shopLanIp || '192.168.31.233'}${portSuffix}/prints?kiosk=true#upload`;
     }
     if (accessMode === 'email') {
       return `mailto:${shopEmail}?subject=Customer%20Print%20Order`;
     }
-    return 'https://kalpanaenterprises.vercel.app/prints?kiosk=true#upload';
+    return `http://${shopLanIp || '192.168.31.233'}${portSuffix}/prints?kiosk=true#upload`;
   })();
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && window.localStorage && publicTunnelUrl) {
+    try {
+      const saved = window.localStorage?.getItem('arka_tunnel_url');
+      if (saved && saved.includes('political-abilities')) {
+        window.localStorage.removeItem('arka_tunnel_url');
+      }
+    } catch {}
+
+    if (typeof window !== 'undefined' && window.localStorage && publicTunnelUrl && !publicTunnelUrl.includes('political-abilities')) {
       window.localStorage.setItem('arka_tunnel_url', publicTunnelUrl);
       if (connectionMode === 'mobile') {
         setCustomApiBase(publicTunnelUrl);
@@ -95,17 +110,25 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
   }, [publicTunnelUrl, connectionMode]);
 
   useEffect(() => {
+    let isMounted = true;
     const syncTunnelUrl = async () => {
       try {
         const status = await api.fetchStatus();
-        if (status && status.publicTunnelUrl && status.publicTunnelUrl.includes('trycloudflare.com')) {
-          setPublicTunnelUrl(status.publicTunnelUrl);
+        if (isMounted && status && status.publicTunnelUrl && status.publicTunnelUrl.includes('trycloudflare.com') && !status.publicTunnelUrl.includes('political-abilities')) {
+          const cleanUrl = status.publicTunnelUrl.trim().replace(/\/+$/, '');
+          setPublicTunnelUrl(cleanUrl);
+          if (typeof window !== 'undefined' && window.localStorage) {
+            window.localStorage.setItem('arka_tunnel_url', cleanUrl);
+          }
         }
       } catch { /* ignore fallback */ }
     };
     syncTunnelUrl();
-    const interval = setInterval(syncTunnelUrl, 8000);
-    return () => clearInterval(interval);
+    const interval = setInterval(syncTunnelUrl, 3000);
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
   }, []);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -415,9 +438,10 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
     setUploading(true);
     try {
       if (connectionMode === 'mobile') {
-        const tunnel = publicTunnelUrl || 'https://political-abilities-mag-devel.trycloudflare.com';
-        setCustomApiBase(tunnel);
-        api.setCustomApiBase(tunnel);
+        if (publicTunnelUrl && !publicTunnelUrl.includes('political-abilities')) {
+          setCustomApiBase(publicTunnelUrl);
+          api.setCustomApiBase(publicTunnelUrl);
+        }
       } else if (connectionMode === 'wifi') {
         const isLocalHost = typeof window !== 'undefined' && (window.location.hostname.includes('192.168.') || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
         const lanUrl = isLocalHost ? '' : `http://${shopLanIp || '192.168.31.233'}:8082`;
@@ -830,9 +854,20 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
               {accessMode === 'mobile_web' && (
                 <>
                   <div style={{ backgroundColor: '#1e3a8a', border: '2px solid #60a5fa' }} className="p-5 rounded-2xl shadow-xl space-y-3">
-                    <p style={{ color: '#ffffff' }} className="text-sm md:text-base font-black leading-relaxed">
-                      Allow customers on their 4G/5G cellular network to upload files without giving them your shop Wi-Fi password!
-                    </p>
+                    <div className="flex items-center justify-between flex-wrap gap-2">
+                      <p style={{ color: '#ffffff' }} className="text-sm md:text-base font-black leading-relaxed">
+                        Allow customers on their 4G/5G cellular network to upload files without giving them your shop Wi-Fi password!
+                      </p>
+                      {publicTunnelUrl ? (
+                        <span className="px-3 py-1 bg-emerald-500 text-slate-950 rounded-full font-black text-xs uppercase tracking-wider flex items-center gap-1 shadow">
+                          <span>🟢 Live Tunnel Connected</span>
+                        </span>
+                      ) : (
+                        <span className="px-3 py-1 bg-amber-500 text-slate-950 rounded-full font-black text-xs uppercase tracking-wider flex items-center gap-1 shadow">
+                          <span>🟡 Searching for Live Tunnel...</span>
+                        </span>
+                      )}
+                    </div>
                     <p style={{ color: '#93c5fd' }} className="text-xs font-bold">
                       🚀 <span className="text-white">To start a live tunnel:</span> Run our 1-click helper script <span className="font-mono text-yellow-300">d:\Arka\tools\start_mobile_tunnel.ps1</span> on your desktop!
                     </p>
@@ -842,14 +877,31 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
                   </div>
                   <div className="space-y-4 p-5 rounded-2xl border-2 border-blue-500 shadow-inner" style={{ backgroundColor: '#0f172a' }}>
                     <div>
-                      <label style={{ color: '#fde047' }} className="text-xs font-black uppercase tracking-wider block mb-2">
-                        Cloudflare Public HTTPS Address:
-                      </label>
+                      <div className="flex items-center justify-between mb-2">
+                        <label style={{ color: '#fde047' }} className="text-xs font-black uppercase tracking-wider block">
+                          Cloudflare Public HTTPS Address:
+                        </label>
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            try {
+                              const s = await api.fetchStatus();
+                              if (s && s.publicTunnelUrl) {
+                                setPublicTunnelUrl(s.publicTunnelUrl.trim().replace(/\/+$/, ''));
+                              }
+                            } catch {}
+                          }}
+                          className="text-[11px] font-black text-cyan-300 hover:text-white flex items-center gap-1 underline cursor-pointer"
+                        >
+                          <RefreshCw className="w-3 h-3" />
+                          <span>🔄 Sync Live Tunnel</span>
+                        </button>
+                      </div>
                       <input
                         type="text"
                         value={publicTunnelUrl}
                         onChange={(e) => setPublicTunnelUrl(e.target.value)}
-                        placeholder="https://your-shop-tunnel.trycloudflare.com"
+                        placeholder="e.g. https://xxxx-xxxx.trycloudflare.com (Auto-detected from server)"
                         style={{ backgroundColor: '#1e293b', color: '#ffffff', border: '2px solid #60a5fa' }}
                         className="w-full rounded-xl px-4 py-3 font-mono text-base font-black focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-inner"
                       />
