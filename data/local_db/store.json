@@ -1,71 +1,19 @@
 {
   "files": {},
   "history": {
-    "hist_1786964175745_bmyf": {
-      "id": "hist_1786964175745_bmyf",
-      "fileId": "doc_1786964169806",
-      "customerFile": "webupload_1786964169784_hgs6_1c_BlackWhite_test_qr_mobile.pdf",
-      "originalPath": "D:\\Arka\\storage\\incoming\\1786964169792_webupload_1786964169784_hgs6_1c_BlackWhite_test_qr_mobile.pdf",
-      "processedPath": "D:\\Arka\\storage\\processed\\optimized_1786964169794_1786964169792_webupload_1786964169784_hgs6_1c_BlackWhite_test_qr_mobile.pdf",
-      "pages": 1,
-      "printerName": "EPSON L3110 Series",
-      "printTime": "2026-08-17T10:56:15.745Z",
-      "status": "Failed",
-      "copies": 1,
-      "retryCount": 4
-    },
-    "hist_1787548482088_ffx3": {
-      "id": "hist_1787548482088_ffx3",
-      "fileId": "doc_1787548478502",
-      "customerFile": "webupload_1787548478485_6926_1c_Color_sample_color_passport.png",
-      "originalPath": "D:\\Arka\\storage\\incoming\\1787548478488_webupload_1787548478485_6926_1c_Color_sample_color_passport.png",
-      "processedPath": "D:\\Arka\\storage\\processed\\copy_1787548478490_1787548478488_webupload_1787548478485_6926_1c_Color_sample_color_passport.png",
-      "pages": 1,
-      "printerName": "EPSON L3110 Series",
-      "printTime": "2026-08-24T05:14:42.088Z",
-      "status": "Failed",
-      "copies": 1,
-      "retryCount": 4
-    },
-    "hist_1787555060002_pxw2": {
-      "id": "hist_1787555060002_pxw2",
-      "fileId": "doc_1787555056279",
-      "customerFile": "webupload_1787555056274_akkf_1c_Color_mobile_test_document.pdf",
-      "originalPath": "D:\\Arka\\storage\\incoming\\1787555056277_webupload_1787555056274_akkf_1c_Color_mobile_test_document.pdf",
-      "processedPath": "D:\\Arka\\storage\\processed\\optimized_1787555056278_1787555056277_webupload_1787555056274_akkf_1c_Color_mobile_test_document.pdf",
-      "pages": 1,
-      "printerName": "EPSON L3110 Series",
-      "printTime": "2026-08-24T07:04:20.002Z",
-      "status": "Failed",
-      "copies": 1,
-      "retryCount": 4
-    },
-    "hist_1787558494172_5wh2": {
-      "id": "hist_1787558494172_5wh2",
-      "fileId": "doc_1787558491637",
-      "customerFile": "webupload_1787558491616_a4q3_1c_BlackWhite_mandya_complaint__1_.pdf",
-      "originalPath": "D:\\Arka\\storage\\incoming\\1787558491624_webupload_1787558491616_a4q3_1c_BlackWhite_mandya_complaint__1_.pdf",
-      "processedPath": "D:\\Arka\\storage\\processed\\optimized_1787558491625_1787558491624_webupload_1787558491616_a4q3_1c_BlackWhite_mandya_complaint__1_.pdf",
+    "hist_1787559791896_r7ys": {
+      "id": "hist_1787559791896_r7ys",
+      "fileId": "doc_1787559788737",
+      "customerFile": "webupload_1787559788727_eczg_1c_BlackWhite_mandya_complaint__1_.pdf",
+      "originalPath": "D:\\Arka\\storage\\incoming\\1787559788732_webupload_1787559788727_eczg_1c_BlackWhite_mandya_complaint__1_.pdf",
+      "processedPath": "D:\\Arka\\storage\\processed\\optimized_1787559788733_1787559788732_webupload_1787559788727_eczg_1c_BlackWhite_mandya_complaint__1_.pdf",
       "pages": 1,
       "printerName": "EPSON L3110 Series",
       "colorMode": "BlackWhite",
-      "printTime": "2026-08-24T08:01:34.172Z",
+      "printTime": "2026-08-24T08:23:11.896Z",
       "status": "Success",
       "copies": 1,
       "retryCount": 1
-    },
-    "hist_1787559008895_0k71": {
-      "id": "hist_1787559008895_0k71",
-      "fileId": "doc_1787559001141",
-      "customerFile": "webupload_1787559001134_5adn_1c_BlackWhite_universal_test.pdf",
-      "originalPath": "D:\\Arka\\storage\\incoming\\1787559001137_webupload_1787559001134_5adn_1c_BlackWhite_universal_test.pdf",
-      "processedPath": "D:\\Arka\\storage\\processed\\optimized_1787559001138_1787559001137_webupload_1787559001134_5adn_1c_BlackWhite_universal_test.pdf",
-      "pages": 1,
-      "printerName": "EPSON L3110 Series",
-      "printTime": "2026-08-24T08:10:08.895Z",
-      "status": "Failed",
-      "copies": 1,
-      "retryCount": 4
     }
   },
   "printers": {
@@ -139,12 +87,12 @@
       "id": "epson_l3110_series",
       "name": "EPSON L3110 Series",
       "driverName": "EPSON L3110 Series",
-      "status": "Offline",
+      "status": "Ready",
       "isDefault": true,
       "isPrimary": true,
       "isSecondary": false,
       "isFallback": false,
-      "lastChecked": "2026-08-24T08:09:20.775Z"
+      "lastChecked": "2026-08-24T08:41:48.567Z"
     },
     "hp_laser_mfp_131_133_135_138": {
       "id": "hp_laser_mfp_131_133_135_138",
@@ -155,7 +103,7 @@
       "isPrimary": false,
       "isSecondary": false,
       "isFallback": false,
-      "lastChecked": "2026-08-24T08:09:20.775Z"
+      "lastChecked": "2026-08-24T08:41:48.567Z"
     }
   },
   "settings": {
@@ -5568,84 +5516,21 @@
     }
   ],
   "queue": {
-    "job_1786964169806_8v4vn": {
-      "id": "job_1786964169806_8v4vn",
-      "fileId": "doc_1786964169806",
-      "customerName": "WhatsApp Customer",
-      "fileName": "webupload_1786964169784_hgs6_1c_BlackWhite_test_qr_mobile.pdf",
-      "processedPath": "D:\\Arka\\storage\\processed\\optimized_1786964169794_1786964169792_webupload_1786964169784_hgs6_1c_BlackWhite_test_qr_mobile.pdf",
-      "originalPath": "D:\\Arka\\storage\\incoming\\1786964169792_webupload_1786964169784_hgs6_1c_BlackWhite_test_qr_mobile.pdf",
-      "printer": "EPSON L3110 Series",
-      "copies": 1,
-      "status": "Failed",
-      "priority": 1,
-      "attempts": 4,
-      "createdAt": "2026-08-17T10:56:09.806Z",
-      "updatedAt": "2026-08-17T10:56:15.739Z"
-    },
-    "job_1787548478502_s19ss": {
-      "id": "job_1787548478502_s19ss",
-      "fileId": "doc_1787548478502",
-      "customerName": "WhatsApp Customer",
-      "fileName": "webupload_1787548478485_6926_1c_Color_sample_color_passport.png",
-      "processedPath": "D:\\Arka\\storage\\processed\\copy_1787548478490_1787548478488_webupload_1787548478485_6926_1c_Color_sample_color_passport.png",
-      "originalPath": "D:\\Arka\\storage\\incoming\\1787548478488_webupload_1787548478485_6926_1c_Color_sample_color_passport.png",
-      "printer": "EPSON L3110 Series",
-      "copies": 1,
-      "colorMode": "Color",
-      "status": "Failed",
-      "priority": 1,
-      "attempts": 4,
-      "createdAt": "2026-08-24T05:14:38.502Z",
-      "updatedAt": "2026-08-24T05:14:42.085Z"
-    },
-    "job_1787555056280_257mj": {
-      "id": "job_1787555056280_257mj",
-      "fileId": "doc_1787555056279",
-      "customerName": "WhatsApp Customer",
-      "fileName": "webupload_1787555056274_akkf_1c_Color_mobile_test_document.pdf",
-      "processedPath": "D:\\Arka\\storage\\processed\\optimized_1787555056278_1787555056277_webupload_1787555056274_akkf_1c_Color_mobile_test_document.pdf",
-      "originalPath": "D:\\Arka\\storage\\incoming\\1787555056277_webupload_1787555056274_akkf_1c_Color_mobile_test_document.pdf",
-      "printer": "EPSON L3110 Series",
-      "copies": 1,
-      "colorMode": "Color",
-      "status": "Failed",
-      "priority": 1,
-      "attempts": 4,
-      "createdAt": "2026-08-24T07:04:16.280Z",
-      "updatedAt": "2026-08-24T07:04:20.000Z"
-    },
-    "job_1787558491637_dr7wr": {
-      "id": "job_1787558491637_dr7wr",
-      "fileId": "doc_1787558491637",
-      "customerName": "WhatsApp Customer",
-      "fileName": "webupload_1787558491616_a4q3_1c_BlackWhite_mandya_complaint__1_.pdf",
-      "processedPath": "D:\\Arka\\storage\\processed\\optimized_1787558491625_1787558491624_webupload_1787558491616_a4q3_1c_BlackWhite_mandya_complaint__1_.pdf",
-      "originalPath": "D:\\Arka\\storage\\incoming\\1787558491624_webupload_1787558491616_a4q3_1c_BlackWhite_mandya_complaint__1_.pdf",
+    "job_1787559788737_xsozm": {
+      "id": "job_1787559788737_xsozm",
+      "fileId": "doc_1787559788737",
+      "customerName": "Customer Print",
+      "fileName": "webupload_1787559788727_eczg_1c_BlackWhite_mandya_complaint__1_.pdf",
+      "processedPath": "D:\\Arka\\storage\\processed\\optimized_1787559788733_1787559788732_webupload_1787559788727_eczg_1c_BlackWhite_mandya_complaint__1_.pdf",
+      "originalPath": "D:\\Arka\\storage\\incoming\\1787559788732_webupload_1787559788727_eczg_1c_BlackWhite_mandya_complaint__1_.pdf",
       "printer": "EPSON L3110 Series",
       "copies": 1,
       "colorMode": "BlackWhite",
       "status": "Completed",
       "priority": 1,
       "attempts": 1,
-      "createdAt": "2026-08-24T08:01:31.637Z",
-      "updatedAt": "2026-08-24T08:01:34.169Z"
-    },
-    "job_1787559001141_a89ca": {
-      "id": "job_1787559001141_a89ca",
-      "fileId": "doc_1787559001141",
-      "customerName": "Customer Print",
-      "fileName": "webupload_1787559001134_5adn_1c_BlackWhite_universal_test.pdf",
-      "processedPath": "D:\\Arka\\storage\\processed\\optimized_1787559001138_1787559001137_webupload_1787559001134_5adn_1c_BlackWhite_universal_test.pdf",
-      "originalPath": "D:\\Arka\\storage\\incoming\\1787559001137_webupload_1787559001134_5adn_1c_BlackWhite_universal_test.pdf",
-      "printer": "EPSON L3110 Series",
-      "copies": 1,
-      "colorMode": "BlackWhite",
-      "status": "Failed",
-      "priority": 1,
-      "attempts": 4,
-      "createdAt": "2026-08-24T08:10:01.141Z",
-      "updatedAt": "2026-08-24T08:10:08.892Z"
+      "createdAt": "2026-08-24T08:23:08.737Z",
+      "updatedAt": "2026-08-24T08:23:11.894Z"
     }
   },
   "statistics": {
@@ -5693,9 +5578,9 @@
     },
     "2026-08-24": {
       "date": "2026-08-24",
-      "totalReceived": 4,
-      "totalProcessed": 4,
-      "totalPrinted": 1,
+      "totalReceived": 7,
+      "totalProcessed": 7,
+      "totalPrinted": 4,
       "totalFailed": 3
     }
   }

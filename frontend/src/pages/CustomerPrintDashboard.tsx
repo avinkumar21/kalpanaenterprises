@@ -3,7 +3,7 @@ import { api, type QueueJob, type PrinterInfo } from '../services/client';
 import { Printer, RotateCw, Trash2, CheckCircle2, Upload, FileText, AlertCircle, Wifi, Check, Scissors, Sun, Contrast, RefreshCw, ArrowUpDown, Sparkles } from 'lucide-react';
 
 const EPSON_NAME = 'EPSON L3110 Series';
-const HP_NAME = 'HP508140DE1D63(HP Laser MFP 131 133 135-138)';
+const HP_NAME = 'HP Laser MFP 131 133 135-138';
 
 export const CustomerPrintDashboard: React.FC = () => {
   const [jobs, setJobs] = useState<QueueJob[]>([]);
@@ -401,7 +401,9 @@ export const CustomerPrintDashboard: React.FC = () => {
 
           {/* PRINTER 1: EPSON L3110 (USB Only) */}
           {(() => {
-            const epsonOnline = printerStatus[EPSON_NAME] === 'Online';
+            const epsonOnline = printerStatus[EPSON_NAME] === 'Online' ||
+              printerStatus['EPSON L3110 Series'] === 'Online' ||
+              Object.keys(printerStatus).some(k => k.toLowerCase().includes('epson') && printerStatus[k] === 'Online');
             return (
               <div
                 style={epsonOnline
@@ -471,7 +473,10 @@ export const CustomerPrintDashboard: React.FC = () => {
 
           {/* PRINTER 2: HP LASER MFP (USB + Wi-Fi) */}
           {(() => {
-            const hpOnline = printerStatus[HP_NAME] === 'Online';
+            const hpOnline = printerStatus[HP_NAME] === 'Online' ||
+              printerStatus['HP Laser MFP 131 133 135-138'] === 'Online' ||
+              printerStatus['HP508140DE1D63(HP Laser MFP 131 133 135-138)'] === 'Online' ||
+              Object.keys(printerStatus).some(k => (k.toLowerCase().includes('hp') || k.toLowerCase().includes('131') || k.toLowerCase().includes('135')) && printerStatus[k] === 'Online');
             return (
               <div
                 style={hpOnline

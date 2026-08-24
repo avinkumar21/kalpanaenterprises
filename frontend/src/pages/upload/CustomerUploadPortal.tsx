@@ -1047,26 +1047,35 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3">
                           <button
                             type="button"
-                            onClick={() => setShopLanIp('192.168.31.233')}
+                            onClick={() => {
+                              setShopLanIp('192.168.31.233');
+                              try { window.localStorage.setItem('arka_shop_lan_ip', '192.168.31.233'); } catch(e){}
+                            }}
                             style={{ backgroundColor: shopLanIp === '192.168.31.233' ? '#0284c7' : '#1e293b', border: '2px solid #38bdf8', color: '#ffffff' }}
                             className="px-3 py-2.5 rounded-xl text-xs font-extrabold flex items-center justify-center gap-1.5 transition shadow cursor-pointer hover:brightness-110"
                           >
-                            <span>💻 Laptop (192.168.31.233:8082)</span>
+                            <span>🖥️ Desktop Print Station (192.168.31.233:8082 - Auto)</span>
                           </button>
                           <button
                             type="button"
-                            onClick={() => setShopLanIp('192.168.31.242')}
+                            onClick={() => {
+                              setShopLanIp('192.168.31.242');
+                              try { window.localStorage.setItem('arka_shop_lan_ip', '192.168.31.242'); } catch(e){}
+                            }}
                             style={{ backgroundColor: shopLanIp === '192.168.31.242' ? '#059669' : '#1e293b', border: '2px solid #34d399', color: '#ffffff' }}
                             className="px-3 py-2.5 rounded-xl text-xs font-extrabold flex items-center justify-center gap-1.5 transition shadow cursor-pointer hover:brightness-110"
                           >
-                            <span>🖥️ Optiplex PC (192.168.31.242:8082)</span>
+                            <span>💻 Alternate / Laptop (192.168.31.242:8082)</span>
                           </button>
                         </div>
                         <input
                           type="text"
                           value={shopLanIp}
-                          onChange={(e) => setShopLanIp(e.target.value)}
-                          placeholder="e.g. 192.168.31.242"
+                          onChange={(e) => {
+                            setShopLanIp(e.target.value);
+                            try { window.localStorage.setItem('arka_shop_lan_ip', e.target.value); } catch(err){}
+                          }}
+                          placeholder="e.g. 192.168.31.233"
                           style={{ backgroundColor: '#0f172a', color: '#ffffff', border: '2px solid #38bdf8' }}
                           className="w-full rounded-xl px-4 py-3 font-mono text-base font-black focus:outline-none focus:ring-2 focus:ring-cyan-400 shadow-inner"
                         />
@@ -1149,7 +1158,7 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
                         100% Free 4G/5G Cellular Intake via your Automated Email Watcher! When customers scan this QR code on 4G/5G, their mobile email app opens immediately with your shop address pre-filled!
                       </p>
                       <p style={{ color: '#e9d5ff' }} className="text-xs font-bold">
-                        They attach their file and press Send. Your desktop background IMAP Watcher extracts the attachment directly into <span className="font-mono text-amber-300">D:\WhatsApp</span> within seconds!
+                        They attach their file and press Send. Your desktop background IMAP Watcher extracts the attachment directly into <span className="font-mono text-amber-300">prints/</span> within seconds!
                       </p>
                     </div>
                     <div className="space-y-4 p-5 rounded-2xl border-2 border-purple-500 shadow-inner" style={{ backgroundColor: '#0f172a' }}>
@@ -1256,7 +1265,7 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
             </div>
             <div>
               <h2 className="text-xl md:text-2xl font-black text-white tracking-wide uppercase">ನಿಮ್ಮ ಡಾಕ್ಯುಮೆಂಟ್ ಪ್ರಿಂಟ್‌ಗೆ ಕಳುಹಿಸಲಾಗಿದೆ! (Document Sent to Printer)</h2>
-              <p className="text-sm font-extrabold text-emerald-200">Our automated engine has staged your file in D:\WhatsApp for high-speed printing.</p>
+              <p className="text-sm font-extrabold text-emerald-200">Our automated engine has staged your file in prints/ for high-speed printing.</p>
             </div>
           </div>
 

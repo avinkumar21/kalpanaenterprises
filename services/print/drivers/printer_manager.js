@@ -73,10 +73,8 @@ const PrinterManager = {
                         $isOnline = $false
                     } elseif ($printerStatus -in @(2, 4, 7)) {
                         $isOnline = $false
-                    } elseif ($gpStatus -eq 'Normal' -or $printerStatus -eq 3 -or $extendedStatus -eq 2) {
-                        $isOnline = $true
                     } else {
-                        $isOnline = $false
+                        $isOnline = $true
                     }
 
                     $results[$name] = [PSCustomObject]@{
@@ -328,7 +326,7 @@ const PrinterManager = {
         );
 
         const settings = db.getSettings();
-        const configuredPrinter = printerName || (isColor ? 'EPSON L3110 Series' : (settings.defaultPrinter || settings.primaryPrinter || 'EPSON L3110 Series'));
+        const configuredPrinter = printerName || (isColor ? 'EPSON L3110 Series' : (settings.defaultPrinter || settings.primaryPrinter || 'HP Laser MFP 131 133 135-138'));
         
         // Resolve active hardware driver
         const targetPrinter = await this.resolveActivePrinter(configuredPrinter, { colorMode: isColor ? 'Color' : 'BlackWhite' });
@@ -345,6 +343,11 @@ const PrinterManager = {
         if (['.png', '.jpg', '.jpeg', '.bmp', '.gif', '.webp'].includes(ext)) {
             script = `
                 try {
+                    # Automatically purge any previous stuck error jobs on target printer
+                    try {
+                        Get-PrintJob -PrinterName "${targetPrinter.replace(/'/g, "''")}" -ErrorAction SilentlyContinue | Where-Object { $_.JobStatus -like '*Error*' } | Remove-PrintJob -ErrorAction SilentlyContinue
+                    } catch {}
+
                     # Ensure printer is not in WorkOffline state
                     $p = Get-WmiObject -Class Win32_Printer -Filter "Name='${targetPrinter.replace(/'/g, "''")}'" -ErrorAction SilentlyContinue
                     if ($p -and $p.WorkOffline) {
@@ -385,6 +388,11 @@ const PrinterManager = {
             // Direct silent physical hardware PDF printing using Windows Native WinRT PDF Engine + .NET PrintDocument
             script = `
                 try {
+                    # Automatically purge any previous stuck error jobs on target printer
+                    try {
+                        Get-PrintJob -PrinterName "${targetPrinter.replace(/'/g, "''")}" -ErrorAction SilentlyContinue | Where-Object { $_.JobStatus -like '*Error*' } | Remove-PrintJob -ErrorAction SilentlyContinue
+                    } catch {}
+
                     # Ensure printer is not in WorkOffline state
                     $p = Get-WmiObject -Class Win32_Printer -Filter "Name='${targetPrinter.replace(/'/g, "''")}'" -ErrorAction SilentlyContinue
                     if ($p -and $p.WorkOffline) {

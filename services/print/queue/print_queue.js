@@ -24,12 +24,12 @@ const PrintQueue = {
 
     async addJob({ id, fileId, customerName, fileName, processedPath, originalPath, printer, copies = 1, colorMode = 'BlackWhite', priority = 1, autoStart = true }) {
         const isColor = Boolean(colorMode === 'Color' || colorMode === 'Colour' || (fileName && (fileName.toLowerCase().includes('_color_') || fileName.toLowerCase().includes('_colour_'))));
-        const defaultTargetPrinter = isColor ? 'EPSON L3110 Series' : (db.getSettings().defaultPrinter || 'HP508140DE1D63(HP Laser MFP 131 133 135-138)');
+        const defaultTargetPrinter = isColor ? 'EPSON L3110 Series' : (db.getSettings().defaultPrinter || 'HP Laser MFP 131 133 135-138');
 
         const item = {
             id: id || `job_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
             fileId: fileId || `file_${Date.now()}`,
-            customerName: customerName || 'WhatsApp Customer',
+            customerName: customerName || 'Customer Document',
             fileName: fileName || path.basename(processedPath),
             processedPath,
             originalPath: originalPath || processedPath,

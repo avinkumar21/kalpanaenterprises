@@ -182,7 +182,7 @@ export const PrintsModule: React.FC = () => {
                   <span>{incomingAlert.fileName}</span>
                 </h3>
                 <p className="text-xs md:text-sm font-bold text-pink-100 mt-1 drop-shadow flex items-center gap-1.5">
-                  <span>✨ ಫೈಲ್ <span className="font-mono bg-black/40 px-2 py-0.5 rounded text-yellow-200 font-black border border-pink-400/30">D:\WhatsApp</span> ಫೋಲ್ಡರ್‌ಗೆ ತಲುಪಿದೆ ಮತ್ತು ಪ್ರಿಂಟ್‌ಗೆ ಸಿದ್ಧವಾಗಿದೆ!</span>
+                  <span>✨ ಫೈಲ್ <span className="font-mono bg-black/40 px-2 py-0.5 rounded text-yellow-200 font-black border border-pink-400/30">prints/</span> ಫೋಲ್ಡರ್‌ಗೆ ತಲುಪಿದೆ ಮತ್ತು ಪ್ರಿಂಟ್‌ಗೆ ಸಿದ್ಧವಾಗಿದೆ!</span>
                 </p>
               </div>
             </div>
