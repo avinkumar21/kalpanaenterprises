@@ -28,6 +28,48 @@
       "status": "Success",
       "copies": 1,
       "retryCount": 1
+    },
+    "hist_1787562234771_8vsw": {
+      "id": "hist_1787562234771_8vsw",
+      "fileId": "doc_1787562231322",
+      "customerFile": "webupload_1787562231313_6u0b_1c_BlackWhite_mandya_complaint__1_.pdf",
+      "originalPath": "D:\\Arka\\storage\\incoming\\1787562231317_webupload_1787562231313_6u0b_1c_BlackWhite_mandya_complaint__1_.pdf",
+      "processedPath": "D:\\Arka\\storage\\processed\\optimized_1787562231317_1787562231317_webupload_1787562231313_6u0b_1c_BlackWhite_mandya_complaint__1_.pdf",
+      "pages": 1,
+      "printerName": "HP Laser MFP 131 133 135-138",
+      "colorMode": "BlackWhite",
+      "printTime": "2026-08-24T09:03:54.771Z",
+      "status": "Success",
+      "copies": 1,
+      "retryCount": 1
+    },
+    "hist_1787563453207_oo92": {
+      "id": "hist_1787563453207_oo92",
+      "fileId": "doc_1787563450698",
+      "customerFile": "webupload_1787563450680_vh9w_1c_BlackWhite_live_customer_test.pdf",
+      "originalPath": "D:\\Arka\\storage\\incoming\\1787563450683_webupload_1787563450680_vh9w_1c_BlackWhite_live_customer_test.pdf",
+      "processedPath": "D:\\Arka\\storage\\processed\\optimized_1787563450684_1787563450683_webupload_1787563450680_vh9w_1c_BlackWhite_live_customer_test.pdf",
+      "pages": 1,
+      "printerName": "HP Laser MFP 131 133 135-138",
+      "colorMode": "BlackWhite",
+      "printTime": "2026-08-24T09:24:13.207Z",
+      "status": "Success",
+      "copies": 1,
+      "retryCount": 1
+    },
+    "hist_1787563518665_s2gg": {
+      "id": "hist_1787563518665_s2gg",
+      "fileId": "doc_1787563516020",
+      "customerFile": "webupload_1787563516006_pptr_1c_Color_live_colour_test.pdf",
+      "originalPath": "D:\\Arka\\storage\\incoming\\1787563516010_webupload_1787563516006_pptr_1c_Color_live_colour_test.pdf",
+      "processedPath": "D:\\Arka\\storage\\processed\\optimized_1787563516010_1787563516010_webupload_1787563516006_pptr_1c_Color_live_colour_test.pdf",
+      "pages": 1,
+      "printerName": "EPSON L3110 Series",
+      "colorMode": "Color",
+      "printTime": "2026-08-24T09:25:18.665Z",
+      "status": "Success",
+      "copies": 1,
+      "retryCount": 1
     }
   },
   "printers": {
@@ -102,26 +144,26 @@
       "name": "EPSON L3110 Series",
       "driverName": "EPSON L3110 Series",
       "status": "Ready",
-      "isDefault": true,
-      "isPrimary": true,
+      "isDefault": false,
+      "isPrimary": false,
       "isSecondary": false,
       "isFallback": false,
-      "lastChecked": "2026-08-24T08:41:48.567Z"
+      "lastChecked": "2026-08-24T09:20:49.153Z"
     },
     "hp_laser_mfp_131_133_135_138": {
       "id": "hp_laser_mfp_131_133_135_138",
       "name": "HP Laser MFP 131 133 135-138",
       "driverName": "HP Laser MFP 131 133 135-138",
       "status": "Ready",
-      "isDefault": false,
-      "isPrimary": false,
-      "isSecondary": false,
+      "isDefault": true,
+      "isPrimary": true,
+      "isSecondary": true,
       "isFallback": false,
-      "lastChecked": "2026-08-24T08:41:48.567Z"
+      "lastChecked": "2026-08-24T09:20:49.153Z"
     }
   },
   "settings": {
-    "whatsAppFolder": "D:\\WhatsApp",
+    "whatsAppFolder": "",
     "incomingFolder": "storage/incoming",
     "archiveFolder": "storage/archive",
     "processedFolder": "storage/processed",
@@ -129,9 +171,9 @@
     "enableAutoPrint": true,
     "enableOCR": false,
     "enableEnhancement": true,
-    "defaultPrinter": "EPSON L3110 Series",
-    "primaryPrinter": "EPSON L3110 Series",
-    "secondaryPrinter": "HP508140DE1D63(HP Laser MFP 131 133 135-138)",
+    "defaultPrinter": "HP Laser MFP 131 133 135-138",
+    "primaryPrinter": "HP Laser MFP 131 133 135-138",
+    "secondaryPrinter": "HP Laser MFP 131 133 135-138",
     "fallbackPrinter": "Microsoft Print to PDF",
     "copies": 1,
     "margins": "Minimal",
@@ -5561,6 +5603,54 @@
       "attempts": 1,
       "createdAt": "2026-08-24T08:59:42.127Z",
       "updatedAt": "2026-08-24T08:59:44.458Z"
+    },
+    "job_1787562231322_cwuvb": {
+      "id": "job_1787562231322_cwuvb",
+      "fileId": "doc_1787562231322",
+      "customerName": "Customer Print",
+      "fileName": "webupload_1787562231313_6u0b_1c_BlackWhite_mandya_complaint__1_.pdf",
+      "processedPath": "D:\\Arka\\storage\\processed\\optimized_1787562231317_1787562231317_webupload_1787562231313_6u0b_1c_BlackWhite_mandya_complaint__1_.pdf",
+      "originalPath": "D:\\Arka\\storage\\incoming\\1787562231317_webupload_1787562231313_6u0b_1c_BlackWhite_mandya_complaint__1_.pdf",
+      "printer": "EPSON L3110 Series",
+      "copies": 1,
+      "colorMode": "BlackWhite",
+      "status": "Completed",
+      "priority": 1,
+      "attempts": 1,
+      "createdAt": "2026-08-24T09:03:51.322Z",
+      "updatedAt": "2026-08-24T09:03:54.769Z"
+    },
+    "job_1787563450698_ybbrl": {
+      "id": "job_1787563450698_ybbrl",
+      "fileId": "doc_1787563450698",
+      "customerName": "Customer Print",
+      "fileName": "webupload_1787563450680_vh9w_1c_BlackWhite_live_customer_test.pdf",
+      "processedPath": "D:\\Arka\\storage\\processed\\optimized_1787563450684_1787563450683_webupload_1787563450680_vh9w_1c_BlackWhite_live_customer_test.pdf",
+      "originalPath": "D:\\Arka\\storage\\incoming\\1787563450683_webupload_1787563450680_vh9w_1c_BlackWhite_live_customer_test.pdf",
+      "printer": "HP Laser MFP 131 133 135-138",
+      "copies": 1,
+      "colorMode": "BlackWhite",
+      "status": "Completed",
+      "priority": 1,
+      "attempts": 1,
+      "createdAt": "2026-08-24T09:24:10.698Z",
+      "updatedAt": "2026-08-24T09:24:13.203Z"
+    },
+    "job_1787563516020_go90o": {
+      "id": "job_1787563516020_go90o",
+      "fileId": "doc_1787563516020",
+      "customerName": "Customer Print",
+      "fileName": "webupload_1787563516006_pptr_1c_Color_live_colour_test.pdf",
+      "processedPath": "D:\\Arka\\storage\\processed\\optimized_1787563516010_1787563516010_webupload_1787563516006_pptr_1c_Color_live_colour_test.pdf",
+      "originalPath": "D:\\Arka\\storage\\incoming\\1787563516010_webupload_1787563516006_pptr_1c_Color_live_colour_test.pdf",
+      "printer": "EPSON L3110 Series",
+      "copies": 1,
+      "colorMode": "Color",
+      "status": "Completed",
+      "priority": 1,
+      "attempts": 1,
+      "createdAt": "2026-08-24T09:25:16.020Z",
+      "updatedAt": "2026-08-24T09:25:18.661Z"
     }
   },
   "statistics": {
@@ -5608,9 +5698,9 @@
     },
     "2026-08-24": {
       "date": "2026-08-24",
-      "totalReceived": 10,
-      "totalProcessed": 10,
-      "totalPrinted": 7,
+      "totalReceived": 13,
+      "totalProcessed": 13,
+      "totalPrinted": 10,
       "totalFailed": 3
     }
   }
