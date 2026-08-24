@@ -4,6 +4,7 @@ export const SHOP_LAN_BASE = 'http://192.168.31.233:8082';
 export function getApiBase(): string {
   if (typeof window !== 'undefined') {
     const hostname = window.location.hostname || '';
+    const protocol = window.location.protocol || 'http:';
 
     // 1. Explicit query parameter ?tunnel=... or ?api=...
     try {
@@ -22,12 +23,7 @@ export function getApiBase(): string {
       }
     } catch {}
 
-    // 2. When accessing over Cloudflare tunnel or external tunnel, use current origin
-    if (hostname.includes('trycloudflare.com') || hostname.includes('loca.lt') || hostname.includes('tunnel')) {
-      return `${window.location.origin}/api/prints`;
-    }
-
-    // 3. When accessing on local LAN or localhost, use relative path or local port 8082
+    // 2. When accessing on local LAN or localhost, use relative path
     if (
       hostname === 'localhost' ||
       hostname === '127.0.0.1' ||
@@ -35,37 +31,26 @@ export function getApiBase(): string {
       hostname.startsWith('10.') ||
       hostname.startsWith('172.')
     ) {
-      if (window.location.port === '8082' || window.location.port === '80' || !window.location.port) {
-        return '/api/prints';
-      }
-      return `${window.location.protocol}//${hostname}:8082/api/prints`;
+      return '/api/prints';
+    }
+
+    // 3. When accessing over Cloudflare tunnel or external tunnel, use current origin
+    if (hostname.includes('trycloudflare.com') || hostname.includes('loca.lt') || hostname.includes('tunnel')) {
+      return `${window.location.origin}/api/prints`;
     }
 
     // 4. Saved active API or tunnel in localStorage
     try {
-      const customApi = window.localStorage?.getItem('arka_api_url');
-      if (customApi && customApi.trim() && !customApi.includes('political-abilities')) {
-        let trimmed = customApi.trim().replace(/\/+$/, '');
-        if (!trimmed.endsWith('/api/prints')) trimmed += '/api/prints';
-        return trimmed;
-      }
-
       const savedTunnel = window.localStorage?.getItem('arka_tunnel_url');
-      if (savedTunnel && savedTunnel.includes('trycloudflare.com') && !savedTunnel.includes('political-abilities')) {
+      if (savedTunnel && savedTunnel.includes('trycloudflare.com') && !savedTunnel.includes('political-abilities') && !savedTunnel.includes('glad-examines') && !savedTunnel.includes('condition-draws')) {
         let trimmed = savedTunnel.trim().replace(/\/+$/, '');
         if (!trimmed.endsWith('/api/prints')) trimmed += '/api/prints';
         return trimmed;
       }
     } catch {}
 
-    // 5. When accessing from Vercel or any other public domain, use active Cloudflare tunnel
-    if (hostname.includes('vercel.app') || !hostname.startsWith('192.168.')) {
-      return `${ACTIVE_PRODUCTION_TUNNEL}/api/prints`;
-    }
-
-    if (window.location.origin && window.location.origin !== 'null') {
-      return `${window.location.origin}/api/prints`;
-    }
+    // 5. When accessing from Vercel or public domain, use active Cloudflare tunnel
+    return `${ACTIVE_PRODUCTION_TUNNEL}/api/prints`;
   }
   return `${ACTIVE_PRODUCTION_TUNNEL}/api/prints`;
 }
@@ -164,34 +149,28 @@ export interface LogEntry {
 }
 
 export async function fetchWithFallback(endpointPath: string, options?: RequestInit): Promise<Response> {
+  const isHttps = typeof window !== 'undefined' && window.location.protocol === 'https:';
+  const isLocalHost = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+
   const primaryBase = getApiBase();
   const candidateBases: string[] = [
     primaryBase,
     `${ACTIVE_PRODUCTION_TUNNEL}/api/prints`,
-    'http://192.168.31.233:8082/api/prints',
-    'http://localhost:8082/api/prints',
-    'http://127.0.0.1:8082/api/prints',
     '/api/prints'
   ];
 
+  if (!isHttps || isLocalHost) {
+    candidateBases.push(
+      'http://192.168.31.233:8082/api/prints',
+      'http://localhost:8082/api/prints',
+      'http://127.0.0.1:8082/api/prints'
+    );
+  }
+
   if (typeof window !== 'undefined') {
-    const host = window.location.hostname || '';
     const origin = window.location.origin;
     if (origin && origin !== 'null') {
       candidateBases.push(`${origin}/api/prints`);
-    }
-
-    const savedTunnel = window.localStorage?.getItem('arka_tunnel_url');
-    if (savedTunnel && savedTunnel.includes('trycloudflare.com') && !savedTunnel.includes('political-abilities')) {
-      let trimmed = savedTunnel.trim().replace(/\/+$/, '');
-      if (!trimmed.endsWith('/api/prints')) trimmed += '/api/prints';
-      candidateBases.unshift(trimmed);
-    }
-    const savedApi = window.localStorage?.getItem('arka_api_url');
-    if (savedApi && !savedApi.includes('political-abilities')) {
-      let trimmed = savedApi.trim().replace(/\/+$/, '');
-      if (!trimmed.endsWith('/api/prints')) trimmed += '/api/prints';
-      candidateBases.unshift(trimmed);
     }
   }
 

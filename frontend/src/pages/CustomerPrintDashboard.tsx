@@ -162,6 +162,13 @@ export const CustomerPrintDashboard: React.FC = () => {
       setJobs(combined);
       setPrinters(printerData);
 
+      try {
+        const pStatus = await api.fetchPrinterStatus();
+        if (pStatus && typeof pStatus === 'object') {
+          setPrinterStatus(pStatus);
+        }
+      } catch (e) {}
+
       const activePrinters = printerData.filter(p => p.status === 'Ready');
       if (activePrinters.length > 0 && !activePrinterName) {
         setActivePrinterName(activePrinters[0].name);
