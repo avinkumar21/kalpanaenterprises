@@ -64,3 +64,18 @@ When adding features, modifying code, or extending services, adhere to these str
     taskkill /PID <PID_NUMBER> /F
     ```
   - Alternatively, edit `gravity_web_ui/vite.config.ts` to map Vite to a different development port.
+
+---
+
+## 4. Build Verification & Repository Sync Skill
+
+### Automated Post-Update Workflow
+Always execute after modifying or extending features in the codebase to guarantee zero build errors and push up to date code:
+
+1. **Skill Definition**: [`.agents/skills/build-and-sync/SKILL.md`](file:///d:/Arka/.agents/skills/build-and-sync/SKILL.md)
+2. **One-Click Automation**: Run [`.agents/skills/build-and-sync/scripts/build_and_push.bat`](file:///d:/Arka/.agents/skills/build-and-sync/scripts/build_and_push.bat)
+3. **Manual Execution Steps**:
+   - `cd frontend && cmd /c "npm run build"`
+   - `node -e "require('./backend/src/routes/print.routes.js'); require('./services/print/drivers/printer_manager.js');"`
+   - `git add . && git commit -m "<descriptive message>" && git push origin main`
+

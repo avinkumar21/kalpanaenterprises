@@ -26,6 +26,7 @@ export const CustomerPrintDashboard: React.FC = () => {
   const [brightness, setBrightness] = useState(1.0);
   const [contrast, setContrast] = useState(1.0);
   const [copies, setCopies] = useState(1);
+  const [activeColorMode, setActiveColorMode] = useState<'Color' | 'BlackWhite'>('BlackWhite');
   const [activePrinterName, setActivePrinterName] = useState(EPSON_NAME);
   const [applying, setApplying] = useState(false);
   const [printSuccessMsg, setPrintSuccessMsg] = useState<string | null>(null);
@@ -187,6 +188,12 @@ export const CustomerPrintDashboard: React.FC = () => {
   const selectJob = (job: QueueJob) => {
     selectedIdRef.current = job.fileId || job.id;
     setSelectedJob(job);
+    const isCol = Boolean(
+      job.colorMode === 'Color' || 
+      job.colorMode === 'Colour' || 
+      (job.fileName && (job.fileName.toLowerCase().includes('_color_') || job.fileName.toLowerCase().includes('_colour_')))
+    );
+    setActiveColorMode(isCol ? 'Color' : 'BlackWhite');
     setRotate(0);
     setBrightness(1.0);
     setContrast(1.0);
@@ -253,8 +260,8 @@ export const CustomerPrintDashboard: React.FC = () => {
       if (rotate !== 0 || brightness !== 1.0 || contrast !== 1.0) {
         await api.overrideImage(selectedJob.id, { rotate, brightness, contrast });
       }
-      await api.manualPrint(selectedJob.id, targetPrinter, copies);
-      setPrintSuccessMsg(`✅ SUCCESS: Spooled [${selectedJob.fileName}] straight to [${targetPrinter}] (${copies} copy) without dialogs!`);
+      await api.manualPrint(selectedJob.id, targetPrinter, copies, activeColorMode);
+      setPrintSuccessMsg(`✅ SUCCESS: Spooled [${selectedJob.fileName}] straight to [${targetPrinter}] (${copies}x, Mode: ${activeColorMode === 'Color' ? '🌈 Colour' : '⚫⚪ B&W'}) without dialogs!`);
       setTimeout(() => setPrintSuccessMsg(null), 6000);
       loadData();
     } catch (e: any) {
@@ -627,10 +634,24 @@ export const CustomerPrintDashboard: React.FC = () => {
                       </button>
                     </div>
 
-                    <div className="flex items-center justify-between text-xs font-extrabold text-slate-700">
-                      <span className="px-2 py-0.5 rounded uppercase border border-slate-400 font-extrabold" style={{ backgroundColor: '#f1f5f9', color: '#000000' }}>
-                        Status: {job.status}
-                      </span>
+                    <div className="flex items-center justify-between text-xs font-extrabold text-slate-700 mt-1">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="px-2 py-0.5 rounded uppercase border border-slate-400 font-extrabold text-[11px]" style={{ backgroundColor: '#f1f5f9', color: '#000000' }}>
+                          {job.status}
+                        </span>
+                        {(() => {
+                          const isCol = job.colorMode === 'Color' || (job.fileName && (job.fileName.toLowerCase().includes('_color_') || job.fileName.toLowerCase().includes('_colour_')));
+                          return (
+                            <span className={`px-2 py-0.5 rounded text-[11px] font-black uppercase border ${
+                              isCol 
+                                ? 'bg-emerald-100 text-emerald-900 border-emerald-500 shadow-sm' 
+                                : 'bg-slate-100 text-slate-800 border-slate-300'
+                            }`}>
+                              {isCol ? '🌈 Colour' : '⚫⚪ B&W'}
+                            </span>
+                          );
+                        })()}
+                      </div>
                       <span className="font-black text-indigo-700 text-sm">{job.copies}x Copy</span>
                     </div>
                   </div>
@@ -661,7 +682,35 @@ export const CustomerPrintDashboard: React.FC = () => {
                     <p className="text-xs font-black text-slate-700">Live 300 DPI image rendering ready for physical hardware tray</p>
                   </div>
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {/* Operator Active Print Mode Selector */}
+                    <div className="flex items-center gap-1 p-1 bg-slate-900 rounded-xl border border-slate-700 shadow-md">
+                      <button
+                        type="button"
+                        onClick={() => setActiveColorMode('BlackWhite')}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-black uppercase transition cursor-pointer flex items-center gap-1 ${
+                          activeColorMode === 'BlackWhite'
+                            ? 'bg-blue-600 text-white shadow'
+                            : 'text-slate-400 hover:text-white'
+                        }`}
+                        title="Force Black & White print mode"
+                      >
+                        <span>⚫⚪ B&W</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setActiveColorMode('Color')}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-black uppercase transition cursor-pointer flex items-center gap-1 ${
+                          activeColorMode === 'Color'
+                            ? 'bg-emerald-600 text-white shadow'
+                            : 'text-slate-400 hover:text-white'
+                        }`}
+                        title="Enable Full Colour print mode"
+                      >
+                        <span>🌈 Colour</span>
+                      </button>
+                    </div>
+
                     <button
                       onClick={() => handleApplyAdjustments({ reset: true })}
                       style={{ backgroundColor: '#475569', color: '#ffffff' }}
@@ -669,7 +718,7 @@ export const CustomerPrintDashboard: React.FC = () => {
                       title="Revert back to original uncropped clean photo"
                     >
                       <RefreshCw className="w-3.5 h-3.5" />
-                      <span>Reset Image</span>
+                      <span>Reset</span>
                     </button>
 
                     <button
@@ -678,7 +727,7 @@ export const CustomerPrintDashboard: React.FC = () => {
                       className="px-4 py-2 rounded-xl hover:bg-red-800 text-white font-black text-xs uppercase tracking-wider transition flex items-center gap-2 shadow-md border border-red-900 cursor-pointer"
                     >
                       <Trash2 className="w-4 h-4" />
-                      <span>Delete File</span>
+                      <span>Delete</span>
                     </button>
                   </div>
                 </div>
@@ -699,9 +748,14 @@ export const CustomerPrintDashboard: React.FC = () => {
                                 ⚡ NATIVE PDF VECTOR ENGINE ACTIVE
                               </span>
                               <span className="text-xs font-extrabold text-cyan-300 font-mono">100% Original Vector Scale</span>
+                              <span className={`text-xs font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider border ${
+                                activeColorMode === 'Color' ? 'bg-amber-400 text-slate-950 border-amber-200 font-black' : 'bg-blue-600 text-white border-blue-400'
+                              }`}>
+                                {activeColorMode === 'Color' ? '🌈 Colour Mode' : '⚫⚪ B&W Mode'}
+                              </span>
                             </div>
                             <p className="text-xs md:text-sm font-bold text-slate-300 mt-1">
-                              Image photo filters and manual crop boundaries are automatically bypassed for PDFs to maintain pristine full-page resolution.
+                              Pristine vector document ready. Set copies and click target printer below.
                             </p>
                           </div>
                         </div>
@@ -1051,28 +1105,58 @@ export const CustomerPrintDashboard: React.FC = () => {
               {/* DIRECT HARDWARE PRINT STATION (One click prints immediately without dialogs) */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2 w-full">
 
+                {/* HP Laser MFP Button */}
                 <button
                   onClick={() => handleInstantPrint(HP_NAME)}
                   disabled={applying}
-                  style={printerStatus[HP_NAME] === 'Online'
-                    ? { backgroundColor: '#15803d', color: '#ffffff', border: '3px solid #22c55e', boxShadow: '0 0 20px rgba(34, 197, 94, 0.4)' }
-                    : { backgroundColor: '#1d4ed8', color: '#ffffff', border: '3px solid #1e3a8a' }}
-                  className="w-full py-4 px-5 rounded-2xl hover:opacity-95 font-black text-sm md:text-base uppercase tracking-wider shadow-2xl transform active:scale-95 transition flex items-center justify-center gap-3 cursor-pointer"
+                  style={activeColorMode === 'BlackWhite' && printerStatus[HP_NAME] === 'Online'
+                    ? { backgroundColor: '#15803d', color: '#ffffff', border: '3px solid #22c55e', boxShadow: '0 0 22px rgba(34, 197, 94, 0.45)' }
+                    : printerStatus[HP_NAME] === 'Online'
+                    ? { backgroundColor: '#1e3a8a', color: '#ffffff', border: '2px solid #3b82f6' }
+                    : { backgroundColor: '#334155', color: '#94a3b8', border: '2px solid #475569' }}
+                  className="w-full py-4 px-5 rounded-2xl hover:opacity-95 font-black text-sm md:text-base uppercase tracking-wider shadow-2xl transform active:scale-95 transition flex flex-col items-center justify-center gap-1.5 cursor-pointer text-center"
                 >
-                  <Wifi className="w-7 h-7 text-amber-300 animate-pulse flex-shrink-0" />
-                  <span className="drop-shadow">{applying ? 'Spooling...' : `🖨️ HP LASER ನಲ್ಲಿ ಪ್ರಿಂಟ್ ಮಾಡಿ (${copies}x) ${printerStatus[HP_NAME] === 'Online' ? '🟢 ONLINE WI-FI' : ''}`}</span>
+                  <div className="flex items-center gap-2">
+                    <Printer className="w-6 h-6 text-amber-300 flex-shrink-0" />
+                    <span className="drop-shadow">{applying ? 'Spooling...' : `🖨️ HP LASER ನಲ್ಲಿ ಪ್ರಿಂಟ್ ಮಾಡಿ (${copies}x)`}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs font-extrabold">
+                    <span className="text-emerald-300">
+                      {printerStatus[HP_NAME] === 'Online' ? '🟢 ONLINE (READY)' : '🔴 OFFLINE'}
+                    </span>
+                    {activeColorMode === 'BlackWhite' && (
+                      <span className="bg-amber-400 text-slate-950 px-2 py-0.2 rounded font-black text-[10px]">
+                        ★ RECOMMENDED (FAST B&W)
+                      </span>
+                    )}
+                  </div>
                 </button>
 
+                {/* EPSON Color InkTank Button */}
                 <button
                   onClick={() => handleInstantPrint(EPSON_NAME)}
                   disabled={applying}
-                  style={printerStatus[EPSON_NAME] === 'Online'
-                    ? { backgroundColor: '#15803d', color: '#ffffff', border: '3px solid #166534' }
-                    : { backgroundColor: '#475569', color: '#cbd5e1', border: '2px solid #64748b' }}
-                  className="w-full py-4 px-5 rounded-2xl hover:opacity-95 font-black text-sm md:text-base uppercase tracking-wider shadow-2xl transform active:scale-95 transition flex items-center justify-center gap-3 cursor-pointer"
+                  style={activeColorMode === 'Color' && printerStatus[EPSON_NAME] === 'Online'
+                    ? { backgroundColor: '#047857', color: '#ffffff', border: '3px solid #34d399', boxShadow: '0 0 24px rgba(52, 211, 153, 0.5)' }
+                    : printerStatus[EPSON_NAME] === 'Online'
+                    ? { backgroundColor: '#15803d', color: '#ffffff', border: '2px solid #22c55e' }
+                    : { backgroundColor: '#334155', color: '#94a3b8', border: '2px solid #475569' }}
+                  className="w-full py-4 px-5 rounded-2xl hover:opacity-95 font-black text-sm md:text-base uppercase tracking-wider shadow-2xl transform active:scale-95 transition flex flex-col items-center justify-center gap-1.5 cursor-pointer text-center"
                 >
-                  <Printer className="w-7 h-7 text-amber-300 flex-shrink-0" />
-                  <span className="drop-shadow">{applying ? 'Spooling...' : `🌈 EPSON ನಲ್ಲಿ ಪ್ರಿಂಟ್ ಮಾಡಿ (${copies}x) ${printerStatus[EPSON_NAME] === 'Online' ? '🟢 ONLINE' : '🔴 OFFLINE'}`}</span>
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="w-6 h-6 text-amber-300 animate-pulse flex-shrink-0" />
+                    <span className="drop-shadow">{applying ? 'Spooling...' : `🌈 EPSON COLOR ನಲ್ಲಿ ಪ್ರಿಂಟ್ ಮಾಡಿ (${copies}x)`}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs font-extrabold">
+                    <span className="text-emerald-300">
+                      {printerStatus[EPSON_NAME] === 'Online' ? '🟢 ONLINE (READY)' : '🔴 OFFLINE'}
+                    </span>
+                    {activeColorMode === 'Color' && (
+                      <span className="bg-amber-400 text-slate-950 px-2 py-0.2 rounded font-black text-[10px]">
+                        ★ RECOMMENDED (COLOUR)
+                      </span>
+                    )}
+                  </div>
                 </button>
 
               </div>

@@ -172,14 +172,16 @@ const FolderWatcher = {
 
             // Step 3: Queue or await Operator override in Customer Print Dashboard
             const isAutoPrint = settings.enableAutoPrint !== false;
+            const targetPrinter = isExplicitColor ? 'EPSON L3110 Series' : (settings.defaultPrinter || 'HP508140DE1D63(HP Laser MFP 131 133 135-138)');
             await PrintQueue.addJob({
                 fileId: `doc_${Date.now()}`,
                 customerName: 'WhatsApp Customer',
                 fileName: fileName,
                 processedPath: processRes.outputPath,
                 originalPath: stagedPath,
-                printer: settings.defaultPrinter || 'EPSON L3110 Series',
+                printer: targetPrinter,
                 copies: Number(settings.copies) || 1,
+                colorMode: colorMode,
                 priority: 1,
                 autoStart: isAutoPrint
             });

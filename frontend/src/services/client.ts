@@ -120,6 +120,7 @@ export interface QueueJob {
   originalPath?: string;
   printer?: string;
   copies?: number;
+  colorMode?: 'Color' | 'BlackWhite' | string;
   status?: 'Pending' | 'Processing' | 'Printing' | 'Completed' | 'Failed' | 'Cancelled' | 'Retry' | string;
   priority?: number;
   attempts?: number;
@@ -135,6 +136,7 @@ export interface HistoryItem {
   processedPath: string;
   pages: number;
   printerName: string;
+  colorMode?: 'Color' | 'BlackWhite' | string;
   printTime: string;
   status: string;
   copies: number;
@@ -369,11 +371,11 @@ class PrintsApi {
     return await res.json();
   }
 
-  async manualPrint(jobId: string, printer?: string, copies?: number): Promise<any> {
+  async manualPrint(jobId: string, printer?: string, copies?: number, colorMode?: string): Promise<any> {
     const res = await fetchWithFallback('/print', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ jobId, printer, copies })
+      body: JSON.stringify({ jobId, printer, copies, colorMode })
     });
     return await res.json();
   }

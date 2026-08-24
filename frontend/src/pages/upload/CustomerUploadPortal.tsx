@@ -14,7 +14,7 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
 
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [copies, setCopies] = useState<number>(1);
-  const [colorMode] = useState<'Color' | 'Black & White'>('Black & White');
+  const [colorMode, setColorMode] = useState<'Color' | 'Black & White'>('Black & White');
   
   const [uploading, setUploading] = useState(false);
   const [successData, setSuccessData] = useState<{ filename: string; fileCount?: number; filenames?: string[]; copies: number; colorMode: string; timestamp: string } | null>(null);
@@ -474,12 +474,13 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
       if (printMode === 'id_merge' && frontCardFile && backCardFile) {
         const optFront = await prepareFileForUpload(frontCardFile);
         const optBack = await prepareFileForUpload(backCardFile);
+        const isColorId = colorMode === 'Color';
         result = await api.mergeAndUploadIdCard(
           optFront,
           optBack,
           idOrientation,
           copies,
-          'BlackWhite'
+          isColorId ? 'Color' : 'BlackWhite'
         );
         displayFilename = `2-Sided ID Card (${idOrientation === 'vertical' ? 'Top & Bottom' : 'Side by Side'})`;
         
@@ -489,7 +490,7 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
             fileCount: 1,
             filenames: [result.filename || displayFilename],
             copies,
-            colorMode: `Black & White (2-Sided ID Card onto 1 Sheet)`,
+            colorMode: isColorId ? '🌈 Full Colour (2-Sided ID Card)' : '⚫⚪ Black & White (2-Sided ID Card)',
             timestamp: new Date().toLocaleTimeString()
           });
           setFrontCardFile(null);
@@ -504,7 +505,8 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
         }
       } else if (selectedFiles.length > 0) {
         const optimizedFiles = await Promise.all(selectedFiles.map(f => prepareFileForUpload(f)));
-        result = await api.uploadDocument(optimizedFiles, copies, colorMode);
+        const isColor = colorMode === 'Color';
+        result = await api.uploadDocument(optimizedFiles, copies, isColor ? 'Color' : 'BlackWhite');
         
         if (result && result.success) {
           setSuccessData({
@@ -512,7 +514,7 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
             fileCount: selectedFiles.length,
             filenames: selectedFiles.map(f => f.name),
             copies,
-            colorMode: colorMode,
+            colorMode: isColor ? '🌈 Full Colour Printout' : '⚫⚪ Black & White Standard',
             timestamp: new Date().toLocaleTimeString()
           });
           setSelectedFiles([]);
@@ -1766,26 +1768,81 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
               <span className="text-[11px] text-slate-400 block font-bold">ಗರಿಷ್ಠ 50 ಪ್ರತಿಗಳು • Up to 50 copies per single submission.</span>
             </div>
 
-            {/* PRINT MODE (LOCKED TO BLACK & WHITE STANDARD) */}
-            <div className="p-4 rounded-2xl bg-slate-900/90 border border-slate-700 space-y-2">
-              <label className="text-xs font-black uppercase tracking-wider text-cyan-300 flex items-center gap-2">
-                <FileText className="w-4 h-4 text-cyan-400" />
-                <span>ಪ್ರಿಂಟ್ ಮೋಡ್ • Print Mode</span>
-              </label>
-              
-              <div className="p-3.5 rounded-xl bg-slate-800 border-2 border-slate-600 flex items-center justify-between">
-                <div className="flex items-center gap-2.5">
-                  <span className="text-xl">⚫⚪</span>
-                  <div>
-                    <span className="text-xs font-black text-white block uppercase">ಕಪ್ಪು ಮತ್ತು ಬಿಳಿ ಪ್ರಿಂಟ್ • Black & White Standard</span>
-                    <span className="text-[10px] font-bold text-slate-300">Fast & High-Quality Monochrome Output</span>
-                  </div>
-                </div>
-                <span className="text-[10px] font-black px-2.5 py-1 rounded-md bg-blue-500/20 text-blue-300 border border-blue-400/40 uppercase">
-                  B&W Only (ಕಪ್ಪು-ಬಿಳಿ)
+            {/* PRINT MODE (INTERACTIVE COLOR VS BLACK & WHITE SELECTOR) */}
+            <div className="p-4 rounded-2xl bg-slate-900/90 border border-slate-700 space-y-3">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-black uppercase tracking-wider text-cyan-300 flex items-center gap-2">
+                  <Palette className="w-4 h-4 text-cyan-400" />
+                  <span>ಪ್ರಿಂಟ್ ಮೋಡ್ ಆಯ್ಕೆಮಾಡಿ • Select Print Mode</span>
+                </label>
+                <span className={`text-[11px] font-black px-3 py-0.5 rounded-full uppercase tracking-wider border shadow ${
+                  colorMode === 'Color'
+                    ? 'bg-amber-400/20 text-amber-300 border-amber-400/60'
+                    : 'bg-blue-500/20 text-blue-300 border-blue-400/60'
+                }`}>
+                  {colorMode === 'Color' ? '🌈 Colour Selected' : '⚫⚪ B&W Selected'}
                 </span>
               </div>
-              <span className="text-[11px] text-slate-400 block font-bold">ಎಲ್ಲಾ ಗ್ರಾಹಕರ ಡಾಕ್ಯುಮೆಂಟ್‌ಗಳು ಕಪ್ಪು-ಬಿಳಿ ಮೋಡ್‌ನಲ್ಲಿ ಸ್ಪಷ್ಟವಾಗಿ ಮುದ್ರಿಸಲ್ಪಡುತ್ತವೆ.</span>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                {/* Option 1: Black & White */}
+                <button
+                  type="button"
+                  onClick={() => setColorMode('Black & White')}
+                  style={colorMode === 'Black & White'
+                    ? { backgroundColor: '#1e293b', border: '3px solid #60a5fa', boxShadow: '0 0 16px rgba(96, 165, 250, 0.4)' }
+                    : { backgroundColor: '#0f172a', border: '1px solid #334155' }
+                  }
+                  className="p-3.5 rounded-xl text-left transition cursor-pointer flex items-center justify-between group hover:border-blue-400"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <span className="text-2xl">⚫⚪</span>
+                    <div>
+                      <span className="text-xs font-black text-white block uppercase">ಕಪ್ಪು-ಬಿಳಿ (B&W)</span>
+                      <span className="text-[10px] font-bold text-slate-300">Fast Laser Print</span>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-xs font-black text-cyan-300 font-mono">₹2 / pg</span>
+                    {colorMode === 'Black & White' && (
+                      <span className="block text-[10px] text-emerald-400 font-extrabold">✓ Active</span>
+                    )}
+                  </div>
+                </button>
+
+                {/* Option 2: Full Colour */}
+                <button
+                  type="button"
+                  onClick={() => setColorMode('Color')}
+                  style={colorMode === 'Color'
+                    ? { backgroundColor: '#064e3b', border: '3px solid #34d399', boxShadow: '0 0 18px rgba(52, 211, 153, 0.45)' }
+                    : { backgroundColor: '#0f172a', border: '1px solid #334155' }
+                  }
+                  className="p-3.5 rounded-xl text-left transition cursor-pointer flex items-center justify-between group hover:border-emerald-400"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <span className="text-2xl animate-pulse">🌈</span>
+                    <div>
+                      <span className="text-xs font-black text-white block uppercase">ಬಣ್ಣದ ಪ್ರಿಂಟ್ (Colour)</span>
+                      <span className="text-[10px] font-bold text-emerald-300">Vivid InkTank Photo</span>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-xs font-black text-amber-300 font-mono">₹10 / pg</span>
+                    {colorMode === 'Color' && (
+                      <span className="block text-[10px] text-emerald-300 font-extrabold">✓ Active</span>
+                    )}
+                  </div>
+                </button>
+              </div>
+
+              <p className="text-[11px] text-slate-300 font-extrabold flex items-center gap-1.5 pt-0.5">
+                {colorMode === 'Color' ? (
+                  <span>✨ <strong className="text-emerald-300">ಬಣ್ಣದ ಪ್ರಿಂಟ್:</strong> ನಿಮ್ಮ ಫೋಟೋಗಳು & ಡಾಕ್ಯುಮೆಂಟ್‌ಗಳು Epson ಕಲರ್ ಇಂಕ್‌ಟ್ಯಾಂಕ್ ಪ್ರಿಂಟರ್‌ನಲ್ಲಿ ಮುದ್ರಿಸಲ್ಪಡುತ್ತವೆ.</span>
+                ) : (
+                  <span>⚡ <strong className="text-cyan-300">ಕಪ್ಪು-ಬಿಳಿ ಪ್ರಿಂಟ್:</strong> ಹೈ-ಸ್ಪೀಡ್ ಲೇಸರ್ ಪ್ರಿಂಟರ್‌ನಲ್ಲಿ ಸ್ಪಷ್ಟವಾಗಿ ಮುದ್ರಿಸಲ್ಪಡುತ್ತವೆ.</span>
+                )}
+              </p>
             </div>
 
           </div>

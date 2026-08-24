@@ -202,25 +202,31 @@ router.post('/reprint', async (req, res) => {
 
 // POST /api/prints/print (Manual Override / Custom job dispatch)
 router.post('/print', async (req, res) => {
-    const { jobId, printer, copies = 1, autoStart = true } = req.body;
+    const { jobId, printer, copies = 1, colorMode, autoStart = true } = req.body;
     const queue = db.getQueue();
     const history = db.getHistory(500);
     let item = queue.find(j => j.id === jobId || j.fileId === jobId || j.fileName === jobId);
     
+    const resolvedColorMode = colorMode ? (String(colorMode).toLowerCase().includes('color') ? 'Color' : 'BlackWhite') : undefined;
+
     if (!item) {
         const histItem = history.find(h => h.id === jobId || h.fileId === jobId || h.customerFile === jobId);
         if (histItem && (fs.existsSync(histItem.processedPath) || fs.existsSync(histItem.originalPath))) {
+            const jobColor = resolvedColorMode || histItem.colorMode || (histItem.customerFile && (histItem.customerFile.toLowerCase().includes('_color_') || histItem.customerFile.toLowerCase().includes('_colour_')) ? 'Color' : 'BlackWhite');
+            const targetPrinter = printer || (jobColor === 'Color' ? 'EPSON L3110 Series' : (histItem.printerName || db.getSettings().defaultPrinter));
+            
             const job = await PrintQueue.addJob({
                 fileId: histItem.fileId || histItem.id,
                 customerName: 'Manual Print Override',
                 fileName: histItem.customerFile,
                 processedPath: histItem.processedPath,
                 originalPath: histItem.originalPath,
-                printer: printer || histItem.printerName || db.getSettings().defaultPrinter,
+                printer: targetPrinter,
                 copies: Number(copies) || 1,
+                colorMode: jobColor,
                 priority: 20
             });
-            Logger.info('API', `Direct hardware print dispatched for ${histItem.customerFile} onto [${printer || histItem.printerName}]`);
+            Logger.info('API', `Direct hardware print dispatched for ${histItem.customerFile} onto [${targetPrinter}] (${jobColor})`);
             if (autoStart) setTimeout(() => PrintQueue.processNext(), 50);
             return res.json({ success: true, job });
         }
@@ -229,10 +235,11 @@ router.post('/print', async (req, res) => {
 
     if (printer) item.printer = printer;
     if (copies) item.copies = Number(copies);
+    if (resolvedColorMode) item.colorMode = resolvedColorMode;
     item.status = 'Pending';
     item.priority = 20;
     db.addQueueItem(item);
-    Logger.info('API', `Direct hardware print updated in queue for ${item.fileName} onto [${printer}]`);
+    Logger.info('API', `Direct hardware print updated in queue for ${item.fileName} onto [${item.printer}] (${item.colorMode || 'B&W'})`);
     if (autoStart) setTimeout(() => PrintQueue.processNext(), 50);
     res.json({ success: true, job: item });
 });
@@ -617,7 +624,8 @@ router.post('/upload-document', (req, res) => {
             }
 
             const copies = Math.min(Math.max(Number(req.body.copies) || 1, 1), 50);
-            const colorMode = (req.body.colorMode || 'BlackWhite').replace(/[^a-zA-Z]/g, '') || 'BlackWhite';
+            const rawColor = String(req.body.colorMode || '').toLowerCase();
+            const colorMode = (rawColor.includes('color') || rawColor.includes('colour')) ? 'Color' : 'BlackWhite';
 
             // Retrieve system target folder (D:\WhatsApp or custom setting)
             const settings = db.getSettings();

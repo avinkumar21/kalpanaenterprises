@@ -13,6 +13,19 @@
       "status": "Failed",
       "copies": 1,
       "retryCount": 4
+    },
+    "hist_1787548482088_ffx3": {
+      "id": "hist_1787548482088_ffx3",
+      "fileId": "doc_1787548478502",
+      "customerFile": "webupload_1787548478485_6926_1c_Color_sample_color_passport.png",
+      "originalPath": "D:\\Arka\\storage\\incoming\\1787548478488_webupload_1787548478485_6926_1c_Color_sample_color_passport.png",
+      "processedPath": "D:\\Arka\\storage\\processed\\copy_1787548478490_1787548478488_webupload_1787548478485_6926_1c_Color_sample_color_passport.png",
+      "pages": 1,
+      "printerName": "EPSON L3110 Series",
+      "printTime": "2026-08-24T05:14:42.088Z",
+      "status": "Failed",
+      "copies": 1,
+      "retryCount": 4
     }
   },
   "printers": {
@@ -53,12 +66,12 @@
       "id": "hp508140de1d63_hp_laser_mfp_131_133_135_138_",
       "name": "HP508140DE1D63(HP Laser MFP 131 133 135-138)",
       "driverName": "HP Laser MFP 131 133 135-138",
-      "status": "Offline",
+      "status": "Ready",
       "isDefault": false,
       "isPrimary": false,
       "isSecondary": true,
       "isFallback": false,
-      "lastChecked": "2026-08-17T11:07:09.643Z"
+      "lastChecked": "2026-08-24T05:14:09.175Z"
     },
     "generic___text_only": {
       "id": "generic___text_only",
@@ -91,7 +104,7 @@
       "isPrimary": true,
       "isSecondary": false,
       "isFallback": false,
-      "lastChecked": "2026-08-17T11:07:09.643Z"
+      "lastChecked": "2026-08-24T05:14:09.175Z"
     }
   },
   "settings": {
@@ -115,7 +128,7 @@
     "pollingIntervalMs": 2000,
     "port": 8082,
     "adminPasswordHash": "admin",
-    "publicTunnelUrl": "https://maiden-heat-television-evaluations.trycloudflare.com"
+    "publicTunnelUrl": "https://pack-racks-rising-faced.trycloudflare.com"
   },
   "logs": [
     {
@@ -5518,6 +5531,22 @@
       "attempts": 4,
       "createdAt": "2026-08-17T10:56:09.806Z",
       "updatedAt": "2026-08-17T10:56:15.739Z"
+    },
+    "job_1787548478502_s19ss": {
+      "id": "job_1787548478502_s19ss",
+      "fileId": "doc_1787548478502",
+      "customerName": "WhatsApp Customer",
+      "fileName": "webupload_1787548478485_6926_1c_Color_sample_color_passport.png",
+      "processedPath": "D:\\Arka\\storage\\processed\\copy_1787548478490_1787548478488_webupload_1787548478485_6926_1c_Color_sample_color_passport.png",
+      "originalPath": "D:\\Arka\\storage\\incoming\\1787548478488_webupload_1787548478485_6926_1c_Color_sample_color_passport.png",
+      "printer": "EPSON L3110 Series",
+      "copies": 1,
+      "colorMode": "Color",
+      "status": "Failed",
+      "priority": 1,
+      "attempts": 4,
+      "createdAt": "2026-08-24T05:14:38.502Z",
+      "updatedAt": "2026-08-24T05:14:42.085Z"
     }
   },
   "statistics": {
@@ -5558,6 +5587,13 @@
     },
     "2026-08-17": {
       "date": "2026-08-17",
+      "totalReceived": 1,
+      "totalProcessed": 1,
+      "totalPrinted": 0,
+      "totalFailed": 1
+    },
+    "2026-08-24": {
+      "date": "2026-08-24",
       "totalReceived": 1,
       "totalProcessed": 1,
       "totalPrinted": 0,

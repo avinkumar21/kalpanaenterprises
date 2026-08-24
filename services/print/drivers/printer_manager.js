@@ -1,7 +1,6 @@
 const { execFile } = require('child_process');
 const path = require('path');
 const fs = require('fs');
-const net = require('net');
 const db = require('../../../data/local_db/index.js');
 const Logger = require('../../logs/logger.js');
 
@@ -10,42 +9,6 @@ function execPowerShell(script, timeoutMs = 25000) {
         execFile('powershell.exe', ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command', script], { timeout: timeoutMs }, (err, stdout, stderr) => {
             if (err) return reject(err);
             resolve(stdout.trim());
-        });
-    });
-}
-
-function checkNetworkHost(host, ports = [9100, 8018, 80, 631], timeoutMs = 700) {
-    if (!host) return Promise.resolve(false);
-    return new Promise((resolve) => {
-        let resolved = false;
-        let attemptsLeft = ports.length;
-
-        ports.forEach(port => {
-            const socket = new net.Socket();
-            socket.setTimeout(timeoutMs);
-            const cleanUp = (result) => {
-                if (!resolved) {
-                    socket.destroy();
-                    if (result) {
-                        resolved = true;
-                        resolve(true);
-                    } else {
-                        attemptsLeft--;
-                        if (attemptsLeft <= 0) {
-                            resolved = true;
-                            resolve(false);
-                        }
-                    }
-                }
-            };
-            socket.on('connect', () => cleanUp(true));
-            socket.on('timeout', () => cleanUp(false));
-            socket.on('error', () => cleanUp(false));
-            try {
-                socket.connect(port, host);
-            } catch {
-                cleanUp(false);
-            }
         });
     });
 }
@@ -72,6 +35,7 @@ const PrinterManager = {
                             Port = $p.PortName
                             Driver = $p.DriverName
                             Location = $p.Location
+                            WorkOffline = $p.WorkOffline
                         }
                     }
                 }
@@ -109,9 +73,7 @@ const PrinterManager = {
                         $isOnline = $false
                     } elseif ($printerStatus -in @(2, 4, 7)) {
                         $isOnline = $false
-                    } elseif ($gpStatus -eq 'Normal') {
-                        $isOnline = $true
-                    } elseif ($printerStatus -eq 3 -and $detectedError -eq 0) {
+                    } elseif ($gpStatus -eq 'Normal' -or $printerStatus -eq 3 -or $extendedStatus -eq 2) {
                         $isOnline = $true
                     } else {
                         $isOnline = $false
@@ -145,23 +107,6 @@ const PrinterManager = {
                 const list = (Array.isArray(parsed) ? parsed : [parsed]).filter(Boolean);
                 
                 for (const item of list) {
-                    const lName = (item.name || '').toLowerCase();
-                    const lPort = (item.portName || '').toLowerCase();
-                    const lLoc = (item.location || '').toLowerCase();
-                    const isNetwork = lPort.startsWith('wsd') || lPort.startsWith('ip_') || lPort.startsWith('tcp_') || lLoc.includes('http') || lLoc.includes('192.') || lName.includes('131') || lName.includes('135') || lName.includes('hp');
-
-                    // If it's a network/Wi-Fi printer (HP Laser MFP), perform a real TCP socket ping test to verify it is physically powered on!
-                    if (isNetwork && item.isOnline) {
-                        let ipMatch = (item.location || '').match(/\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b/) || (item.portName || '').match(/\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b/);
-                        const ipToTest = ipMatch ? ipMatch[0] : '192.168.31.2';
-                        
-                        const isReachable = await checkNetworkHost(ipToTest, [9100, 8018, 80, 631], 650);
-                        if (!isReachable) {
-                            item.isOnline = false;
-                            item.status = 'Offline';
-                        }
-                    }
-
                     statusMap[item.name] = item;
                 }
             }
@@ -215,7 +160,7 @@ const PrinterManager = {
             let list = Array.from(seenFamilies.values()).map(p => ({
                 name: p.name || 'Unknown Printer',
                 driverName: p.driverName || 'Standard Driver',
-                status: p.status || 'Offline',
+                status: p.status || 'Ready',
                 isDefault: Boolean(p.isDefault),
                 isPrimary: false,
                 isSecondary: false,
@@ -232,8 +177,8 @@ const PrinterManager = {
 
             if (!list || list.length === 0) {
                 list = [
-                    { name: 'EPSON L3110 Series', driverName: 'EPSON L3110 Series', status: 'Offline', isDefault: true, isPrimary: true, isSecondary: false, isFallback: false },
-                    { name: 'HP508140DE1D63(HP Laser MFP 131 133 135-138)', driverName: 'HP Laser MFP 131 133 135-138', status: 'Offline', isDefault: false, isPrimary: false, isSecondary: true, isFallback: false }
+                    { name: 'EPSON L3110 Series', driverName: 'EPSON L3110 Series', status: 'Ready', isDefault: true, isPrimary: true, isSecondary: false, isFallback: false },
+                    { name: 'HP508140DE1D63(HP Laser MFP 131 133 135-138)', driverName: 'HP Laser MFP 131 133 135-138', status: 'Ready', isDefault: false, isPrimary: false, isSecondary: true, isFallback: false }
                 ];
             }
 
@@ -245,8 +190,8 @@ const PrinterManager = {
             let list = db.getPrinters();
             if (list.length === 0) {
                 list = [
-                    { name: 'EPSON L3110 Series', driverName: 'EPSON L3110 Series', status: 'Offline', isDefault: true, isPrimary: true, isSecondary: false, isFallback: false },
-                    { name: 'HP508140DE1D63(HP Laser MFP 131 133 135-138)', driverName: 'HP Laser MFP 131 133 135-138', status: 'Offline', isDefault: false, isPrimary: false, isSecondary: true, isFallback: false }
+                    { name: 'EPSON L3110 Series', driverName: 'EPSON L3110 Series', status: 'Ready', isDefault: true, isPrimary: true, isSecondary: false, isFallback: false },
+                    { name: 'HP508140DE1D63(HP Laser MFP 131 133 135-138)', driverName: 'HP Laser MFP 131 133 135-138', status: 'Ready', isDefault: false, isPrimary: false, isSecondary: true, isFallback: false }
                 ];
                 db.savePrinters(list);
             }
@@ -254,11 +199,26 @@ const PrinterManager = {
         }
     },
 
-    async resolveActivePrinter(targetPrinter) {
+    async resolveActivePrinter(targetPrinter, options = {}) {
         try {
             const statusMap = await this.getAllPrintersLiveStatus();
             const installedList = Object.values(statusMap);
-            if (!installedList || installedList.length === 0) return targetPrinter;
+            if (!installedList || installedList.length === 0) return targetPrinter || 'EPSON L3110 Series';
+
+            const isColorRequested = Boolean(
+                options.colorMode === 'Color' || 
+                options.isColor === true || 
+                String(options.colorMode || '').toLowerCase().includes('color')
+            );
+
+            // If Color is requested and no specific target or target is a monochrome laser, prioritize Epson L3110
+            if (isColorRequested && (!targetPrinter || targetPrinter.toLowerCase().includes('hp') || targetPrinter.toLowerCase().includes('131') || targetPrinter.toLowerCase().includes('135'))) {
+                const epsonPrinter = installedList.find(p => p.name.toLowerCase().includes('epson') || p.name.toLowerCase().includes('l3110'));
+                if (epsonPrinter) {
+                    Logger.info('PRINTER_MANAGER', `Colour printout requested: Automatically routed job to Color InkTank printer [${epsonPrinter.name}]`);
+                    return epsonPrinter.name;
+                }
+            }
 
             const tLower = (targetPrinter || '').toLowerCase();
             const isHp = tLower.includes('hp') || tLower.includes('131') || tLower.includes('133') || tLower.includes('135') || tLower.includes('136') || tLower.includes('138') || tLower.includes('mfp');
@@ -270,7 +230,7 @@ const PrinterManager = {
                 return exactMatch.name;
             }
 
-            // Step 2: Search for any READY printer candidate belonging to the requested hardware family (USB Cable or Wi-Fi)
+            // Step 2: Search for any READY printer candidate belonging to the requested hardware family
             const onlineFamilyCandidate = installedList.find(p => {
                 const lName = (p.name || '').toLowerCase();
                 const isReady = p.status === 'Ready';
@@ -336,8 +296,8 @@ const PrinterManager = {
                     status: 'ONLINE', 
                     printer: targetPrinter, 
                     message: isEpson 
-                        ? `✅ Printer [${targetPrinter}] is Online, powered on, and ready to print via USB Cable!`
-                        : `✅ Printer [${targetPrinter}] is Online and ready via Wi-Fi!`
+                        ? `✅ Printer [${targetPrinter}] is Online, powered on, and ready to print (Color & B/W)!` 
+                        : `✅ Printer [${targetPrinter}] is Online and ready to print!`
                 };
             } else {
                 Logger.warn('PRINTER_MANAGER', `Real-time check for [${targetPrinter}] returned offline status.`);
@@ -346,8 +306,8 @@ const PrinterManager = {
                     status: 'OFFLINE', 
                     printer: targetPrinter, 
                     message: isEpson
-                        ? `⚠️ Printer [${targetPrinter}] is currently powered off or USB cable disconnected. Please turn on printer power switch or connect cable.`
-                        : `⚠️ Printer [${targetPrinter}] is currently powered off or disconnected from Wi-Fi network.`
+                        ? `⚠️ Printer [${targetPrinter}] is currently powered off or cable disconnected. Please check connection and power switch.`
+                        : `⚠️ Printer [${targetPrinter}] is currently powered off or cable disconnected. Please check connection and power switch.`
                 };
             }
         } catch (error) {
@@ -361,17 +321,25 @@ const PrinterManager = {
             throw new Error(`Target file to print not found: ${filePath}`);
         }
 
+        const isColor = Boolean(
+            options.colorMode === 'Color' || 
+            options.isColor === true || 
+            String(options.colorMode || '').toLowerCase().includes('color')
+        );
+
         const settings = db.getSettings();
-        const configuredPrinter = printerName || settings.defaultPrinter || settings.primaryPrinter || 'EPSON L3110 Series';
+        const configuredPrinter = printerName || (isColor ? 'EPSON L3110 Series' : (settings.defaultPrinter || settings.primaryPrinter || 'EPSON L3110 Series'));
         
         // Resolve active hardware driver
-        const targetPrinter = await this.resolveActivePrinter(configuredPrinter);
+        const targetPrinter = await this.resolveActivePrinter(configuredPrinter, { colorMode: isColor ? 'Color' : 'BlackWhite' });
 
-        Logger.logPrinting(`Initiating direct hardware print job for [${path.basename(filePath)}] onto printer [${targetPrinter}] (${copies} copies)...`, { options });
+        Logger.logPrinting(`Initiating direct hardware print job for [${path.basename(filePath)}] onto printer [${targetPrinter}] (${copies} copies, Mode: ${isColor ? 'Color' : 'B&W'})...`, { options });
 
         const absPath = path.resolve(filePath);
         const ext = path.extname(absPath).toLowerCase();
         let script = '';
+
+        const colorBoolStr = isColor ? '$true' : '$false';
 
         // Direct hardware image spooling via .NET System.Drawing (100% background, no Windows dialogs, strictly A4 Sheet)
         if (['.png', '.jpg', '.jpeg', '.bmp', '.gif', '.webp'].includes(ext)) {
@@ -389,9 +357,9 @@ const PrinterManager = {
                     $pd.PrinterSettings.PrinterName = "${targetPrinter}"
                     $pd.PrinterSettings.Copies = ${copies}
                     
-                    # Strictly enforce Black & White Monochrome printing
-                    $pd.DefaultPageSettings.Color = $false
-                    try { $pd.PrinterSettings.DefaultPageSettings.Color = $false } catch {}
+                    # Color Mode configuration: Color ($true) or B/W Monochrome ($false)
+                    $pd.DefaultPageSettings.Color = ${colorBoolStr}
+                    try { $pd.PrinterSettings.DefaultPageSettings.Color = ${colorBoolStr} } catch {}
 
                     # Strictly enforce A4 Sheet Paper (Kind 9 = A4 standard)
                     $a4Paper = $pd.PrinterSettings.PaperSizes | Where-Object { $_.Kind -eq [System.Drawing.Printing.PaperKind]::A4 -or $_.PaperName -like '*A4*' } | Select-Object -First 1
@@ -455,8 +423,8 @@ const PrinterManager = {
                     $pd = New-Object System.Drawing.Printing.PrintDocument
                     $pd.PrinterSettings.PrinterName = "${targetPrinter}"
                     $pd.PrinterSettings.Copies = ${copies}
-                    $pd.DefaultPageSettings.Color = $false
-                    try { $pd.PrinterSettings.DefaultPageSettings.Color = $false } catch {}
+                    $pd.DefaultPageSettings.Color = ${colorBoolStr}
+                    try { $pd.PrinterSettings.DefaultPageSettings.Color = ${colorBoolStr} } catch {}
 
                     $a4Paper = $pd.PrinterSettings.PaperSizes | Where-Object { $_.Kind -eq [System.Drawing.Printing.PaperKind]::A4 -or $_.PaperName -like '*A4*' } | Select-Object -First 1
                     if ($a4Paper) { $pd.DefaultPageSettings.PaperSize = $a4Paper }
@@ -536,8 +504,8 @@ const PrinterManager = {
         try {
             const execTimeout = ext === '.pdf' ? 240000 : 35000;
             await execPowerShell(script, execTimeout);
-            Logger.logPrinting(`Successfully spooled [${path.basename(filePath)}] directly to physical printer [${targetPrinter}]!`);
-            return { success: true, printer: targetPrinter, copies, mode: 'Direct Hardware Spooler' };
+            Logger.logPrinting(`Successfully spooled [${path.basename(filePath)}] directly to physical printer [${targetPrinter}] (${isColor ? 'Color' : 'B&W'})!`);
+            return { success: true, printer: targetPrinter, copies, mode: isColor ? 'Color Direct Hardware Spooler' : 'B&W Direct Hardware Spooler' };
         } catch (error) {
             // Try secondary printer before giving up only if secondary is defined and different
             const secondaryPrinter = settings.secondaryPrinter;

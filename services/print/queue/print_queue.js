@@ -22,7 +22,10 @@ const PrintQueue = {
         Logger.info('QUEUE', "Print Queue worker stopped.");
     },
 
-    async addJob({ id, fileId, customerName, fileName, processedPath, originalPath, printer, copies = 1, priority = 1, autoStart = true }) {
+    async addJob({ id, fileId, customerName, fileName, processedPath, originalPath, printer, copies = 1, colorMode = 'BlackWhite', priority = 1, autoStart = true }) {
+        const isColor = Boolean(colorMode === 'Color' || colorMode === 'Colour' || (fileName && (fileName.toLowerCase().includes('_color_') || fileName.toLowerCase().includes('_colour_'))));
+        const defaultTargetPrinter = isColor ? 'EPSON L3110 Series' : (db.getSettings().defaultPrinter || 'HP508140DE1D63(HP Laser MFP 131 133 135-138)');
+
         const item = {
             id: id || `job_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
             fileId: fileId || `file_${Date.now()}`,
@@ -30,8 +33,9 @@ const PrintQueue = {
             fileName: fileName || path.basename(processedPath),
             processedPath,
             originalPath: originalPath || processedPath,
-            printer: printer || db.getSettings().defaultPrinter || 'HP508140DE1D63(HP Laser MFP 131 133 135-138)',
+            printer: printer || defaultTargetPrinter,
             copies: Number(copies) || 1,
+            colorMode: isColor ? 'Color' : 'BlackWhite',
             status: 'Pending',
             priority: Number(priority) || 1,
             attempts: 0,
@@ -40,7 +44,7 @@ const PrintQueue = {
         };
 
         db.addQueueItem(item);
-        Logger.info('QUEUE', `Added job [${item.id}] for file [${item.fileName}] to Print Queue (Priority: ${item.priority})`);
+        Logger.info('QUEUE', `Added job [${item.id}] for file [${item.fileName}] to Print Queue (Mode: ${item.colorMode}, Priority: ${item.priority})`);
         
         if (autoStart) {
             setTimeout(() => this.processNext(), 100);
@@ -61,7 +65,7 @@ const PrintQueue = {
             // Get highest priority job
             const job = pendingJobs[0];
 
-            Logger.info('QUEUE', `Picking job [${job.id}] (${job.fileName}) for processing (Attempt ${job.attempts + 1}/3)...`);
+            Logger.info('QUEUE', `Picking job [${job.id}] (${job.fileName}) for processing (Attempt ${job.attempts + 1}/3, Mode: ${job.colorMode || 'BlackWhite'})...`);
             db.updateQueueStatus(job.id, 'Printing', job.attempts + 1);
 
             try {
@@ -87,13 +91,13 @@ const PrintQueue = {
                     }
                 }
 
-                // Execute print operation
-                const res = await PrinterManager.printFile(job.processedPath, targetPrinter, job.copies);
+                // Execute print operation with explicit colorMode
+                const res = await PrinterManager.printFile(job.processedPath, targetPrinter, job.copies, { colorMode: job.colorMode });
                 
                 // Complete job
                 db.updateQueueStatus(job.id, 'Completed');
                 db.incrementStatistic('totalPrinted');
-                Logger.info('QUEUE', `Job [${job.id}] completed successfully on printer [${res.printer}].`);
+                Logger.info('QUEUE', `Job [${job.id}] completed successfully on printer [${res.printer}] (${job.colorMode || 'B&W'}).`);
 
                 // Archive original file to /storage/archive/
                 const rootDir = path.resolve(__dirname, '../../');
@@ -117,6 +121,7 @@ const PrintQueue = {
                     processedPath: job.processedPath,
                     pages: 1,
                     printerName: res.printer,
+                    colorMode: job.colorMode || 'BlackWhite',
                     printTime: new Date().toISOString(),
                     status: 'Success',
                     copies: job.copies,
