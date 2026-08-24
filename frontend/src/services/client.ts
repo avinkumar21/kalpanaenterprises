@@ -1,24 +1,11 @@
+export const ACTIVE_PRODUCTION_TUNNEL = 'https://info-appropriations-michelle-distribution.trycloudflare.com';
+export const SHOP_LAN_BASE = 'http://192.168.31.233:8082';
+
 export function getApiBase(): string {
   if (typeof window !== 'undefined') {
     const hostname = window.location.hostname || '';
 
-    // 1. When accessing over Cloudflare tunnel or external public domain, use current origin
-    if (hostname.includes('trycloudflare.com') || hostname.includes('loca.lt') || hostname.includes('tunnel')) {
-      return `${window.location.origin}/api/prints`;
-    }
-
-    // 2. When accessing on local LAN or localhost, use relative path (works with Vite proxy & Express)
-    if (
-      hostname === 'localhost' ||
-      hostname === '127.0.0.1' ||
-      hostname.startsWith('192.168.') ||
-      hostname.startsWith('10.') ||
-      hostname.startsWith('172.')
-    ) {
-      return '/api/prints';
-    }
-
-    // 3. Check explicit URL query param (?tunnel=... or ?api=...)
+    // 1. Explicit query parameter ?tunnel=... or ?api=...
     try {
       const urlParams = new URLSearchParams(window.location.search);
       const tunnelParam = urlParams.get('tunnel') || urlParams.get('api');
@@ -26,6 +13,7 @@ export function getApiBase(): string {
         let trimmed = tunnelParam.trim().replace(/\/+$/, '');
         if (window.localStorage) {
           window.localStorage.setItem('arka_tunnel_url', trimmed);
+          window.localStorage.setItem('arka_api_url', trimmed);
         }
         if (!trimmed.endsWith('/api/prints')) {
           trimmed += '/api/prints';
@@ -34,32 +22,52 @@ export function getApiBase(): string {
       }
     } catch {}
 
-    // 4. Check localStorage if valid and active
+    // 2. When accessing over Cloudflare tunnel or external tunnel, use current origin
+    if (hostname.includes('trycloudflare.com') || hostname.includes('loca.lt') || hostname.includes('tunnel')) {
+      return `${window.location.origin}/api/prints`;
+    }
+
+    // 3. When accessing on local LAN or localhost, use relative path or local port 8082
+    if (
+      hostname === 'localhost' ||
+      hostname === '127.0.0.1' ||
+      hostname.startsWith('192.168.') ||
+      hostname.startsWith('10.') ||
+      hostname.startsWith('172.')
+    ) {
+      if (window.location.port === '8082' || window.location.port === '80' || !window.location.port) {
+        return '/api/prints';
+      }
+      return `${window.location.protocol}//${hostname}:8082/api/prints`;
+    }
+
+    // 4. Saved active API or tunnel in localStorage
     try {
       const customApi = window.localStorage?.getItem('arka_api_url');
       if (customApi && customApi.trim() && !customApi.includes('political-abilities')) {
         let trimmed = customApi.trim().replace(/\/+$/, '');
-        if (!trimmed.endsWith('/api/prints')) {
-          trimmed += '/api/prints';
-        }
+        if (!trimmed.endsWith('/api/prints')) trimmed += '/api/prints';
         return trimmed;
       }
 
       const savedTunnel = window.localStorage?.getItem('arka_tunnel_url');
       if (savedTunnel && savedTunnel.includes('trycloudflare.com') && !savedTunnel.includes('political-abilities')) {
         let trimmed = savedTunnel.trim().replace(/\/+$/, '');
-        if (!trimmed.endsWith('/api/prints')) {
-          trimmed += '/api/prints';
-        }
+        if (!trimmed.endsWith('/api/prints')) trimmed += '/api/prints';
         return trimmed;
       }
     } catch {}
+
+    // 5. When accessing from Vercel or any other public domain, use active Cloudflare tunnel
+    if (hostname.includes('vercel.app') || !hostname.startsWith('192.168.')) {
+      return `${ACTIVE_PRODUCTION_TUNNEL}/api/prints`;
+    }
 
     if (window.location.origin && window.location.origin !== 'null') {
       return `${window.location.origin}/api/prints`;
     }
   }
-  return '/api/prints';
+  return `${ACTIVE_PRODUCTION_TUNNEL}/api/prints`;
 }
 
 export function setCustomApiBase(url: string | null): void {
@@ -157,7 +165,14 @@ export interface LogEntry {
 
 export async function fetchWithFallback(endpointPath: string, options?: RequestInit): Promise<Response> {
   const primaryBase = getApiBase();
-  const candidateBases: string[] = [primaryBase, '/api/prints'];
+  const candidateBases: string[] = [
+    primaryBase,
+    `${ACTIVE_PRODUCTION_TUNNEL}/api/prints`,
+    'http://192.168.31.233:8082/api/prints',
+    'http://localhost:8082/api/prints',
+    'http://127.0.0.1:8082/api/prints',
+    '/api/prints'
+  ];
 
   if (typeof window !== 'undefined') {
     const host = window.location.hostname || '';
@@ -166,28 +181,25 @@ export async function fetchWithFallback(endpointPath: string, options?: RequestI
       candidateBases.push(`${origin}/api/prints`);
     }
 
-    const isLocal = host === 'localhost' || host === '127.0.0.1' || host.startsWith('192.168.') || host.startsWith('10.');
-
-    if (isLocal) {
-      const p = window.location.port === '80' ? '' : ':8082';
-      candidateBases.push(`http://${host}${p}/api/prints`);
-      candidateBases.push('http://localhost:8082/api/prints');
-      candidateBases.push('http://127.0.0.1:8082/api/prints');
-    }
-
     const savedTunnel = window.localStorage?.getItem('arka_tunnel_url');
     if (savedTunnel && savedTunnel.includes('trycloudflare.com') && !savedTunnel.includes('political-abilities')) {
-      candidateBases.push(`${savedTunnel.replace(/\/+$/, '')}/api/prints`);
+      let trimmed = savedTunnel.trim().replace(/\/+$/, '');
+      if (!trimmed.endsWith('/api/prints')) trimmed += '/api/prints';
+      candidateBases.unshift(trimmed);
     }
-  } else {
-    candidateBases.push(primaryBase);
+    const savedApi = window.localStorage?.getItem('arka_api_url');
+    if (savedApi && !savedApi.includes('political-abilities')) {
+      let trimmed = savedApi.trim().replace(/\/+$/, '');
+      if (!trimmed.endsWith('/api/prints')) trimmed += '/api/prints';
+      candidateBases.unshift(trimmed);
+    }
   }
 
   const uniqueBases = Array.from(new Set(candidateBases.filter(Boolean).map(b => b.trim().replace(/\/+$/, ''))));
 
   let lastError: any = null;
   const isUpload = options?.body instanceof FormData || endpointPath.includes('upload');
-  const timeoutMs = (options as any)?.timeout || (isUpload ? 180000 : 15000);
+  const timeoutMs = (options as any)?.timeout || (isUpload ? 180000 : 8000);
 
   for (const base of uniqueBases) {
     try {
@@ -202,8 +214,12 @@ export async function fetchWithFallback(endpointPath: string, options?: RequestI
       clearTimeout(timeoutId);
 
       if (res.ok) {
-        if (base !== primaryBase && !base.includes('trycloudflare.com')) {
-          setCustomApiBase(base.replace(/\/api\/prints$/, ''));
+        if (typeof window !== 'undefined' && window.localStorage && base.startsWith('http') && !base.includes('vercel.app')) {
+          const rawBase = base.replace(/\/api\/prints$/, '');
+          window.localStorage.setItem('arka_api_url', rawBase);
+          if (rawBase.includes('trycloudflare.com')) {
+            window.localStorage.setItem('arka_tunnel_url', rawBase);
+          }
         }
         return res;
       } else {

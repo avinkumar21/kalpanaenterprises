@@ -70,7 +70,7 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
         }
       } catch {}
     }
-    return '';
+    return 'https://info-appropriations-michelle-distribution.trycloudflare.com';
   });
   const [shopEmail, setShopEmail] = useState('print@kalpanaenterprise.com');
   const [channelHealth, setChannelHealth] = useState<any>(null);
@@ -1331,10 +1331,9 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
                 type="button"
                 onClick={() => {
                   setConnectionMode('mobile');
-                  if (publicTunnelUrl) {
-                    setCustomApiBase(publicTunnelUrl);
-                    api.setCustomApiBase(publicTunnelUrl);
-                  }
+                  const tUrl = publicTunnelUrl || 'https://info-appropriations-michelle-distribution.trycloudflare.com';
+                  setCustomApiBase(tUrl);
+                  api.setCustomApiBase(tUrl);
                 }}
                 className={`py-2.5 px-3 rounded-xl text-xs font-black uppercase tracking-wider border transition cursor-pointer flex items-center justify-center gap-1.5 ${
                   connectionMode === 'mobile'
@@ -1348,12 +1347,9 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
                 type="button"
                 onClick={() => {
                   setConnectionMode('wifi');
-                  const isLocalHost = typeof window !== 'undefined' && (window.location.hostname.includes('192.168.') || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
-                  const lanUrl = isLocalHost ? '' : `http://${shopLanIp || '192.168.31.233'}:8082`;
-                  if (lanUrl) {
-                    setCustomApiBase(lanUrl);
-                    api.setCustomApiBase(lanUrl);
-                  }
+                  const lanUrl = `http://${shopLanIp || '192.168.31.233'}:8082`;
+                  setCustomApiBase(lanUrl);
+                  api.setCustomApiBase(lanUrl);
                 }}
                 className={`py-2.5 px-3 rounded-xl text-xs font-black uppercase tracking-wider border transition cursor-pointer flex items-center justify-center gap-1.5 ${
                   connectionMode === 'wifi'
