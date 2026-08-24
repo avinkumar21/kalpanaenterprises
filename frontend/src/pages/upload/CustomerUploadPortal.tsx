@@ -70,7 +70,7 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
         }
       } catch {}
     }
-    return 'https://glad-examines-research-outdoors.trycloudflare.com';
+    return 'https://leader-appendix-mixer-jelsoft.trycloudflare.com';
   });
   const [shopEmail, setShopEmail] = useState('print@kalpanaenterprise.com');
   const [channelHealth, setChannelHealth] = useState<any>(null);
@@ -82,7 +82,7 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
   // Distinct Channel 2: 4G/5G Mobile Cellular Web Tunnel (Cloudflare HTTPS)
   const mobileUrl = publicTunnelUrl && publicTunnelUrl.trim()
     ? `${publicTunnelUrl.trim().replace(/\/+$/, '')}/prints?kiosk=true#upload`
-    : 'https://glad-examines-research-outdoors.trycloudflare.com/prints?kiosk=true#upload';
+    : 'https://leader-appendix-mixer-jelsoft.trycloudflare.com/prints?kiosk=true#upload';
 
   // Distinct Channel 3: 4G/5G Email Intake Drop (Native mailto trigger)
   const emailUrl = `mailto:${shopEmail}?subject=Customer%20Print%20Order&body=Please%20attach%20your%20document%20(PDF,%20Photos)%20and%20tap%20Send.%20Our%20shop%20engine%20will%20print%20it%20automatically.`;

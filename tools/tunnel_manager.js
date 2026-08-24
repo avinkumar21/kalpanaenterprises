@@ -20,9 +20,14 @@ function startTunnel() {
     fs.writeFileSync(logFile, '');
     const stream = fs.createWriteStream(logFile, { flags: 'a' });
 
-    console.log(`[TUNNEL] Launching Cloudflare Express Tunnel targeting http://127.0.0.1:8082...`);
+    console.log(`[TUNNEL] Launching Cloudflare Express Tunnel with IPv4 edge routing targeting http://127.0.0.1:8082...`);
 
-    const child = spawn(cloudflaredPath, ['tunnel', '--protocol', 'http2', '--url', 'http://127.0.0.1:8082'], {
+    const child = spawn(cloudflaredPath, [
+        'tunnel',
+        '--edge-ip-version', '4',
+        '--protocol', 'http2',
+        '--url', 'http://127.0.0.1:8082'
+    ], {
         detached: false,
         stdio: ['ignore', 'pipe', 'pipe']
     });

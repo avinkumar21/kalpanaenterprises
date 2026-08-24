@@ -53,6 +53,19 @@
       "status": "Success",
       "copies": 1,
       "retryCount": 1
+    },
+    "hist_1787559008895_0k71": {
+      "id": "hist_1787559008895_0k71",
+      "fileId": "doc_1787559001141",
+      "customerFile": "webupload_1787559001134_5adn_1c_BlackWhite_universal_test.pdf",
+      "originalPath": "D:\\Arka\\storage\\incoming\\1787559001137_webupload_1787559001134_5adn_1c_BlackWhite_universal_test.pdf",
+      "processedPath": "D:\\Arka\\storage\\processed\\optimized_1787559001138_1787559001137_webupload_1787559001134_5adn_1c_BlackWhite_universal_test.pdf",
+      "pages": 1,
+      "printerName": "EPSON L3110 Series",
+      "printTime": "2026-08-24T08:10:08.895Z",
+      "status": "Failed",
+      "copies": 1,
+      "retryCount": 4
     }
   },
   "printers": {
@@ -166,7 +179,7 @@
     "pollingIntervalMs": 2000,
     "port": 8082,
     "adminPasswordHash": "admin",
-    "publicTunnelUrl": "https://glad-examines-research-outdoors.trycloudflare.com"
+    "publicTunnelUrl": "https://leader-appendix-mixer-jelsoft.trycloudflare.com"
   },
   "logs": [
     {
@@ -5617,6 +5630,22 @@
       "attempts": 1,
       "createdAt": "2026-08-24T08:01:31.637Z",
       "updatedAt": "2026-08-24T08:01:34.169Z"
+    },
+    "job_1787559001141_a89ca": {
+      "id": "job_1787559001141_a89ca",
+      "fileId": "doc_1787559001141",
+      "customerName": "Customer Print",
+      "fileName": "webupload_1787559001134_5adn_1c_BlackWhite_universal_test.pdf",
+      "processedPath": "D:\\Arka\\storage\\processed\\optimized_1787559001138_1787559001137_webupload_1787559001134_5adn_1c_BlackWhite_universal_test.pdf",
+      "originalPath": "D:\\Arka\\storage\\incoming\\1787559001137_webupload_1787559001134_5adn_1c_BlackWhite_universal_test.pdf",
+      "printer": "EPSON L3110 Series",
+      "copies": 1,
+      "colorMode": "BlackWhite",
+      "status": "Failed",
+      "priority": 1,
+      "attempts": 4,
+      "createdAt": "2026-08-24T08:10:01.141Z",
+      "updatedAt": "2026-08-24T08:10:08.892Z"
     }
   },
   "statistics": {
@@ -5664,10 +5693,10 @@
     },
     "2026-08-24": {
       "date": "2026-08-24",
-      "totalReceived": 3,
-      "totalProcessed": 3,
+      "totalReceived": 4,
+      "totalProcessed": 4,
       "totalPrinted": 1,
-      "totalFailed": 2
+      "totalFailed": 3
     }
   }
 }
