@@ -14,6 +14,20 @@
       "status": "Success",
       "copies": 1,
       "retryCount": 1
+    },
+    "hist_1787561984460_uyoe": {
+      "id": "hist_1787561984460_uyoe",
+      "fileId": "doc_1787561982127",
+      "customerFile": "webupload_1787561982122_86h4_1c_BlackWhite_final_verification.pdf",
+      "originalPath": "D:\\Arka\\storage\\incoming\\1787561982124_webupload_1787561982122_86h4_1c_BlackWhite_final_verification.pdf",
+      "processedPath": "D:\\Arka\\storage\\processed\\optimized_1787561982124_1787561982124_webupload_1787561982122_86h4_1c_BlackWhite_final_verification.pdf",
+      "pages": 1,
+      "printerName": "EPSON L3110 Series",
+      "colorMode": "BlackWhite",
+      "printTime": "2026-08-24T08:59:44.460Z",
+      "status": "Success",
+      "copies": 1,
+      "retryCount": 1
     }
   },
   "printers": {
@@ -5531,6 +5545,22 @@
       "attempts": 1,
       "createdAt": "2026-08-24T08:45:15.171Z",
       "updatedAt": "2026-08-24T08:45:18.918Z"
+    },
+    "job_1787561982127_3fmmn": {
+      "id": "job_1787561982127_3fmmn",
+      "fileId": "doc_1787561982127",
+      "customerName": "Customer Print",
+      "fileName": "webupload_1787561982122_86h4_1c_BlackWhite_final_verification.pdf",
+      "processedPath": "D:\\Arka\\storage\\processed\\optimized_1787561982124_1787561982124_webupload_1787561982122_86h4_1c_BlackWhite_final_verification.pdf",
+      "originalPath": "D:\\Arka\\storage\\incoming\\1787561982124_webupload_1787561982122_86h4_1c_BlackWhite_final_verification.pdf",
+      "printer": "EPSON L3110 Series",
+      "copies": 1,
+      "colorMode": "BlackWhite",
+      "status": "Completed",
+      "priority": 1,
+      "attempts": 1,
+      "createdAt": "2026-08-24T08:59:42.127Z",
+      "updatedAt": "2026-08-24T08:59:44.458Z"
     }
   },
   "statistics": {
@@ -5578,9 +5608,9 @@
     },
     "2026-08-24": {
       "date": "2026-08-24",
-      "totalReceived": 9,
-      "totalProcessed": 9,
-      "totalPrinted": 6,
+      "totalReceived": 10,
+      "totalProcessed": 10,
+      "totalPrinted": 7,
       "totalFailed": 3
     }
   }

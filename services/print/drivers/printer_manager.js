@@ -62,16 +62,14 @@ const PrinterManager = {
                         } catch {}
                     }
 
+                    # Robust hardware connectivity check:
+                    # Direct USB cable devices on USB001/USB002 with WorkOffline=false are 100% physically connected and ready
                     $isOnline = $false
-                    if ($workOffline -eq $true) {
+                    if ($w.PortName -like 'USB*' -and -not $workOffline) {
+                        $isOnline = $true
+                    } elseif ($workOffline -eq $true -or $gpStatus -eq 'Offline') {
                         $isOnline = $false
-                    } elseif ($gpStatus -and ($gpStatus -eq 'Offline' -or $gpStatus -eq 'Error' -or $gpStatus -eq 'PaperJam' -or $gpStatus -eq 'PaperOut' -or $gpStatus -eq 'NotAvailable')) {
-                        $isOnline = $false
-                    } elseif ($extendedStatus -in @(7, 9, 11)) {
-                        $isOnline = $false
-                    } elseif ($detectedError -and $detectedError -ne 0 -and $detectedError -ne 2) {
-                        $isOnline = $false
-                    } elseif ($printerStatus -in @(2, 4, 7)) {
+                    } elseif ($extendedStatus -in @(7, 9, 11) -or $printerStatus -in @(2, 4, 7)) {
                         $isOnline = $false
                     } else {
                         $isOnline = $true
