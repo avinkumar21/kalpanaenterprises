@@ -40,6 +40,24 @@ function sanitizePngBuffer(buffer) {
     }
 }
 
+// Helper to get local Wi-Fi IPv4 address
+function getLocalLanIp() {
+    const os = require('os');
+    const interfaces = os.networkInterfaces();
+    if (interfaces['Wi-Fi']) {
+        const v4 = interfaces['Wi-Fi'].find(i => i.family === 'IPv4' && !i.internal);
+        if (v4) return v4.address;
+    }
+    for (const name of Object.keys(interfaces)) {
+        for (const iface of interfaces[name]) {
+            if (iface.family === 'IPv4' && !iface.internal && (iface.address.startsWith('192.168.') || iface.address.startsWith('10.') || iface.address.startsWith('172.'))) {
+                return iface.address;
+            }
+        }
+    }
+    return '192.168.31.233';
+}
+
 // GET /api/prints/status - Comprehensive operational health diagnostics
 router.get('/status', async (req, res) => {
     try {
@@ -49,6 +67,8 @@ router.get('/status', async (req, res) => {
         const todayStat = stats[0] || { totalReceived: 0, totalProcessed: 0, totalPrinted: 0, totalFailed: 0 };
         const history = db.getHistory(5);
         const printers = db.getPrinters();
+        const publicTunnelUrl = db.getSettings().publicTunnelUrl || '';
+        const lanIp = getLocalLanIp();
 
         const pendingJobs = queue.filter(j => j.status === 'Pending' || j.status === 'Retry').length;
         const printingJobs = queue.filter(j => j.status === 'Printing').length;
@@ -57,7 +77,10 @@ router.get('/status', async (req, res) => {
             status: 'ONLINE',
             serviceName: 'ARKA Print Service (24x7 Continuous Engine)',
             timestamp: new Date().toISOString(),
-            publicTunnelUrl: db.getSettings().publicTunnelUrl || '',
+            publicTunnelUrl: publicTunnelUrl,
+            lanIp: lanIp,
+            wifiUrl: `http://${lanIp}:8082/prints?kiosk=true#upload`,
+            mobileUrl: publicTunnelUrl ? `${publicTunnelUrl.replace(/\/+$/, '')}/prints?kiosk=true#upload` : '',
             watcher: watcherStatus,
             metrics: {
                 filesToday: todayStat.totalReceived,

@@ -77,6 +77,9 @@ export interface SystemStatus {
   serviceName: string;
   timestamp: string;
   publicTunnelUrl?: string;
+  lanIp?: string;
+  wifiUrl?: string;
+  mobileUrl?: string;
   watcher: {
     active: boolean;
     targetFolder: string;

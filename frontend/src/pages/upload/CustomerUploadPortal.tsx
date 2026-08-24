@@ -82,7 +82,7 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
   // Distinct Channel 2: 4G/5G Mobile Cellular Web Tunnel (Cloudflare HTTPS)
   const mobileUrl = publicTunnelUrl && publicTunnelUrl.trim()
     ? `${publicTunnelUrl.trim().replace(/\/+$/, '')}/prints?kiosk=true#upload`
-    : 'https://maiden-heat-television-evaluations.trycloudflare.com/prints?kiosk=true#upload';
+    : 'https://info-appropriations-michelle-distribution.trycloudflare.com/prints?kiosk=true#upload';
 
   // Distinct Channel 3: 4G/5G Email Intake Drop (Native mailto trigger)
   const emailUrl = `mailto:${shopEmail}?subject=Customer%20Print%20Order&body=Please%20attach%20your%20document%20(PDF,%20Photos)%20and%20tap%20Send.%20Our%20shop%20engine%20will%20print%20it%20automatically.`;
@@ -113,23 +113,25 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
 
   useEffect(() => {
     let isMounted = true;
-    const syncDiagnostics = async () => {
+    const syncStatusAndDiagnostics = async () => {
       try {
-        const diag = await api.fetchChannelDiagnostics();
-        if (isMounted && diag) {
-          setChannelHealth(diag);
-          if (diag.channels?.mobile_tunnel?.rawTunnelUrl && !diag.channels.mobile_tunnel.rawTunnelUrl.includes('political-abilities')) {
-            const clean = diag.channels.mobile_tunnel.rawTunnelUrl.trim().replace(/\/+$/, '');
+        const status = await api.fetchStatus();
+        if (isMounted && status) {
+          if (status.publicTunnelUrl && status.publicTunnelUrl.startsWith('http') && !status.publicTunnelUrl.includes('political-abilities')) {
+            const clean = status.publicTunnelUrl.trim().replace(/\/+$/, '');
             setPublicTunnelUrl(clean);
             if (typeof window !== 'undefined' && window.localStorage) {
               window.localStorage.setItem('arka_tunnel_url', clean);
             }
           }
+          if (status.lanIp) {
+            setShopLanIp(status.lanIp);
+          }
         }
       } catch { /* ignore fallback */ }
     };
-    syncDiagnostics();
-    const interval = setInterval(syncDiagnostics, 4000);
+    syncStatusAndDiagnostics();
+    const interval = setInterval(syncStatusAndDiagnostics, 3000);
     return () => {
       isMounted = false;
       clearInterval(interval);
