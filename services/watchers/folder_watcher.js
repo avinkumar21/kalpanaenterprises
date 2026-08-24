@@ -36,41 +36,88 @@ function isFileReady(filePath) {
     }
 }
 
+function getUniversalPrintsFolder() {
+    const settings = db.getSettings();
+
+    // 1. If explicit custom folder in settings is specified and valid (not old hardcoded D:\WhatsApp default), use it
+    if (settings.whatsAppFolder && settings.whatsAppFolder.trim() && !settings.whatsAppFolder.includes('D:\\WhatsApp') && !settings.whatsAppFolder.includes('D:\\whatspp')) {
+        try {
+            if (!fs.existsSync(settings.whatsAppFolder)) {
+                fs.mkdirSync(settings.whatsAppFolder, { recursive: true });
+            }
+            return settings.whatsAppFolder;
+        } catch (e) {}
+    }
+
+    // 2. Project workspace root /prints (e.g. d:\Arka\prints)
+    const projectPrintsDir = path.resolve(__dirname, '../../prints');
+    try {
+        if (!fs.existsSync(projectPrintsDir)) {
+            fs.mkdirSync(projectPrintsDir, { recursive: true });
+        }
+        return projectPrintsDir;
+    } catch (e) {}
+
+    // 3. User Home directory / prints (e.g. C:\Users\<Username>\prints)
+    const os = require('os');
+    const userPrintsDir = path.join(os.homedir(), 'prints');
+    try {
+        if (!fs.existsSync(userPrintsDir)) {
+            fs.mkdirSync(userPrintsDir, { recursive: true });
+        }
+        return userPrintsDir;
+    } catch (e) {}
+
+    // 4. Fallback storage/prints
+    const storageDir = path.resolve(__dirname, '../../storage', 'prints');
+    if (!fs.existsSync(storageDir)) fs.mkdirSync(storageDir, { recursive: true });
+    return storageDir;
+}
+
 const FolderWatcher = {
+    getDropFolder() {
+        return getUniversalPrintsFolder();
+    },
+
     start() {
         this.stop();
-        const settings = db.getSettings();
-        let targetFolder = settings.whatsAppFolder || 'D:\\WhatsApp';
+        const targetFolder = getUniversalPrintsFolder();
 
-        // Seed existing files currently in targetFolder so they remain visible without being re-printed on reboot
-        try {
-            if (fs.existsSync(targetFolder)) {
-                fs.readdirSync(targetFolder).forEach(file => {
-                    const fp = path.join(targetFolder, file);
-                    if (fs.existsSync(fp) && fs.statSync(fp).isFile()) {
-                        processedFiles.add(fp);
-                    }
-                });
-            }
-        } catch (e) {}
-        
-        // If target folder does not exist, create it or fallback to local demo folder
+        // Ensure target folder exists
         if (!fs.existsSync(targetFolder)) {
             try {
                 fs.mkdirSync(targetFolder, { recursive: true });
-                Logger.logFolderEvent(`Created WhatsApp download folder: ${targetFolder}`);
+                Logger.logFolderEvent(`Created automated print drop folder: ${targetFolder}`);
             } catch (e) {
-                const fallback = path.resolve(__dirname, '../../storage', 'whatsapp_demo_folder');
-                if (!fs.existsSync(fallback)) fs.mkdirSync(fallback, { recursive: true });
-                targetFolder = fallback;
-                Logger.warn('WATCHER', `Could not access primary folder, fell back to local demo directory: ${targetFolder}`);
+                Logger.warn('WATCHER', `Could not create folder [${targetFolder}]: ${e.message}`);
             }
         }
 
+        // List of all folders to watch (Universal prints folder + optional legacy D:\WhatsApp if present)
+        const foldersToWatch = [targetFolder];
+        if (fs.existsSync('D:\\WhatsApp') && !foldersToWatch.includes('D:\\WhatsApp')) {
+            foldersToWatch.push('D:\\WhatsApp');
+        }
+
+        // Seed existing files currently in watched folders so they remain visible without re-printing on reboot
+        foldersToWatch.forEach(folder => {
+            try {
+                if (fs.existsSync(folder)) {
+                    fs.readdirSync(folder).forEach(file => {
+                        const fp = path.join(folder, file);
+                        if (fs.existsSync(fp) && fs.statSync(fp).isFile()) {
+                            processedFiles.add(fp);
+                        }
+                    });
+                }
+            } catch (e) {}
+        });
+
+        const settings = db.getSettings();
         const intervalMs = settings.pollingIntervalMs || 2000;
         Logger.info('WATCHER', `Starting Dual-Layer Folder Watcher on [${targetFolder}] (fs.watch + ${intervalMs}ms polling backup)`);
 
-        // Layer 1: fs.watch event driver
+        // Layer 1: fs.watch event driver on all active folders
         try {
             watcherInstance = fs.watch(targetFolder, { persistent: true }, (eventType, filename) => {
                 if (filename) {
@@ -82,24 +129,26 @@ const FolderWatcher = {
             });
             watcherInstance.on('error', (err) => Logger.error('WATCHER', `fs.watch warning: ${err.message}`));
         } catch (watchErr) {
-            Logger.warn('WATCHER', `fs.watch initialization error (${watchErr.message}), relying on high-frequency polling loop.`);
+            Logger.warn('WATCHER', `fs.watch initialization error (${watchErr.message}), relying on polling loop.`);
         }
 
-        // Layer 2: 2-second polling backup loop
+        // Layer 2: Polling backup loop for all watched directories
         pollInterval = setInterval(() => {
-            try {
-                if (fs.existsSync(targetFolder)) {
-                    const files = fs.readdirSync(targetFolder);
-                    files.forEach(file => {
-                        const fp = path.join(targetFolder, file);
-                        if (fs.statSync(fp).isFile()) {
-                            this.handleDetectedFile(fp);
-                        }
-                    });
+            foldersToWatch.forEach(folder => {
+                try {
+                    if (fs.existsSync(folder)) {
+                        const files = fs.readdirSync(folder);
+                        files.forEach(file => {
+                            const fp = path.join(folder, file);
+                            if (fs.existsSync(fp) && fs.statSync(fp).isFile()) {
+                                this.handleDetectedFile(fp);
+                            }
+                        });
+                    }
+                } catch (pollErr) {
+                    // Suppress temporary locked directory warnings
                 }
-            } catch (pollErr) {
-                // Suppress temporary locked directory warnings
-            }
+            });
         }, intervalMs);
     },
 
@@ -172,10 +221,10 @@ const FolderWatcher = {
 
             // Step 3: Queue or await Operator override in Customer Print Dashboard
             const isAutoPrint = settings.enableAutoPrint !== false;
-            const targetPrinter = isExplicitColor ? 'EPSON L3110 Series' : (settings.defaultPrinter || 'HP508140DE1D63(HP Laser MFP 131 133 135-138)');
+            const targetPrinter = isExplicitColor ? 'EPSON L3110 Series' : (settings.defaultPrinter || 'HP Laser MFP 131 133 135-138');
             await PrintQueue.addJob({
                 fileId: `doc_${Date.now()}`,
-                customerName: 'WhatsApp Customer',
+                customerName: 'Customer Print',
                 fileName: fileName,
                 processedPath: processRes.outputPath,
                 originalPath: stagedPath,
@@ -205,7 +254,7 @@ const FolderWatcher = {
 
     getStatus() {
         const settings = db.getSettings();
-        const targetFolder = settings.whatsAppFolder || 'D:\\whatspp';
+        const targetFolder = getUniversalPrintsFolder();
         return {
             active: watcherInstance !== null || pollInterval !== null,
             targetFolder,
@@ -217,3 +266,4 @@ const FolderWatcher = {
 };
 
 module.exports = FolderWatcher;
+module.exports.getUniversalPrintsFolder = getUniversalPrintsFolder;

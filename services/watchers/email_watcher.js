@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const db = require('../database/index.js');
 const Logger = require('../logs/logger');
+const FolderWatcher = require('./folder_watcher');
 
 let imaps = null;
 let simpleParser = null;
@@ -94,7 +95,7 @@ const EmailWatcher = {
             const messages = await connection.search(searchCriteria, fetchOptions);
             if (messages && messages.length > 0) {
                 Logger.info('EMAIL_WATCHER', `Detected ${messages.length} unread customer email(s). Inspecting attachments...`);
-                const targetFolder = settings.whatsAppFolder || 'D:\\whatspp';
+                const targetFolder = FolderWatcher.getDropFolder();
                 if (!fs.existsSync(targetFolder)) {
                     fs.mkdirSync(targetFolder, { recursive: true });
                 }

@@ -106,23 +106,32 @@ router.get('/printer-status', async (req, res) => {
     const hpName = 'HP508140DE1D63(HP Laser MFP 131 133 135-138)';
 
     try {
-        const statusMap = await PrinterManager.getAllPrintersLiveStatus();
-        const epsonInfo = statusMap[epsonName] || Object.values(statusMap).find(p => p.name.toLowerCase().includes('epson')) || { isOnline: false };
-        const hpInfo = statusMap[hpName] || Object.values(statusMap).find(p => p.name.toLowerCase().includes('hp') || p.name.includes('131')) || { isOnline: false };
+        const statusMap = await PrinterManager.getAllPrintersLiveStatus(true);
+        const allPrinters = Object.values(statusMap);
 
-        const epsonOnline = Boolean(epsonInfo.isOnline || epsonInfo.status === 'Ready');
-        const hpOnline = Boolean(hpInfo.isOnline || hpInfo.status === 'Ready');
+        const epsonPrinters = allPrinters.filter(p => (p.name || '').toLowerCase().includes('epson') || (p.name || '').toLowerCase().includes('l3110'));
+        const epsonReady = epsonPrinters.find(p => p.isOnline || p.status === 'Ready');
+        const epsonInfo = epsonReady || epsonPrinters[0] || { isOnline: false };
+
+        const hpPrinters = allPrinters.filter(p => (p.name || '').toLowerCase().includes('hp') || (p.name || '').includes('131') || (p.name || '').includes('135') || (p.name || '').includes('138') || (p.name || '').toLowerCase().includes('mfp'));
+        const hpReady = hpPrinters.find(p => p.isOnline || p.status === 'Ready');
+        const hpInfo = hpReady || hpPrinters[0] || { isOnline: false };
+
+        const epsonOnline = Boolean(epsonReady || epsonInfo.isOnline || epsonInfo.status === 'Ready');
+        const hpOnline = Boolean(hpReady || hpInfo.isOnline || hpInfo.status === 'Ready');
 
         const result = {
             [epsonName]: epsonOnline ? 'Online' : 'Offline',
             [hpName]: hpOnline ? 'Online' : 'Offline',
+            'EPSON L3110 Series': epsonOnline ? 'Online' : 'Offline',
+            'HP Laser MFP 131 133 135-138': hpOnline ? 'Online' : 'Offline',
             messages: {
                 [epsonName]: epsonOnline 
-                    ? `✅ Printer [${epsonName}] is Online, powered on, and ready to print via USB Cable!` 
-                    : `⚠️ Printer [${epsonName}] is currently powered off or disconnected. Please turn on printer power switch or connect cable.`,
+                    ? `✅ Printer [EPSON L3110 Series] is Online, powered on, and ready to print via USB Cable!` 
+                    : `⚠️ Printer [EPSON L3110 Series] is currently powered off or disconnected. Please turn on printer power switch or connect cable.`,
                 [hpName]: hpOnline 
-                    ? `✅ Printer [${hpName}] is Online and ready to print!` 
-                    : `⚠️ Printer [${hpName}] is currently powered off or disconnected. Please turn on printer power switch or connect cable.`
+                    ? `✅ Printer [HP Laser MFP 131 133 135-138] is Online, powered on, and ready to print via USB Cable!` 
+                    : `⚠️ Printer [HP Laser MFP 131 133 135-138] is currently powered off or disconnected. Please turn on printer power switch or connect cable.`
             },
             timestamp: new Date().toISOString()
         };
@@ -132,6 +141,8 @@ router.get('/printer-status', async (req, res) => {
         res.json({
             [epsonName]: 'Offline',
             [hpName]: 'Offline',
+            'EPSON L3110 Series': 'Offline',
+            'HP Laser MFP 131 133 135-138': 'Offline',
             messages: {
                 [epsonName]: '⚠️ Printer is currently powered off or disconnected.',
                 [hpName]: '⚠️ Printer is currently powered off or disconnected.'
@@ -650,9 +661,8 @@ router.post('/upload-document', (req, res) => {
             const rawColor = String(req.body.colorMode || '').toLowerCase();
             const colorMode = (rawColor.includes('color') || rawColor.includes('colour')) ? 'Color' : 'BlackWhite';
 
-            // Retrieve system target folder (D:\WhatsApp or custom setting)
-            const settings = db.getSettings();
-            const targetFolder = settings.whatsAppFolder || 'D:\\WhatsApp';
+            // Retrieve universal automated prints drop folder (dynamically resolved)
+            const targetFolder = FolderWatcher.getDropFolder();
             if (!fs.existsSync(targetFolder)) {
                 fs.mkdirSync(targetFolder, { recursive: true });
             }
@@ -676,12 +686,17 @@ router.post('/upload-document', (req, res) => {
                 const standardizedFilename = `webupload_${Date.now() + i}_${uniqueSalt}_${copies}c_${colorMode}_${cleanOrigName}`;
                 const targetPath = path.join(targetFolder, standardizedFilename);
 
-                // Move uploaded temporary file directly into watched WhatsApp folder
+                // Move uploaded temporary file directly into automated prints folder
                 fs.copyFileSync(file.path, targetPath);
                 try { fs.unlinkSync(file.path); } catch (e) {}
 
                 Logger.info('WEB_PORTAL', `QR Counter Upload received (${i + 1}/${rawFiles.length}): [${standardizedFilename}] (${copies} Copies, ${colorMode} Mode) => Saved into [${targetFolder}].`);
                 processedOutputs.push(standardizedFilename);
+
+                // Immediately trigger automated processing and hardware printing
+                FolderWatcher.handleDetectedFile(targetPath).catch(err => {
+                    Logger.error('WEB_PORTAL', `Immediate auto-print trigger error for [${standardizedFilename}]: ${err.message}`);
+                });
             }
 
             if (processedOutputs.length === 0) {
@@ -691,14 +706,14 @@ router.post('/upload-document', (req, res) => {
             res.json({
                 success: true,
                 message: processedOutputs.length === 1
-                    ? "Your document has been sent to the print station!"
-                    : `All ${processedOutputs.length} documents have been sent to the print station!`,
+                    ? "Your document has been sent to the printer!"
+                    : `All ${processedOutputs.length} documents have been sent to the printer!`,
                 filename: processedOutputs[0],
                 filenames: processedOutputs,
                 fileCount: processedOutputs.length,
                 copies,
                 colorMode,
-                destination: targetFolder
+                destination: "prints"
             });
         } catch (error) {
             Logger.error('WEB_PORTAL', `Failed processing web document upload: ${error.message}`);
@@ -725,8 +740,7 @@ router.post('/merge-id-card', (req, res) => {
             const colorMode = (req.body.colorMode || 'Color').replace(/[^a-zA-Z]/g, '') || 'Color';
             const copies = Math.min(Math.max(Number(req.body.copies) || 1, 1), 50);
 
-            const settings = db.getSettings();
-            const targetFolder = settings.whatsAppFolder || 'D:\\WhatsApp';
+            const targetFolder = FolderWatcher.getDropFolder();
             if (!fs.existsSync(targetFolder)) {
                 fs.mkdirSync(targetFolder, { recursive: true });
             }
@@ -748,6 +762,11 @@ router.post('/merge-id-card', (req, res) => {
 
             Logger.info('WEB_PORTAL', `Merged 2-Sided ID Card created: [${finalFilename}] (${copies} Copies, ${orientation} Layout)`);
 
+            // Immediately trigger automated processing and hardware printing
+            FolderWatcher.handleDetectedFile(finalPath).catch(err => {
+                Logger.error('WEB_PORTAL', `Immediate auto-print trigger error for [${finalFilename}]: ${err.message}`);
+            });
+
             res.json({
                 success: true,
                 message: "2-Sided ID Card merged onto 1 page and sent to printer!",
@@ -755,7 +774,7 @@ router.post('/merge-id-card', (req, res) => {
                 copies,
                 colorMode,
                 orientation,
-                destination: targetFolder
+                destination: "prints"
             });
         } catch (error) {
             Logger.error('WEB_PORTAL', `Failed merging 2-sided ID Card: ${error.message}`);
