@@ -70,6 +70,20 @@
       "status": "Success",
       "copies": 1,
       "retryCount": 1
+    },
+    "hist_1787563931738_2ww7": {
+      "id": "hist_1787563931738_2ww7",
+      "fileId": "doc_1787563929554",
+      "customerFile": "webupload_1787563929541_6fta_1c_BlackWhite_e_drive_live_test.pdf",
+      "originalPath": "D:\\Arka\\storage\\incoming\\1787563929544_webupload_1787563929541_6fta_1c_BlackWhite_e_drive_live_test.pdf",
+      "processedPath": "D:\\Arka\\storage\\processed\\optimized_1787563929545_1787563929544_webupload_1787563929541_6fta_1c_BlackWhite_e_drive_live_test.pdf",
+      "pages": 1,
+      "printerName": "HP Laser MFP 131 133 135-138",
+      "colorMode": "BlackWhite",
+      "printTime": "2026-08-24T09:32:11.738Z",
+      "status": "Success",
+      "copies": 1,
+      "retryCount": 1
     }
   },
   "printers": {
@@ -144,22 +158,22 @@
       "name": "EPSON L3110 Series",
       "driverName": "EPSON L3110 Series",
       "status": "Ready",
-      "isDefault": false,
+      "isDefault": true,
       "isPrimary": false,
       "isSecondary": false,
       "isFallback": false,
-      "lastChecked": "2026-08-24T09:20:49.153Z"
+      "lastChecked": "2026-08-24T09:31:41.017Z"
     },
     "hp_laser_mfp_131_133_135_138": {
       "id": "hp_laser_mfp_131_133_135_138",
       "name": "HP Laser MFP 131 133 135-138",
       "driverName": "HP Laser MFP 131 133 135-138",
       "status": "Ready",
-      "isDefault": true,
+      "isDefault": false,
       "isPrimary": true,
       "isSecondary": true,
       "isFallback": false,
-      "lastChecked": "2026-08-24T09:20:49.153Z"
+      "lastChecked": "2026-08-24T09:31:41.017Z"
     }
   },
   "settings": {
@@ -5651,6 +5665,22 @@
       "attempts": 1,
       "createdAt": "2026-08-24T09:25:16.020Z",
       "updatedAt": "2026-08-24T09:25:18.661Z"
+    },
+    "job_1787563929554_7p0y6": {
+      "id": "job_1787563929554_7p0y6",
+      "fileId": "doc_1787563929554",
+      "customerName": "Customer Print",
+      "fileName": "webupload_1787563929541_6fta_1c_BlackWhite_e_drive_live_test.pdf",
+      "processedPath": "D:\\Arka\\storage\\processed\\optimized_1787563929545_1787563929544_webupload_1787563929541_6fta_1c_BlackWhite_e_drive_live_test.pdf",
+      "originalPath": "D:\\Arka\\storage\\incoming\\1787563929544_webupload_1787563929541_6fta_1c_BlackWhite_e_drive_live_test.pdf",
+      "printer": "HP Laser MFP 131 133 135-138",
+      "copies": 1,
+      "colorMode": "BlackWhite",
+      "status": "Completed",
+      "priority": 1,
+      "attempts": 1,
+      "createdAt": "2026-08-24T09:32:09.554Z",
+      "updatedAt": "2026-08-24T09:32:11.735Z"
     }
   },
   "statistics": {
@@ -5698,9 +5728,9 @@
     },
     "2026-08-24": {
       "date": "2026-08-24",
-      "totalReceived": 13,
-      "totalProcessed": 13,
-      "totalPrinted": 10,
+      "totalReceived": 14,
+      "totalProcessed": 14,
+      "totalPrinted": 11,
       "totalFailed": 3
     }
   }

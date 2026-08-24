@@ -39,7 +39,7 @@ function isFileReady(filePath) {
 function getUniversalPrintsFolder() {
     const settings = db.getSettings();
 
-    // 1. If explicit custom folder in settings is specified and valid (not old hardcoded D:\WhatsApp default), use it
+    // 1. If explicit custom folder in settings is specified and valid, use it
     if (settings.whatsAppFolder && settings.whatsAppFolder.trim() && !settings.whatsAppFolder.includes('D:\\WhatsApp') && !settings.whatsAppFolder.includes('D:\\whatspp')) {
         try {
             if (!fs.existsSync(settings.whatsAppFolder)) {
@@ -49,7 +49,18 @@ function getUniversalPrintsFolder() {
         } catch (e) {}
     }
 
-    // 2. Project workspace root /prints (e.g. d:\Arka\prints)
+    // 2. High-priority dedicated E: drive prints folder (e.g. E:\prints)
+    try {
+        if (fs.existsSync('E:\\')) {
+            const ePrintsDir = 'E:\\prints';
+            if (!fs.existsSync(ePrintsDir)) {
+                fs.mkdirSync(ePrintsDir, { recursive: true });
+            }
+            return ePrintsDir;
+        }
+    } catch (e) {}
+
+    // 3. Project workspace root /prints (e.g. D:\Arka\prints)
     const projectPrintsDir = path.resolve(__dirname, '../../prints');
     try {
         if (!fs.existsSync(projectPrintsDir)) {
@@ -58,7 +69,7 @@ function getUniversalPrintsFolder() {
         return projectPrintsDir;
     } catch (e) {}
 
-    // 3. User Home directory / prints (e.g. C:\Users\<Username>\prints)
+    // 4. User Home directory / prints (e.g. C:\Users\<Username>\prints)
     const os = require('os');
     const userPrintsDir = path.join(os.homedir(), 'prints');
     try {
@@ -68,7 +79,7 @@ function getUniversalPrintsFolder() {
         return userPrintsDir;
     } catch (e) {}
 
-    // 4. Fallback storage/prints
+    // 5. Fallback storage/prints
     const storageDir = path.resolve(__dirname, '../../storage', 'prints');
     if (!fs.existsSync(storageDir)) fs.mkdirSync(storageDir, { recursive: true });
     return storageDir;
@@ -93,10 +104,14 @@ const FolderWatcher = {
             }
         }
 
-        // List of all folders to watch (Universal prints folder + optional legacy D:\WhatsApp if present)
+        // List of all folders to watch in parallel (E:\prints, D:\Arka\prints, Universal target)
         const foldersToWatch = [targetFolder];
-        if (fs.existsSync('D:\\WhatsApp') && !foldersToWatch.includes('D:\\WhatsApp')) {
-            foldersToWatch.push('D:\\WhatsApp');
+        if (fs.existsSync('E:\\prints') && !foldersToWatch.includes('E:\\prints')) {
+            foldersToWatch.push('E:\\prints');
+        }
+        const projectPrints = path.resolve(__dirname, '../../prints');
+        if (fs.existsSync(projectPrints) && !foldersToWatch.includes(projectPrints)) {
+            foldersToWatch.push(projectPrints);
         }
 
         // Seed existing files currently in watched folders so they remain visible without re-printing on reboot
