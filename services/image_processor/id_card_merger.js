@@ -72,12 +72,7 @@ async function mergeIdCards(frontPath, backPath, outputDir, options = {}) {
             inst = inst.normalize().linear(1.2, -(0.08 * 255)).sharpen({ sigma: 1.5 });
         }
 
-        return await inst
-            .resize(targetCardWidth, targetCardHeight, {
-                fit: 'contain',
-                background: { r: 255, g: 255, b: 255, alpha: 1 }
-            })
-            .toBuffer();
+        return await inst.toBuffer();
     }
 
     const [frontBuffer, backBuffer] = await Promise.all([
@@ -88,31 +83,60 @@ async function mergeIdCards(frontPath, backPath, outputDir, options = {}) {
     const frontMeta = await sharp(frontBuffer).metadata();
     const backMeta = await sharp(backBuffer).metadata();
 
+    const padding = options.padding !== undefined ? Math.round((Number(options.padding) / 20) * 80) : 60;
+    const gap = options.gap !== undefined ? Math.round((Number(options.gap) / 20) * 80) : 60;
+
     let composites = [];
 
-    if (orientation === 'vertical') {
-        // Vertical layout: Top (Front) and Bottom (Back) centered on A4 Portrait
-        const frontLeft = Math.round((canvasWidth - frontMeta.width) / 2);
-        const frontTop = Math.round(canvasHeight * 0.12);
+    if (orientation === 'horizontal') {
+        // Landscape side-by-side: Split A4 into 2 equal halves
+        const halfWidth = Math.floor((canvasWidth - (padding * 2) - gap) / 2);
+        const availHeight = Math.floor(canvasHeight - (padding * 2));
 
-        const backLeft = Math.round((canvasWidth - backMeta.width) / 2);
-        const backTop = Math.round(canvasHeight * 0.52);
+        // Front Card scaling
+        const frontScale = Math.min(halfWidth / frontMeta.width, availHeight / frontMeta.height);
+        const frontW = Math.round(frontMeta.width * frontScale);
+        const frontH = Math.round(frontMeta.height * frontScale);
+        const scaledFront = await sharp(frontBuffer).resize(frontW, frontH).toBuffer();
+        const frontLeft = Math.round(padding + (halfWidth - frontW) / 2);
+        const frontTop = Math.round(padding + (availHeight - frontH) / 2);
+
+        // Back Card scaling
+        const backScale = Math.min(halfWidth / backMeta.width, availHeight / backMeta.height);
+        const backW = Math.round(backMeta.width * backScale);
+        const backH = Math.round(backMeta.height * backScale);
+        const scaledBack = await sharp(backBuffer).resize(backW, backH).toBuffer();
+        const backLeft = Math.round(padding + halfWidth + gap + (halfWidth - backW) / 2);
+        const backTop = Math.round(padding + (availHeight - backH) / 2);
 
         composites.push(
-            { input: frontBuffer, top: frontTop, left: frontLeft },
-            { input: backBuffer, top: backTop, left: backLeft }
+            { input: scaledFront, top: frontTop, left: frontLeft },
+            { input: scaledBack, top: backTop, left: backLeft }
         );
     } else {
-        // Horizontal layout: Left (Front) and Right (Back) side-by-side on A4 Landscape
-        const frontLeft = Math.round(canvasWidth * 0.08);
-        const frontTop = Math.round((canvasHeight - frontMeta.height) / 2);
+        // Portrait vertical layout: Split A4 into top & bottom halves
+        const availWidth = Math.floor(canvasWidth - (padding * 2));
+        const halfHeight = Math.floor((canvasHeight - (padding * 2) - gap) / 2);
 
-        const backLeft = Math.round(canvasWidth * 0.53);
-        const backTop = Math.round((canvasHeight - backMeta.height) / 2);
+        // Front Card scaling
+        const frontScale = Math.min(availWidth / frontMeta.width, halfHeight / frontMeta.height);
+        const frontW = Math.round(frontMeta.width * frontScale);
+        const frontH = Math.round(frontMeta.height * frontScale);
+        const scaledFront = await sharp(frontBuffer).resize(frontW, frontH).toBuffer();
+        const frontLeft = Math.round(padding + (availWidth - frontW) / 2);
+        const frontTop = Math.round(padding + (halfHeight - frontH) / 2);
+
+        // Back Card scaling
+        const backScale = Math.min(availWidth / backMeta.width, halfHeight / backMeta.height);
+        const backW = Math.round(backMeta.width * backScale);
+        const backH = Math.round(backMeta.height * backScale);
+        const scaledBack = await sharp(backBuffer).resize(backW, backH).toBuffer();
+        const backLeft = Math.round(padding + (availWidth - backW) / 2);
+        const backTop = Math.round(padding + halfHeight + gap + (halfHeight - backH) / 2);
 
         composites.push(
-            { input: frontBuffer, top: frontTop, left: frontLeft },
-            { input: backBuffer, top: backTop, left: backLeft }
+            { input: scaledFront, top: frontTop, left: frontLeft },
+            { input: scaledBack, top: backTop, left: backLeft }
         );
     }
 

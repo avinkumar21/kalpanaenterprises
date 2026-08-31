@@ -301,20 +301,18 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
       try {
         const isLandscape = idOrientation === 'horizontal';
         const canvas = document.createElement('canvas');
-        // Standard A4 aspect ratio canvas
-        const cWidth = isLandscape ? 1500 : 1060;
-        const cHeight = isLandscape ? 1060 : 1500;
+        // Exact standard A4 aspect ratio (1 : 1.4142)
+        // High-definition canvas: 1754 x 1240 for landscape, 1240 x 1754 for portrait
+        const cWidth = isLandscape ? 1754 : 1240;
+        const cHeight = isLandscape ? 1240 : 1754;
         canvas.width = cWidth;
         canvas.height = cHeight;
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
 
-        // Clean white A4 paper background
+        // Plain solid white A4 sheet (pure white, NO frames, NO borders, NO drop shadows)
         ctx.fillStyle = '#FFFFFF';
         ctx.fillRect(0, 0, cWidth, cHeight);
-        ctx.strokeStyle = '#CBD5E1';
-        ctx.lineWidth = 3;
-        ctx.strokeRect(8, 8, cWidth - 16, cHeight - 16);
 
         const loadImg = (src: string): Promise<HTMLImageElement> => {
           return new Promise((resolve) => {
@@ -329,115 +327,91 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
           backCardPreview ? loadImg(backCardPreview) : null
         ]);
 
-        // Draw card onto canvas with shadow, border, and optional watermark
-        const renderCard = (img: HTMLImageElement | null, x: number, y: number, w: number, h: number, label: string) => {
-          if (!img) {
-            // Placeholder box
-            ctx.fillStyle = '#F8FAFC';
-            ctx.fillRect(x, y, w, h);
-            ctx.strokeStyle = '#E2E8F0';
-            ctx.lineWidth = 2;
-            ctx.strokeRect(x, y, w, h);
-            ctx.fillStyle = '#94A3B8';
-            ctx.font = 'bold 13px sans-serif';
-            ctx.textAlign = 'center';
-            ctx.fillText(`${label} PENDING`, x + w / 2, y + h / 2);
-            return;
-          }
-
-          // Card drop shadow
-          ctx.save();
-          ctx.shadowColor = 'rgba(0, 0, 0, 0.16)';
-          ctx.shadowBlur = 12;
-          ctx.shadowOffsetY = 4;
-
-          // Card white background
-          ctx.fillStyle = '#FFFFFF';
-          ctx.fillRect(x, y, w, h);
-          ctx.restore();
-
-          // Calculate fit contain within available card box
-          const imgAspect = img.naturalWidth / img.naturalHeight;
-          const boxAspect = w / h;
-          let drawW = w;
-          let drawH = h;
-          let drawX = x;
-          let drawY = y;
-
-          if (imgAspect > boxAspect) {
-            drawH = w / imgAspect;
-            drawY = y + (h - drawH) / 2;
-          } else {
-            drawW = h * imgAspect;
-            drawX = x + (w - drawW) / 2;
-          }
-
+        // Draw plain image directly without any shadows, frames, borders, or boxes
+        const drawPlainImage = (img: HTMLImageElement, x: number, y: number, w: number, h: number) => {
           ctx.save();
           if (isGrayscale) {
             ctx.filter = 'grayscale(100%)';
           }
-          ctx.drawImage(img, drawX, drawY, drawW, drawH);
+          ctx.drawImage(img, x, y, w, h);
           ctx.restore();
 
-          // Card border
-          ctx.strokeStyle = '#CBD5E1';
-          ctx.lineWidth = 2;
-          ctx.strokeRect(x, y, w, h);
-
-          // Watermark overlay if provided
+          // Watermark overlay only if requested
           if (watermarkText && watermarkText.trim()) {
             ctx.save();
-            ctx.font = 'bold 22px sans-serif';
-            ctx.fillStyle = 'rgba(71, 85, 105, 0.38)';
+            ctx.font = 'bold 24px sans-serif';
+            ctx.fillStyle = 'rgba(71, 85, 105, 0.35)';
             ctx.textAlign = 'center';
             ctx.translate(x + w / 2, y + h / 2);
-            ctx.rotate((-20 * Math.PI) / 180);
+            ctx.rotate((-22 * Math.PI) / 180);
             ctx.fillText(watermarkText.trim(), 0, 0);
             ctx.restore();
           }
         };
 
-        // Layout positioning based on orientation, gap, and padding
-        const scaleGap = Math.round((gapPx / 20) * 40);
-        const scalePadding = Math.round((paddingPx / 20) * 40);
+        const pad = Math.round((paddingPx / 20) * 30);
+        const gap = Math.round((gapPx / 20) * 30);
 
         if (idOrientation === 'horizontal') {
-          // Horizontal side-by-side
-          const availableW = Math.floor((cWidth - (scalePadding * 2) - scaleGap) / 2);
-          const availableH = Math.floor(cHeight - (scalePadding * 2));
-          const cardW = Math.min(availableW, 640);
-          const cardH = Math.min(availableH, 420);
+          // Side-by-Side layout on A4 Landscape (split into 2 equal halves)
+          const halfW = Math.floor((cWidth - (pad * 2) - gap) / 2);
+          const availH = Math.floor(cHeight - (pad * 2));
 
-          const posX1 = Math.round(scalePadding + (availableW - cardW) / 2);
-          const posX2 = Math.round(scalePadding + availableW + scaleGap + (availableW - cardW) / 2);
-          const posY = Math.round((cHeight - cardH) / 2);
+          if (frontImg) {
+            const aspect = frontImg.naturalWidth / frontImg.naturalHeight;
+            let drawW = halfW;
+            let drawH = halfW / aspect;
+            if (drawH > availH) {
+              drawH = availH;
+              drawW = availH * aspect;
+            }
+            const posX = Math.round(pad + (halfW - drawW) / 2);
+            const posY = Math.round(pad + (availH - drawH) / 2);
+            drawPlainImage(frontImg, posX, posY, drawW, drawH);
+          }
 
-          renderCard(frontImg, posX1, posY, cardW, cardH, 'FRONT SIDE');
-          renderCard(backImg, posX2, posY, cardW, cardH, 'BACK SIDE');
+          if (backImg) {
+            const aspect = backImg.naturalWidth / backImg.naturalHeight;
+            let drawW = halfW;
+            let drawH = halfW / aspect;
+            if (drawH > availH) {
+              drawH = availH;
+              drawW = availH * aspect;
+            }
+            const posX = Math.round(pad + halfW + gap + (halfW - drawW) / 2);
+            const posY = Math.round(pad + (availH - drawH) / 2);
+            drawPlainImage(backImg, posX, posY, drawW, drawH);
+          }
         } else {
-          // Vertical top-and-bottom
-          const availableW = Math.floor(cWidth - (scalePadding * 2));
-          const availableH = Math.floor((cHeight - (scalePadding * 2) - scaleGap) / 2);
-          const cardW = Math.min(availableW, 720);
-          const cardH = Math.min(availableH, 460);
+          // Top-and-Bottom layout on A4 Portrait (split into 2 equal halves)
+          const availW = Math.floor(cWidth - (pad * 2));
+          const halfH = Math.floor((cHeight - (pad * 2) - gap) / 2);
 
-          const posX = Math.round((cWidth - cardW) / 2);
-          const posY1 = Math.round(scalePadding + (availableH - cardH) / 2);
-          const posY2 = Math.round(scalePadding + availableH + scaleGap + (availableH - cardH) / 2);
+          if (frontImg) {
+            const aspect = frontImg.naturalWidth / frontImg.naturalHeight;
+            let drawW = availW;
+            let drawH = availW / aspect;
+            if (drawH > halfH) {
+              drawH = halfH;
+              drawW = halfH * aspect;
+            }
+            const posX = Math.round(pad + (availW - drawW) / 2);
+            const posY = Math.round(pad + (halfH - drawH) / 2);
+            drawPlainImage(frontImg, posX, posY, drawW, drawH);
+          }
 
-          renderCard(frontImg, posX, posY1, cardW, cardH, 'FRONT SIDE');
-          renderCard(backImg, posX, posY2, cardW, cardH, 'BACK SIDE');
-
-          // Subtle center fold dashed line
-          ctx.save();
-          ctx.setLineDash([8, 8]);
-          ctx.strokeStyle = '#E2E8F0';
-          ctx.lineWidth = 2;
-          ctx.beginPath();
-          ctx.moveTo(30, cHeight / 2);
-          ctx.lineTo(cWidth - 30, cHeight / 2);
-          ctx.stroke();
-          ctx.restore();
+          if (backImg) {
+            const aspect = backImg.naturalWidth / backImg.naturalHeight;
+            let drawW = availW;
+            let drawH = availW / aspect;
+            if (drawH > halfH) {
+              drawH = halfH;
+              drawW = halfH * aspect;
+            }
+            const posX = Math.round(pad + (availW - drawW) / 2);
+            const posY = Math.round(pad + halfH + gap + (halfH - drawH) / 2);
+            drawPlainImage(backImg, posX, posY, drawW, drawH);
+          }
         }
 
         if (isMounted) {
@@ -502,7 +476,9 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
     addStr(`3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${pageWidth.toFixed(2)} ${pageHeight.toFixed(2)}] /Contents 4 0 R /Resources << /XObject << /Im1 5 0 R >> >> >>\nendobj\n`);
     addStr(`4 0 obj\n<< /Length ${contentStreamBytes.length} >>\nstream\n${contentStream}\nendstream\nendobj\n`);
 
-    const imgHeader = `5 0 obj\n<< /Type /XObject /Subtype /Image /Width 1500 /Height 1060 /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${byteArray.length} >>\nstream\n`;
+    const imgWidth = isLandscape ? 1754 : 1240;
+    const imgHeight = isLandscape ? 1240 : 1754;
+    const imgHeader = `5 0 obj\n<< /Type /XObject /Subtype /Image /Width ${imgWidth} /Height ${imgHeight} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${byteArray.length} >>\nstream\n`;
     const imgFooter = "\nendstream\nendobj\n";
     const headerBytes = new TextEncoder().encode(imgHeader);
     const footerBytes = new TextEncoder().encode(imgFooter);
@@ -2055,11 +2031,11 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
                     </div>
 
                     {mergedPreviewUrl ? (
-                      <div className="flex justify-center p-3 bg-slate-950 rounded-xl border border-slate-800 shadow-inner overflow-hidden">
+                      <div className="flex justify-center p-2 bg-slate-950 rounded-xl overflow-hidden">
                         <img
                           src={mergedPreviewUrl}
                           alt="Merged Preview"
-                          className="max-h-[460px] w-auto object-contain rounded-lg shadow-2xl border border-slate-800 bg-white"
+                          className="max-h-[500px] w-auto object-contain bg-white"
                         />
                       </div>
                     ) : (
