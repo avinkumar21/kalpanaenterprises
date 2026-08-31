@@ -448,6 +448,11 @@ const PrinterManager = {
                     $pd.DefaultPageSettings.Color = ${colorBoolStr}
                     try { $pd.PrinterSettings.DefaultPageSettings.Color = ${colorBoolStr} } catch {}
 
+                    # Auto-detect Landscape vs Portrait orientation based on image dimensions
+                    $isLandscape = $img.Width -gt $img.Height
+                    $pd.DefaultPageSettings.Landscape = $isLandscape
+                    try { $pd.PrinterSettings.DefaultPageSettings.Landscape = $isLandscape } catch {}
+
                     # Strictly enforce A4 Sheet Paper (Kind 9 = A4 standard)
                     $a4Paper = $pd.PrinterSettings.PaperSizes | Where-Object { $_.Kind -eq [System.Drawing.Printing.PaperKind]::A4 -or $_.PaperName -like '*A4*' } | Select-Object -First 1
                     if ($a4Paper) {
@@ -458,7 +463,12 @@ const PrinterManager = {
 
                     $pd.add_PrintPage({
                         param($sender, $e)
-                        $e.Graphics.DrawImage($img, $e.PageBounds)
+                        $scale = [Math]::Min($e.PageBounds.Width / $img.Width, $e.PageBounds.Height / $img.Height)
+                        $destW = [int]($img.Width * $scale)
+                        $destH = [int]($img.Height * $scale)
+                        $destX = [int]($e.PageBounds.X + ($e.PageBounds.Width - $destW) / 2)
+                        $destY = [int]($e.PageBounds.Y + ($e.PageBounds.Height - $destH) / 2)
+                        $e.Graphics.DrawImage($img, $destX, $destY, $destW, $destH)
                     })
                     $pd.Print()
                     $img.Dispose()
@@ -518,6 +528,15 @@ const PrinterManager = {
                     $pd.DefaultPageSettings.Color = ${colorBoolStr}
                     try { $pd.PrinterSettings.DefaultPageSettings.Color = ${colorBoolStr} } catch {}
 
+                    # Auto-detect PDF Page orientation (Landscape vs Portrait)
+                    if ($totalPages -gt 0) {
+                        $firstPage = $pdfDoc.GetPage(0)
+                        $pdfIsLandscape = $firstPage.Size.Width -gt $firstPage.Size.Height
+                        $pd.DefaultPageSettings.Landscape = $pdfIsLandscape
+                        try { $pd.PrinterSettings.DefaultPageSettings.Landscape = $pdfIsLandscape } catch {}
+                        $firstPage.Dispose()
+                    }
+
                     $a4Paper = $pd.PrinterSettings.PaperSizes | Where-Object { $_.Kind -eq [System.Drawing.Printing.PaperKind]::A4 -or $_.PaperName -like '*A4*' } | Select-Object -First 1
                     if ($a4Paper) { $pd.DefaultPageSettings.PaperSize = $a4Paper }
                     $pd.DefaultPageSettings.Margins = New-Object System.Drawing.Printing.Margins(0, 0, 0, 0)
@@ -534,7 +553,12 @@ const PrinterManager = {
                             $netStream = [System.IO.WindowsRuntimeStreamExtensions]::AsStream($memStream)
                             $img = [System.Drawing.Image]::FromStream($netStream)
                             
-                            $e.Graphics.DrawImage($img, $e.PageBounds)
+                            $scale = [Math]::Min($e.PageBounds.Width / $img.Width, $e.PageBounds.Height / $img.Height)
+                            $destW = [int]($img.Width * $scale)
+                            $destH = [int]($img.Height * $scale)
+                            $destX = [int]($e.PageBounds.X + ($e.PageBounds.Width - $destW) / 2)
+                            $destY = [int]($e.PageBounds.Y + ($e.PageBounds.Height - $destH) / 2)
+                            $e.Graphics.DrawImage($img, $destX, $destY, $destW, $destH)
                             
                             $img.Dispose()
                             $netStream.Dispose()
