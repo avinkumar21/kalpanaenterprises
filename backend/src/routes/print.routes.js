@@ -748,6 +748,9 @@ router.post('/merge-id-card', (req, res) => {
             const orientation = req.body.orientation || 'vertical'; // 'vertical' (top/bottom) | 'horizontal' (side-by-side)
             const colorMode = (req.body.colorMode || 'Color').replace(/[^a-zA-Z]/g, '') || 'Color';
             const copies = Math.min(Math.max(Number(req.body.copies) || 1, 1), 50);
+            const gap = req.body.gap ? Number(req.body.gap) : 20;
+            const padding = req.body.padding ? Number(req.body.padding) : 20;
+            const watermark = req.body.watermark ? String(req.body.watermark).trim() : '';
 
             const targetFolder = FolderWatcher.getDropFolder();
             if (!fs.existsSync(targetFolder)) {
@@ -757,7 +760,10 @@ router.post('/merge-id-card', (req, res) => {
             const mergedResult = await mergeIdCards(frontFile.path, backFile.path, targetFolder, {
                 orientation,
                 colorMode,
-                enhance: true
+                enhance: true,
+                gap,
+                padding,
+                watermark
             });
 
             // Clean up temporary upload files

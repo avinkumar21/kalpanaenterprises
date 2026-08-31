@@ -116,6 +116,30 @@ async function mergeIdCards(frontPath, backPath, outputDir, options = {}) {
         );
     }
 
+    // Semi-transparent diagonal watermark across both cards if requested
+    if (options.watermark && String(options.watermark).trim()) {
+        const cleanWatermark = String(options.watermark).trim().replace(/[<>&"']/g, '');
+        const wmSvg = Buffer.from(`
+            <svg width="${canvasWidth}" height="${canvasHeight}" xmlns="http://www.w3.org/2000/svg">
+                <text x="${orientation === 'vertical' ? canvasWidth / 2 : canvasWidth * 0.28}" 
+                      y="${orientation === 'vertical' ? canvasHeight * 0.27 : canvasHeight / 2}" 
+                      font-size="64" font-family="Arial, Helvetica, sans-serif" font-weight="bold" 
+                      fill="rgba(100, 116, 139, 0.35)" text-anchor="middle" 
+                      transform="rotate(-22, ${orientation === 'vertical' ? canvasWidth / 2 : canvasWidth * 0.28}, ${orientation === 'vertical' ? canvasHeight * 0.27 : canvasHeight / 2})">
+                    ${cleanWatermark}
+                </text>
+                <text x="${orientation === 'vertical' ? canvasWidth / 2 : canvasWidth * 0.72}" 
+                      y="${orientation === 'vertical' ? canvasHeight * 0.67 : canvasHeight / 2}" 
+                      font-size="64" font-family="Arial, Helvetica, sans-serif" font-weight="bold" 
+                      fill="rgba(100, 116, 139, 0.35)" text-anchor="middle" 
+                      transform="rotate(-22, ${orientation === 'vertical' ? canvasWidth / 2 : canvasWidth * 0.72}, ${orientation === 'vertical' ? canvasHeight * 0.67 : canvasHeight / 2})">
+                    ${cleanWatermark}
+                </text>
+            </svg>
+        `);
+        composites.push({ input: wmSvg, top: 0, left: 0 });
+    }
+
     const outputFileName = `merged_id_${Date.now()}_${orientation}.png`;
     const outputPath = path.join(outputDir, outputFileName);
 

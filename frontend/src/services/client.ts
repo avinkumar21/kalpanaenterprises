@@ -548,13 +548,23 @@ class PrintsApi {
     }
   }
 
-  async mergeAndUploadIdCard(frontFile: File, backFile: File, orientation: 'vertical' | 'horizontal' = 'vertical', copies: number = 1, colorMode: string = 'Color'): Promise<any> {
+  async mergeAndUploadIdCard(
+    frontFile: File,
+    backFile: File,
+    orientation: 'vertical' | 'horizontal' = 'vertical',
+    copies: number = 1,
+    colorMode: string = 'Color',
+    options?: { gap?: number; padding?: number; watermark?: string }
+  ): Promise<any> {
     const formData = new FormData();
     formData.append('front', frontFile);
     formData.append('back', backFile);
     formData.append('orientation', orientation);
     formData.append('copies', copies.toString());
     formData.append('colorMode', colorMode);
+    if (options?.gap !== undefined) formData.append('gap', options.gap.toString());
+    if (options?.padding !== undefined) formData.append('padding', options.padding.toString());
+    if (options?.watermark) formData.append('watermark', options.watermark);
     const res = await fetchWithFallback('/merge-id-card', {
       method: 'POST',
       body: formData

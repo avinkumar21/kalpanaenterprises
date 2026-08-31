@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { api, setCustomApiBase, resolveLiveTunnelUrl } from '../../services/client';
-import { Upload, FileText, CheckCircle2, AlertCircle, Printer, Sparkles, QrCode, RefreshCw, Layers, Palette, Monitor } from 'lucide-react';
+import { Upload, FileText, CheckCircle2, AlertCircle, Printer, Sparkles, QrCode, RefreshCw, Layers, Palette, Monitor, Scissors, RotateCw, Trash2, Edit3, Download, Maximize2, Sliders } from 'lucide-react';
 import QRCode from 'react-qr-code';
+import { IdCardCropModal } from '../../components/IdCardCropModal';
 
 declare const __LOCAL_IP__: string | undefined;
 
@@ -168,13 +169,127 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
   const [backCardFile, setBackCardFile] = useState<File | null>(null);
   const [frontCardPreview, setFrontCardPreview] = useState<string | null>(null);
   const [backCardPreview, setBackCardPreview] = useState<string | null>(null);
-  const [idOrientation, setIdOrientation] = useState<'vertical' | 'horizontal'>('vertical');
+  const [frontCardDims, setFrontCardDims] = useState<{ width: number; height: number } | null>(null);
+  const [backCardDims, setBackCardDims] = useState<{ width: number; height: number } | null>(null);
+  const [idOrientation, setIdOrientation] = useState<'vertical' | 'horizontal'>('horizontal');
+  const [gapPx, setGapPx] = useState<number>(20);
+  const [paddingPx, setPaddingPx] = useState<number>(20);
+  const [watermarkText, setWatermarkText] = useState<string>('');
+  const [isGrayscale, setIsGrayscale] = useState<boolean>(false);
+  const [compressionQuality, setCompressionQuality] = useState<number>(90);
+  const [fitToA4Pdf, setFitToA4Pdf] = useState<boolean>(true);
   const [mergedPreviewUrl, setMergedPreviewUrl] = useState<string | null>(null);
+
+  // Auto-Crop Modal state
+  const [cropModalOpen, setCropModalOpen] = useState<boolean>(false);
+  const [cropModalSide, setCropModalSide] = useState<'front' | 'back'>('front');
+  const [cropModalTargetFile, setCropModalTargetFile] = useState<File | null>(null);
 
   const frontInputRef = useRef<HTMLInputElement>(null);
   const backInputRef = useRef<HTMLInputElement>(null);
 
-  // Generate live composite preview of 2-sided ID Card onto A4 Canvas in real-time
+  // Trigger Crop Modal when user selects or changes a file
+  const handleFrontCardUpload = (file?: File) => {
+    if (!file) return;
+    setCropModalTargetFile(file);
+    setCropModalSide('front');
+    setCropModalOpen(true);
+  };
+
+  const handleBackCardUpload = (file?: File) => {
+    if (!file) return;
+    setCropModalTargetFile(file);
+    setCropModalSide('back');
+    setCropModalOpen(true);
+  };
+
+  const handleCropApplied = (croppedFile: File, dataUrl: string, width: number, height: number) => {
+    if (cropModalSide === 'front') {
+      setFrontCardFile(croppedFile);
+      setFrontCardPreview(dataUrl);
+      setFrontCardDims({ width, height });
+    } else {
+      setBackCardFile(croppedFile);
+      setBackCardPreview(dataUrl);
+      setBackCardDims({ width, height });
+    }
+  };
+
+  const handleReCrop = (side: 'front' | 'back') => {
+    const file = side === 'front' ? frontCardFile : backCardFile;
+    if (!file) return;
+    setCropModalTargetFile(file);
+    setCropModalSide(side);
+    setCropModalOpen(true);
+  };
+
+  const handleRotateCard = async (side: 'front' | 'back') => {
+    const targetFile = side === 'front' ? frontCardFile : backCardFile;
+    const targetPreview = side === 'front' ? frontCardPreview : backCardPreview;
+    if (!targetFile || !targetPreview) return;
+
+    try {
+      const img = new Image();
+      img.src = targetPreview;
+      await new Promise(r => { img.onload = r; });
+
+      const canvas = document.createElement('canvas');
+      canvas.width = img.naturalHeight;
+      canvas.height = img.naturalWidth;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+
+      ctx.translate(canvas.width, 0);
+      ctx.rotate((90 * Math.PI) / 180);
+      ctx.drawImage(img, 0, 0);
+
+      const blob = await new Promise<Blob | null>(r => canvas.toBlob(r, 'image/jpeg', 0.95));
+      if (!blob) return;
+
+      const rotatedFile = new File([blob], targetFile.name, { type: 'image/jpeg' });
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
+
+      if (side === 'front') {
+        setFrontCardFile(rotatedFile);
+        setFrontCardPreview(dataUrl);
+        setFrontCardDims({ width: canvas.width, height: canvas.height });
+      } else {
+        setBackCardFile(rotatedFile);
+        setBackCardPreview(dataUrl);
+        setBackCardDims({ width: canvas.width, height: canvas.height });
+      }
+    } catch (e) {
+      console.error("Rotate error:", e);
+    }
+  };
+
+  const handleRemoveCard = (side: 'front' | 'back') => {
+    if (side === 'front') {
+      setFrontCardFile(null);
+      setFrontCardPreview(null);
+      setFrontCardDims(null);
+      if (frontInputRef.current) frontInputRef.current.value = '';
+    } else {
+      setBackCardFile(null);
+      setBackCardPreview(null);
+      setBackCardDims(null);
+      if (backInputRef.current) backInputRef.current.value = '';
+    }
+  };
+
+  const handleSwapCards = () => {
+    const tempFile = frontCardFile;
+    const tempPreview = frontCardPreview;
+    const tempDims = frontCardDims;
+    setFrontCardFile(backCardFile);
+    setFrontCardPreview(backCardPreview);
+    setFrontCardDims(backCardDims);
+    setBackCardFile(tempFile);
+    setBackCardPreview(tempPreview);
+    setBackCardDims(tempDims);
+  };
+
+  // Live Composite Merged Preview with A4 canvas, gap, padding, watermark, and grayscale
   useEffect(() => {
     if (!frontCardFile && !backCardFile) {
       setMergedPreviewUrl(null);
@@ -186,139 +301,148 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
       try {
         const isLandscape = idOrientation === 'horizontal';
         const canvas = document.createElement('canvas');
-        const cWidth = isLandscape ? 1200 : 850;
-        const cHeight = isLandscape ? 850 : 1200;
+        // Standard A4 aspect ratio canvas
+        const cWidth = isLandscape ? 1500 : 1060;
+        const cHeight = isLandscape ? 1060 : 1500;
         canvas.width = cWidth;
         canvas.height = cHeight;
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
 
-        // Clean white A4 paper background with subtle inner border
+        // Clean white A4 paper background
         ctx.fillStyle = '#FFFFFF';
         ctx.fillRect(0, 0, cWidth, cHeight);
-        ctx.strokeStyle = '#E2E8F0';
-        ctx.lineWidth = 4;
-        ctx.strokeRect(10, 10, cWidth - 20, cHeight - 20);
+        ctx.strokeStyle = '#CBD5E1';
+        ctx.lineWidth = 3;
+        ctx.strokeRect(8, 8, cWidth - 16, cHeight - 16);
 
-        // Target card dimensions on preview canvas
-        const cardW = isLandscape ? 480 : 540;
-        const cardH = isLandscape ? 300 : 340;
-
-        const drawCard = (img: HTMLImageElement, x: number, y: number, label: string) => {
-          // Draw card shadow
-          ctx.save();
-          ctx.shadowColor = 'rgba(0, 0, 0, 0.18)';
-          ctx.shadowBlur = 14;
-          ctx.shadowOffsetX = 0;
-          ctx.shadowOffsetY = 4;
-
-          // Draw card background
-          ctx.fillStyle = '#F8FAFC';
-          ctx.fillRect(x, y, cardW, cardH);
-          ctx.restore();
-
-          // Draw card image fitted contain
-          const imgAspect = img.naturalWidth / img.naturalHeight;
-          const cardAspect = cardW / cardH;
-          let drawW = cardW;
-          let drawH = cardH;
-          let drawX = x;
-          let drawY = y;
-
-          if (imgAspect > cardAspect) {
-            drawH = cardW / imgAspect;
-            drawY = y + (cardH - drawH) / 2;
-          } else {
-            drawW = cardH * imgAspect;
-            drawX = x + (cardW - drawW) / 2;
-          }
-
-          ctx.drawImage(img, drawX, drawY, drawW, drawH);
-
-          // Card outline border
-          ctx.strokeStyle = '#94A3B8';
-          ctx.lineWidth = 2;
-          ctx.strokeRect(x, y, cardW, cardH);
-
-          // Label tag
-          ctx.fillStyle = '#1E293B';
-          ctx.fillRect(x + 8, y + 8, 120, 22);
-          ctx.fillStyle = '#38BDF8';
-          ctx.font = 'bold 11px sans-serif';
-          ctx.fillText(label, x + 14, y + 23);
-        };
-
-        const loadImg = (file: File): Promise<HTMLImageElement> => {
+        const loadImg = (src: string): Promise<HTMLImageElement> => {
           return new Promise((resolve) => {
             const img = new Image();
-            const url = URL.createObjectURL(file);
-            img.onload = () => {
-              resolve(img);
-            };
-            img.src = url;
+            img.onload = () => resolve(img);
+            img.src = src;
           });
         };
 
-        if (idOrientation === 'vertical') {
-          // Vertical Layout (Top = Front, Bottom = Back)
-          const posX = (cWidth - cardW) / 2;
-          const topY = cHeight * 0.12;
-          const bottomY = cHeight * 0.54;
+        const [frontImg, backImg] = await Promise.all([
+          frontCardPreview ? loadImg(frontCardPreview) : null,
+          backCardPreview ? loadImg(backCardPreview) : null
+        ]);
 
-          if (frontCardFile) {
-            const frontImg = await loadImg(frontCardFile);
-            drawCard(frontImg, posX, topY, 'CARD FRONT (ಮುಂಭಾಗ)');
-          } else {
-            ctx.fillStyle = '#F1F5F9';
-            ctx.fillRect(posX, topY, cardW, cardH);
-            ctx.strokeStyle = '#CBD5E1';
-            ctx.strokeRect(posX, topY, cardW, cardH);
-            ctx.fillStyle = '#64748B';
-            ctx.font = 'bold 14px sans-serif';
-            ctx.fillText('FRONT SIDE PENDING (ಮುಂಭಾಗ ಬಾಕಿ ಇದೆ)', posX + 60, topY + cardH / 2);
+        // Draw card onto canvas with shadow, border, and optional watermark
+        const renderCard = (img: HTMLImageElement | null, x: number, y: number, w: number, h: number, label: string) => {
+          if (!img) {
+            // Placeholder box
+            ctx.fillStyle = '#F8FAFC';
+            ctx.fillRect(x, y, w, h);
+            ctx.strokeStyle = '#E2E8F0';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(x, y, w, h);
+            ctx.fillStyle = '#94A3B8';
+            ctx.font = 'bold 13px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(`${label} PENDING`, x + w / 2, y + h / 2);
+            return;
           }
 
-          // Center dashed fold/cut guide line
+          // Card drop shadow
           ctx.save();
-          ctx.setLineDash([8, 8]);
-          ctx.strokeStyle = '#CBD5E1';
-          ctx.lineWidth = 2;
-          ctx.beginPath();
-          ctx.moveTo(40, cHeight / 2);
-          ctx.lineTo(cWidth - 40, cHeight / 2);
-          ctx.stroke();
+          ctx.shadowColor = 'rgba(0, 0, 0, 0.16)';
+          ctx.shadowBlur = 12;
+          ctx.shadowOffsetY = 4;
+
+          // Card white background
+          ctx.fillStyle = '#FFFFFF';
+          ctx.fillRect(x, y, w, h);
           ctx.restore();
 
-          if (backCardFile) {
-            const backImg = await loadImg(backCardFile);
-            drawCard(backImg, posX, bottomY, 'CARD BACK (ಹಿಂಭಾಗ)');
-          } else {
-            ctx.fillStyle = '#F1F5F9';
-            ctx.fillRect(posX, bottomY, cardW, cardH);
-            ctx.strokeStyle = '#CBD5E1';
-            ctx.strokeRect(posX, bottomY, cardW, cardH);
-            ctx.fillStyle = '#64748B';
-            ctx.font = 'bold 14px sans-serif';
-            ctx.fillText('BACK SIDE PENDING (ಹಿಂಭಾಗ ಬಾಕಿ ಇದೆ)', posX + 60, bottomY + cardH / 2);
-          }
-        } else {
-          // Horizontal Layout (Left = Front, Right = Back)
-          const posY = (cHeight - cardH) / 2;
-          const leftX = cWidth * 0.06;
-          const rightX = cWidth * 0.52;
+          // Calculate fit contain within available card box
+          const imgAspect = img.naturalWidth / img.naturalHeight;
+          const boxAspect = w / h;
+          let drawW = w;
+          let drawH = h;
+          let drawX = x;
+          let drawY = y;
 
-          if (frontCardFile) {
-            const frontImg = await loadImg(frontCardFile);
-            drawCard(frontImg, leftX, posY, 'CARD FRONT (ಮುಂಭಾಗ)');
+          if (imgAspect > boxAspect) {
+            drawH = w / imgAspect;
+            drawY = y + (h - drawH) / 2;
+          } else {
+            drawW = h * imgAspect;
+            drawX = x + (w - drawW) / 2;
           }
-          if (backCardFile) {
-            const backImg = await loadImg(backCardFile);
-            drawCard(backImg, rightX, posY, 'CARD BACK (ಹಿಂಭಾಗ)');
+
+          ctx.save();
+          if (isGrayscale) {
+            ctx.filter = 'grayscale(100%)';
           }
+          ctx.drawImage(img, drawX, drawY, drawW, drawH);
+          ctx.restore();
+
+          // Card border
+          ctx.strokeStyle = '#CBD5E1';
+          ctx.lineWidth = 2;
+          ctx.strokeRect(x, y, w, h);
+
+          // Watermark overlay if provided
+          if (watermarkText && watermarkText.trim()) {
+            ctx.save();
+            ctx.font = 'bold 22px sans-serif';
+            ctx.fillStyle = 'rgba(71, 85, 105, 0.38)';
+            ctx.textAlign = 'center';
+            ctx.translate(x + w / 2, y + h / 2);
+            ctx.rotate((-20 * Math.PI) / 180);
+            ctx.fillText(watermarkText.trim(), 0, 0);
+            ctx.restore();
+          }
+        };
+
+        // Layout positioning based on orientation, gap, and padding
+        const scaleGap = Math.round((gapPx / 20) * 40);
+        const scalePadding = Math.round((paddingPx / 20) * 40);
+
+        if (idOrientation === 'horizontal') {
+          // Horizontal side-by-side
+          const availableW = Math.floor((cWidth - (scalePadding * 2) - scaleGap) / 2);
+          const availableH = Math.floor(cHeight - (scalePadding * 2));
+          const cardW = Math.min(availableW, 640);
+          const cardH = Math.min(availableH, 420);
+
+          const posX1 = Math.round(scalePadding + (availableW - cardW) / 2);
+          const posX2 = Math.round(scalePadding + availableW + scaleGap + (availableW - cardW) / 2);
+          const posY = Math.round((cHeight - cardH) / 2);
+
+          renderCard(frontImg, posX1, posY, cardW, cardH, 'FRONT SIDE');
+          renderCard(backImg, posX2, posY, cardW, cardH, 'BACK SIDE');
+        } else {
+          // Vertical top-and-bottom
+          const availableW = Math.floor(cWidth - (scalePadding * 2));
+          const availableH = Math.floor((cHeight - (scalePadding * 2) - scaleGap) / 2);
+          const cardW = Math.min(availableW, 720);
+          const cardH = Math.min(availableH, 460);
+
+          const posX = Math.round((cWidth - cardW) / 2);
+          const posY1 = Math.round(scalePadding + (availableH - cardH) / 2);
+          const posY2 = Math.round(scalePadding + availableH + scaleGap + (availableH - cardH) / 2);
+
+          renderCard(frontImg, posX, posY1, cardW, cardH, 'FRONT SIDE');
+          renderCard(backImg, posX, posY2, cardW, cardH, 'BACK SIDE');
+
+          // Subtle center fold dashed line
+          ctx.save();
+          ctx.setLineDash([8, 8]);
+          ctx.strokeStyle = '#E2E8F0';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(30, cHeight / 2);
+          ctx.lineTo(cWidth - 30, cHeight / 2);
+          ctx.stroke();
+          ctx.restore();
         }
 
         if (isMounted) {
-          setMergedPreviewUrl(canvas.toDataURL('image/jpeg', 0.9));
+          const qualityFloat = Math.max(0.5, Math.min(1.0, compressionQuality / 100));
+          setMergedPreviewUrl(canvas.toDataURL('image/jpeg', qualityFloat));
         }
       } catch (err) {
         console.error("Preview generation error:", err);
@@ -330,29 +454,79 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
     return () => {
       isMounted = false;
     };
-  }, [frontCardFile, backCardFile, idOrientation]);
+  }, [frontCardFile, backCardFile, frontCardPreview, backCardPreview, idOrientation, gapPx, paddingPx, watermarkText, isGrayscale, compressionQuality]);
 
-  const handleFrontCardChange = (file?: File) => {
-    if (!file) return;
-    setFrontCardFile(file);
-    const UrlObj = window.URL || (window as any).webkitURL;
-    setFrontCardPreview(UrlObj.createObjectURL(file));
+  const handleDownloadJpg = () => {
+    if (!mergedPreviewUrl) return;
+    const a = document.createElement('a');
+    a.href = mergedPreviewUrl;
+    a.download = `Merged_ID_Card_${idOrientation}_${Date.now()}.jpg`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
   };
 
-  const handleBackCardChange = (file?: File) => {
-    if (!file) return;
-    setBackCardFile(file);
-    const UrlObj = window.URL || (window as any).webkitURL;
-    setBackCardPreview(UrlObj.createObjectURL(file));
-  };
+  const handleDownloadPdf = () => {
+    if (!mergedPreviewUrl) return;
+    const isLandscape = idOrientation === 'horizontal';
+    const pageWidth = isLandscape ? 841.89 : 595.28;
+    const pageHeight = isLandscape ? 595.28 : 841.89;
 
-  const handleSwapCards = () => {
-    const tempFile = frontCardFile;
-    const tempPreview = frontCardPreview;
-    setFrontCardFile(backCardFile);
-    setFrontCardPreview(backCardPreview);
-    setBackCardFile(tempFile);
-    setBackCardPreview(tempPreview);
+    const base64Data = mergedPreviewUrl.replace(/^data:image\/jpeg;base64,/, '');
+    const byteCharacters = atob(base64Data);
+    const byteArray = new Uint8Array(byteCharacters.length);
+    for (let i = 0; i < byteCharacters.length; i++) {
+      byteArray[i] = byteCharacters.charCodeAt(i);
+    }
+
+    const contentStream = `q ${pageWidth.toFixed(2)} 0 0 ${pageHeight.toFixed(2)} 0 0 cm /Im1 Do Q`;
+    const contentStreamBytes = new TextEncoder().encode(contentStream);
+
+    const parts: Uint8Array[] = [];
+    const offsets: number[] = [];
+
+    const addStr = (str: string) => {
+      const b = new TextEncoder().encode(str);
+      offsets.push(parts.reduce((acc, p) => acc + p.length, 0));
+      parts.push(b);
+    };
+
+    const addBuf = (b: Uint8Array) => {
+      offsets.push(parts.reduce((acc, p) => acc + p.length, 0));
+      parts.push(b);
+    };
+
+    addStr("%PDF-1.4\n%\xFF\xFF\xFF\xFF\n");
+    addStr("1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n");
+    addStr("2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n");
+    addStr(`3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${pageWidth.toFixed(2)} ${pageHeight.toFixed(2)}] /Contents 4 0 R /Resources << /XObject << /Im1 5 0 R >> >> >>\nendobj\n`);
+    addStr(`4 0 obj\n<< /Length ${contentStreamBytes.length} >>\nstream\n${contentStream}\nendstream\nendobj\n`);
+
+    const imgHeader = `5 0 obj\n<< /Type /XObject /Subtype /Image /Width 1500 /Height 1060 /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${byteArray.length} >>\nstream\n`;
+    const imgFooter = "\nendstream\nendobj\n";
+    const headerBytes = new TextEncoder().encode(imgHeader);
+    const footerBytes = new TextEncoder().encode(imgFooter);
+    const fullImgObj = new Uint8Array(headerBytes.length + byteArray.length + footerBytes.length);
+    fullImgObj.set(headerBytes, 0);
+    fullImgObj.set(byteArray, headerBytes.length);
+    fullImgObj.set(footerBytes, headerBytes.length + byteArray.length);
+    addBuf(fullImgObj);
+
+    const xrefOffset = parts.reduce((acc, p) => acc + p.length, 0);
+    let xref = `xref\n0 6\n0000000000 65535 f \n`;
+    for (let i = 1; i <= 5; i++) {
+      xref += String(offsets[i]).padStart(10, '0') + ` 00000 n \n`;
+    }
+    xref += `trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n${xrefOffset}\n%%EOF\n`;
+    addStr(xref);
+
+    const blob = new Blob(parts as any, { type: 'application/pdf' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `Merged_ID_Card_${idOrientation}_${Date.now()}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const handleAddFiles = (files: FileList | File[] | null | undefined) => {
@@ -493,7 +667,12 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
           optBack,
           idOrientation,
           copies,
-          isColorId ? 'Color' : 'BlackWhite'
+          (isGrayscale || colorMode !== 'Color') ? 'BlackWhite' : 'Color',
+          {
+            gap: gapPx,
+            padding: paddingPx,
+            watermark: watermarkText.trim()
+          }
         );
         displayFilename = `2-Sided ID Card (${idOrientation === 'vertical' ? 'Top & Bottom' : 'Side by Side'})`;
         
@@ -1552,199 +1731,417 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
           {printMode === 'id_merge' && (
             <div className="space-y-6 animate-in fade-in duration-300">
               
-              {/* MERGE ORIENTATION SELECTOR (VERTICAL / HORIZONTAL) */}
-              <div className="p-4 rounded-2xl border border-emerald-500/40 bg-slate-900 shadow-md space-y-2">
-                <div className="flex items-center justify-between flex-wrap gap-2">
-                  <span className="text-xs font-black uppercase text-amber-300 flex items-center gap-1.5">
-                    📐 1 ಪುಟದಲ್ಲಿ ಲೇಔಟ್ ಜೋಡಣೆ (Select A4 Sheet Layout):
-                  </span>
-                  <span className="text-[11px] font-extrabold text-emerald-300">
-                    {idOrientation === 'vertical' ? '↕️ Vertical (Top & Bottom / ಮೇಲೆ & ಕೆಳಗೆ)' : '↔️ Horizontal (Side by Side / ಪಕ್ಕ ಪಕ್ಕದಲ್ಲಿ)'}
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3 pt-1">
-                  <button
-                    type="button"
-                    onClick={() => setIdOrientation('vertical')}
-                    style={idOrientation === 'vertical'
-                      ? { backgroundColor: '#059669', border: '2px solid #34d399', color: '#ffffff', boxShadow: '0 0 12px rgba(52, 211, 153, 0.4)' }
-                      : { backgroundColor: '#1e293b', border: '1px solid #475569', color: '#94a3b8' }
-                    }
-                    className="p-3 rounded-xl font-black text-xs uppercase tracking-wider transition cursor-pointer flex flex-col items-center justify-center gap-1 active:scale-95"
-                  >
-                    <span className="text-base">↕️ ಮೇಲೆ ಮತ್ತು ಕೆಳಗೆ (Vertical)</span>
-                    <span className="text-[10px] opacity-90">Top & Bottom (Standard Xerox)</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setIdOrientation('horizontal')}
-                    style={idOrientation === 'horizontal'
-                      ? { backgroundColor: '#059669', border: '2px solid #34d399', color: '#ffffff', boxShadow: '0 0 12px rgba(52, 211, 153, 0.4)' }
-                      : { backgroundColor: '#1e293b', border: '1px solid #475569', color: '#94a3b8' }
-                    }
-                    className="p-3 rounded-xl font-black text-xs uppercase tracking-wider transition cursor-pointer flex flex-col items-center justify-center gap-1 active:scale-95"
-                  >
-                    <span className="text-base">↔️ ಪಕ್ಕ ಪಕ್ಕದಲ್ಲಿ (Horizontal)</span>
-                    <span className="text-[10px] opacity-90">Side by Side (Landscape)</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* DUAL DROPZONES: FRONT & BACK OF ID CARD */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* DUAL CARD UPLOAD ZONES WITH FLOATING ACTION BARS */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 
-                {/* 1. FRONT CARD DROPZONE */}
-                <div className="p-5 rounded-2xl border-2 border-indigo-500/60 bg-slate-900 shadow-xl space-y-3 flex flex-col justify-between">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-black uppercase tracking-wider text-cyan-300 flex items-center gap-1.5">
-                      <span>1️⃣ ಮುಂಭಾಗ • Card Front Side</span>
-                    </span>
-                    {frontCardFile && (
-                      <button
-                        type="button"
-                        onClick={() => { setFrontCardFile(null); setFrontCardPreview(null); }}
-                        className="text-[11px] font-black text-rose-400 hover:text-rose-300 underline cursor-pointer"
-                      >
-                        ✕ ತೆಗೆದುಹಾಕಿ (Remove)
-                      </button>
+                {/* 1. FRONT SIDE CARD */}
+                <div className="p-4 sm:p-5 rounded-2xl border-2 border-indigo-500/50 bg-slate-900 shadow-xl space-y-3 flex flex-col justify-between relative overflow-hidden">
+                  <div className="flex items-center justify-between flex-wrap gap-2">
+                    <div className="flex items-center gap-2">
+                      <span className="px-2.5 py-0.5 rounded-lg bg-indigo-600 text-white font-black text-xs uppercase">
+                        1
+                      </span>
+                      <span className="text-sm font-black text-white uppercase tracking-wider">
+                        Front Side
+                      </span>
+                    </div>
+
+                    {frontCardDims && (
+                      <span className="px-2.5 py-0.5 rounded-lg bg-slate-800 text-slate-300 text-[11px] font-mono font-bold border border-slate-700">
+                        {frontCardDims.width} × {frontCardDims.height}
+                      </span>
                     )}
                   </div>
 
                   <input
                     type="file"
                     ref={frontInputRef}
-                    onChange={(e) => handleFrontCardChange(e.target.files?.[0])}
+                    onChange={(e) => handleFrontCardUpload(e.target.files?.[0])}
                     accept="image/*,.pdf"
                     className="hidden"
                   />
 
                   {frontCardPreview ? (
-                    <div
-                      onClick={() => frontInputRef.current?.click()}
-                      className="w-full h-44 rounded-xl border-2 border-emerald-400 overflow-hidden bg-slate-950 flex items-center justify-center relative cursor-pointer group shadow-lg"
-                    >
-                      <img src={frontCardPreview} alt="Front Card" className="w-full h-full object-contain p-1" />
-                      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition flex items-center justify-center font-black text-xs text-white">
-                        🔄 ಬದಲಾಯಿಸಲು ಟ್ಯಾಪ್ ಮಾಡಿ (Change)
+                    <div className="relative w-full h-64 rounded-xl border-2 border-slate-700 bg-slate-950 overflow-hidden shadow-inner group flex items-center justify-center">
+                      <img
+                        src={frontCardPreview}
+                        alt="Front Side Preview"
+                        className={`w-full h-full object-contain p-2 select-none ${isGrayscale ? 'grayscale' : ''}`}
+                      />
+
+                      {/* FLOATING ACTION TOOLBAR OVER PREVIEW (CROP, ROTATE, ENHANCE, DELETE) */}
+                      <div className="absolute bottom-3 left-1/2 -translate-x-1/2 px-4 py-2 rounded-2xl bg-black/75 backdrop-blur-md border border-slate-700 shadow-2xl flex items-center gap-3 z-20">
+                        <button
+                          type="button"
+                          onClick={() => handleReCrop('front')}
+                          className="p-2 rounded-xl text-slate-200 hover:text-white hover:bg-white/10 transition cursor-pointer"
+                          title="Re-Crop Document Boundaries"
+                        >
+                          <Scissors className="w-4 h-4 text-cyan-400" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleRotateCard('front')}
+                          className="p-2 rounded-xl text-slate-200 hover:text-white hover:bg-white/10 transition cursor-pointer"
+                          title="Rotate 90°"
+                        >
+                          <RotateCw className="w-4 h-4 text-emerald-400" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setIsGrayscale(!isGrayscale)}
+                          className="p-2 rounded-xl text-slate-200 hover:text-white hover:bg-white/10 transition cursor-pointer"
+                          title="Toggle Grayscale"
+                        >
+                          <Edit3 className="w-4 h-4 text-amber-400" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveCard('front')}
+                          className="p-2 rounded-xl text-slate-200 hover:text-rose-400 hover:bg-white/10 transition cursor-pointer"
+                          title="Delete Card"
+                        >
+                          <Trash2 className="w-4 h-4 text-rose-400" />
+                        </button>
                       </div>
                     </div>
                   ) : (
                     <div
                       onClick={() => frontInputRef.current?.click()}
-                      className="w-full h-44 rounded-xl border-2 border-dashed border-cyan-500/50 hover:border-cyan-400 bg-slate-950/80 flex flex-col items-center justify-center text-center p-4 cursor-pointer group transition"
+                      className="w-full h-64 rounded-xl border-2 border-dashed border-cyan-500/50 hover:border-cyan-400 bg-slate-950/80 flex flex-col items-center justify-center text-center p-4 cursor-pointer group transition"
                     >
                       <div className="p-3 rounded-xl bg-cyan-500/20 text-cyan-400 mb-2 group-hover:scale-110 transition">
                         <Upload className="w-6 h-6" />
                       </div>
-                      <h5 className="text-sm font-black text-white">ಮುಂಭಾಗ ಫೋಟೋ ಆಯ್ಕೆಮಾಡಿ</h5>
-                      <p className="text-[11px] font-bold text-slate-400 mt-0.5">Upload Front Side of Aadhar / PAN / ID</p>
+                      <h5 className="text-sm font-black text-white">Click to Upload or Drop</h5>
+                      <p className="text-[11px] font-bold text-slate-400 mt-1">Aadhar, PAN, Driving License or Voter ID Front</p>
+                      <span className="mt-3 px-3 py-1 bg-cyan-600/30 text-cyan-300 text-[10px] font-bold rounded-lg border border-cyan-500/40">
+                        🤖 Auto-Crops Edge Automatically
+                      </span>
                     </div>
                   )}
 
-                  <button
-                    type="button"
-                    onClick={() => frontInputRef.current?.click()}
-                    style={{ backgroundColor: '#1e3a8a', color: '#ffffff', border: '1px solid #60a5fa' }}
-                    className="w-full py-2.5 rounded-xl font-black text-xs uppercase tracking-wider hover:bg-blue-800 transition cursor-pointer flex items-center justify-center gap-1.5"
-                  >
-                    <span>📷 ಮುಂಭಾಗ ಫೋಟೋ (Select Front)</span>
-                  </button>
+                  {!frontCardPreview && (
+                    <button
+                      type="button"
+                      onClick={() => frontInputRef.current?.click()}
+                      style={{ backgroundColor: '#1e3a8a', color: '#ffffff', border: '1px solid #60a5fa' }}
+                      className="w-full py-2.5 rounded-xl font-black text-xs uppercase tracking-wider hover:bg-blue-800 transition cursor-pointer flex items-center justify-center gap-1.5 shadow"
+                    >
+                      <span>📷 Select Front Side Photo</span>
+                    </button>
+                  )}
                 </div>
 
-                {/* 2. BACK CARD DROPZONE */}
-                <div className="p-5 rounded-2xl border-2 border-emerald-500/60 bg-slate-900 shadow-xl space-y-3 flex flex-col justify-between">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-black uppercase tracking-wider text-emerald-300 flex items-center gap-1.5">
-                      <span>2️⃣ ಹಿಂಭಾಗ • Card Back Side</span>
-                    </span>
-                    {backCardFile && (
-                      <button
-                        type="button"
-                        onClick={() => { setBackCardFile(null); setBackCardPreview(null); }}
-                        className="text-[11px] font-black text-rose-400 hover:text-rose-300 underline cursor-pointer"
-                      >
-                        ✕ ತೆಗೆದುಹಾಕಿ (Remove)
-                      </button>
+                {/* 2. BACK SIDE CARD */}
+                <div className="p-4 sm:p-5 rounded-2xl border-2 border-indigo-500/50 bg-slate-900 shadow-xl space-y-3 flex flex-col justify-between relative overflow-hidden">
+                  <div className="flex items-center justify-between flex-wrap gap-2">
+                    <div className="flex items-center gap-2">
+                      <span className="px-2.5 py-0.5 rounded-lg bg-indigo-600 text-white font-black text-xs uppercase">
+                        2
+                      </span>
+                      <span className="text-sm font-black text-white uppercase tracking-wider">
+                        Back Side
+                      </span>
+                    </div>
+
+                    {backCardDims && (
+                      <span className="px-2.5 py-0.5 rounded-lg bg-slate-800 text-slate-300 text-[11px] font-mono font-bold border border-slate-700">
+                        {backCardDims.width} × {backCardDims.height}
+                      </span>
                     )}
                   </div>
 
                   <input
                     type="file"
                     ref={backInputRef}
-                    onChange={(e) => handleBackCardChange(e.target.files?.[0])}
+                    onChange={(e) => handleBackCardUpload(e.target.files?.[0])}
                     accept="image/*,.pdf"
                     className="hidden"
                   />
 
                   {backCardPreview ? (
-                    <div
-                      onClick={() => backInputRef.current?.click()}
-                      className="w-full h-44 rounded-xl border-2 border-emerald-400 overflow-hidden bg-slate-950 flex items-center justify-center relative cursor-pointer group shadow-lg"
-                    >
-                      <img src={backCardPreview} alt="Back Card" className="w-full h-full object-contain p-1" />
-                      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition flex items-center justify-center font-black text-xs text-white">
-                        🔄 ಬದಲಾಯಿಸಲು ಟ್ಯಾಪ್ ಮಾಡಿ (Change)
+                    <div className="relative w-full h-64 rounded-xl border-2 border-slate-700 bg-slate-950 overflow-hidden shadow-inner group flex items-center justify-center">
+                      <img
+                        src={backCardPreview}
+                        alt="Back Side Preview"
+                        className={`w-full h-full object-contain p-2 select-none ${isGrayscale ? 'grayscale' : ''}`}
+                      />
+
+                      {/* FLOATING ACTION TOOLBAR OVER PREVIEW (CROP, ROTATE, ENHANCE, DELETE) */}
+                      <div className="absolute bottom-3 left-1/2 -translate-x-1/2 px-4 py-2 rounded-2xl bg-black/75 backdrop-blur-md border border-slate-700 shadow-2xl flex items-center gap-3 z-20">
+                        <button
+                          type="button"
+                          onClick={() => handleReCrop('back')}
+                          className="p-2 rounded-xl text-slate-200 hover:text-white hover:bg-white/10 transition cursor-pointer"
+                          title="Re-Crop Document Boundaries"
+                        >
+                          <Scissors className="w-4 h-4 text-cyan-400" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleRotateCard('back')}
+                          className="p-2 rounded-xl text-slate-200 hover:text-white hover:bg-white/10 transition cursor-pointer"
+                          title="Rotate 90°"
+                        >
+                          <RotateCw className="w-4 h-4 text-emerald-400" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setIsGrayscale(!isGrayscale)}
+                          className="p-2 rounded-xl text-slate-200 hover:text-white hover:bg-white/10 transition cursor-pointer"
+                          title="Toggle Grayscale"
+                        >
+                          <Edit3 className="w-4 h-4 text-amber-400" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveCard('back')}
+                          className="p-2 rounded-xl text-slate-200 hover:text-rose-400 hover:bg-white/10 transition cursor-pointer"
+                          title="Delete Card"
+                        >
+                          <Trash2 className="w-4 h-4 text-rose-400" />
+                        </button>
                       </div>
                     </div>
                   ) : (
                     <div
                       onClick={() => backInputRef.current?.click()}
-                      className="w-full h-44 rounded-xl border-2 border-dashed border-emerald-500/50 hover:border-emerald-400 bg-slate-950/80 flex flex-col items-center justify-center text-center p-4 cursor-pointer group transition"
+                      className="w-full h-64 rounded-xl border-2 border-dashed border-indigo-500/50 hover:border-indigo-400 bg-slate-950/80 flex flex-col items-center justify-center text-center p-4 cursor-pointer group transition"
                     >
-                      <div className="p-3 rounded-xl bg-emerald-500/20 text-emerald-400 mb-2 group-hover:scale-110 transition">
+                      <div className="p-3 rounded-xl bg-indigo-500/20 text-indigo-400 mb-2 group-hover:scale-110 transition">
                         <Upload className="w-6 h-6" />
                       </div>
-                      <h5 className="text-sm font-black text-white">ಹಿಂಭಾಗ ಫೋಟೋ ಆಯ್ಕೆಮಾಡಿ</h5>
-                      <p className="text-[11px] font-bold text-slate-400 mt-0.5">Upload Back Side of Aadhar / PAN / ID</p>
+                      <h5 className="text-sm font-black text-white">Click to Upload or Drop</h5>
+                      <p className="text-[11px] font-bold text-slate-400 mt-1">Aadhar, PAN, Driving License or Voter ID Back</p>
+                      <span className="mt-3 px-3 py-1 bg-indigo-600/30 text-indigo-300 text-[10px] font-bold rounded-lg border border-indigo-500/40">
+                        🤖 Auto-Crops Edge Automatically
+                      </span>
                     </div>
                   )}
 
-                  <button
-                    type="button"
-                    onClick={() => backInputRef.current?.click()}
-                    style={{ backgroundColor: '#065f46', color: '#ffffff', border: '1px solid #34d399' }}
-                    className="w-full py-2.5 rounded-xl font-black text-xs uppercase tracking-wider hover:bg-emerald-800 transition cursor-pointer flex items-center justify-center gap-1.5"
-                  >
-                    <span>📷 ಹಿಂಭಾಗ ಫೋಟೋ (Select Back)</span>
-                  </button>
+                  {!backCardPreview && (
+                    <button
+                      type="button"
+                      onClick={() => backInputRef.current?.click()}
+                      style={{ backgroundColor: '#065f46', color: '#ffffff', border: '1px solid #34d399' }}
+                      className="w-full py-2.5 rounded-xl font-black text-xs uppercase tracking-wider hover:bg-emerald-800 transition cursor-pointer flex items-center justify-center gap-1.5 shadow"
+                    >
+                      <span>📷 Select Back Side Photo</span>
+                    </button>
+                  )}
                 </div>
 
               </div>
 
-              {/* SWAP SIDES & LIVE MERGED A4 PREVIEW */}
-              {(frontCardFile || backCardFile) && (
-                <div className="p-5 rounded-2xl border-2 border-cyan-500/50 bg-slate-900 shadow-2xl space-y-4">
-                  <div className="flex items-center justify-between flex-wrap gap-2 border-b border-slate-800 pb-3">
-                    <div>
-                      <h4 className="text-sm font-black text-white flex items-center gap-2">
-                        <Monitor className="w-4 h-4 text-cyan-400" />
-                        <span>🖼️ 1 ಪುಟದಲ್ಲಿ ಲೈವ್ ಪ್ರಿವ್ಯೂ • Live Merged A4 Sheet Preview</span>
-                      </h4>
-                      <p className="text-[11px] font-bold text-slate-300">ಹೇಗೆ ಪ್ರಿಂಟ್ ಆಗುತ್ತದೆ ಎಂಬುದನ್ನು ಕೆಳಗೆ ನೋಡಿ (Exact print output shown below)</p>
-                    </div>
+              {/* CONFIGURATION SECTION (GAP, PADDING, WATERMARK, GRAYSCALE) */}
+              <div className="p-5 rounded-2xl border border-slate-700 bg-slate-900 shadow-xl space-y-4">
+                <div className="flex items-center gap-2 border-b border-slate-800 pb-3">
+                  <Sliders className="w-4 h-4 text-indigo-400" />
+                  <h4 className="text-sm font-black text-white uppercase tracking-wider">
+                    Configuration
+                  </h4>
+                </div>
 
-                    <button
-                      type="button"
-                      onClick={handleSwapCards}
-                      style={{ backgroundColor: '#475569', color: '#ffffff', border: '1px solid #94a3b8' }}
-                      className="px-3.5 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider hover:bg-slate-700 transition flex items-center gap-1.5 cursor-pointer shadow"
-                      title="Swap Front and Back Cards"
-                    >
-                      <span>🔄 ಮುಂಭಾಗ ↔ ಹಿಂಭಾಗ ಅದಲು-ಬದಲು (Swap Sides)</span>
-                    </button>
-                  </div>
-
-                  {mergedPreviewUrl && (
-                    <div className="flex justify-center p-3 bg-slate-950 rounded-xl border border-slate-800">
-                      <img
-                        src={mergedPreviewUrl}
-                        alt="Merged ID Card A4 Preview"
-                        className="max-h-[380px] w-auto object-contain rounded-lg shadow-2xl border border-slate-700"
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                  
+                  {/* Gap & Padding */}
+                  <div>
+                    <label className="text-xs font-bold text-slate-300 block mb-1.5">
+                      Gap & Padding (px)
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="number"
+                        min="0"
+                        max="100"
+                        value={gapPx}
+                        onChange={(e) => setGapPx(Number(e.target.value) || 0)}
+                        className="w-full py-2 px-3 rounded-xl bg-slate-950 border border-slate-700 text-white font-mono text-xs focus:ring-2 focus:ring-indigo-500"
+                        title="Gap between cards"
+                      />
+                      <input
+                        type="number"
+                        min="0"
+                        max="100"
+                        value={paddingPx}
+                        onChange={(e) => setPaddingPx(Number(e.target.value) || 0)}
+                        className="w-full py-2 px-3 rounded-xl bg-slate-950 border border-slate-700 text-white font-mono text-xs focus:ring-2 focus:ring-indigo-500"
+                        title="Padding around page"
                       />
                     </div>
-                  )}
+                  </div>
+
+                  {/* Watermark Text */}
+                  <div>
+                    <label className="text-xs font-bold text-slate-300 block mb-1.5">
+                      Watermark Text
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. For KYC Only"
+                      value={watermarkText}
+                      onChange={(e) => setWatermarkText(e.target.value)}
+                      className="w-full py-2 px-3 rounded-xl bg-slate-950 border border-slate-700 text-white text-xs placeholder:text-slate-500 focus:ring-2 focus:ring-indigo-500"
+                    />
+                  </div>
+
+                  {/* Convert to Grayscale Checkbox */}
+                  <div className="flex items-center gap-2.5 pb-2">
+                    <input
+                      type="checkbox"
+                      id="grayscaleToggle"
+                      checked={isGrayscale}
+                      onChange={(e) => setIsGrayscale(e.target.checked)}
+                      className="w-4 h-4 rounded border-slate-700 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                    />
+                    <label htmlFor="grayscaleToggle" className="text-xs font-bold text-slate-200 cursor-pointer select-none">
+                      Convert to Grayscale (B&W)
+                    </label>
+                  </div>
+
+                </div>
+
+                {/* TWO PRIMARY ACTION BUTTONS: MERGE HORIZONTALLY & MERGE VERTICALLY */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setIdOrientation('horizontal')}
+                    style={idOrientation === 'horizontal'
+                      ? { backgroundColor: '#4f46e5', border: '2px solid #818cf8', color: '#ffffff', boxShadow: '0 0 16px rgba(99, 102, 241, 0.4)' }
+                      : { backgroundColor: '#1e293b', border: '1px solid #475569', color: '#cbd5e1' }
+                    }
+                    className="py-3 px-4 rounded-xl font-black text-xs uppercase tracking-wider transition cursor-pointer flex items-center justify-center gap-2 active:scale-95 shadow-md"
+                  >
+                    <span>↔️ Merge Horizontally</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setIdOrientation('vertical')}
+                    style={idOrientation === 'vertical'
+                      ? { backgroundColor: '#4f46e5', border: '2px solid #818cf8', color: '#ffffff', boxShadow: '0 0 16px rgba(99, 102, 241, 0.4)' }
+                      : { backgroundColor: '#1e293b', border: '1px solid #475569', color: '#cbd5e1' }
+                    }
+                    className="py-3 px-4 rounded-xl font-black text-xs uppercase tracking-wider transition cursor-pointer flex items-center justify-center gap-2 active:scale-95 shadow-md"
+                  >
+                    <span>↕️ Merge Vertically</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* LIVE PREVIEW & DOWNLOAD OPTIONS (SIDE-BY-SIDE) */}
+              {(frontCardFile || backCardFile) && (
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 pt-2">
+                  
+                  {/* PREVIEW CONTAINER (2 COLUMNS) */}
+                  <div className="lg:col-span-2 p-5 rounded-2xl border border-slate-700 bg-slate-900 shadow-xl space-y-3">
+                    <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                      <h4 className="text-sm font-black text-white uppercase tracking-wider flex items-center gap-2">
+                        <span>Preview</span>
+                        <span className="text-xs font-normal text-slate-400">
+                          ({idOrientation === 'horizontal' ? 'Side by Side' : 'Top & Bottom'})
+                        </span>
+                      </h4>
+
+                      <button
+                        type="button"
+                        onClick={handleSwapCards}
+                        className="px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+                      >
+                        <RefreshCw className="w-3.5 h-3.5" />
+                        <span>Swap Front ↔ Back</span>
+                      </button>
+                    </div>
+
+                    {mergedPreviewUrl ? (
+                      <div className="flex justify-center p-3 bg-slate-950 rounded-xl border border-slate-800 shadow-inner overflow-hidden">
+                        <img
+                          src={mergedPreviewUrl}
+                          alt="Merged Preview"
+                          className="max-h-[460px] w-auto object-contain rounded-lg shadow-2xl border border-slate-800 bg-white"
+                        />
+                      </div>
+                    ) : (
+                      <div className="h-64 flex items-center justify-center text-slate-500 text-xs font-bold">
+                        Generating preview...
+                      </div>
+                    )}
+                  </div>
+
+                  {/* DOWNLOAD & PRINT OPTIONS (1 COLUMN) */}
+                  <div className="p-5 rounded-2xl border border-slate-700 bg-slate-900 shadow-xl space-y-5 flex flex-col justify-between">
+                    <div>
+                      <h4 className="text-sm font-black text-white uppercase tracking-wider border-b border-slate-800 pb-3">
+                        Download Options
+                      </h4>
+
+                      <div className="space-y-4 pt-4">
+                        {/* Compression Quality Slider */}
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="font-bold text-slate-300">Compression Quality:</span>
+                            <span className="font-mono font-black text-indigo-400">{compressionQuality}%</span>
+                          </div>
+                          <input
+                            type="range"
+                            min="50"
+                            max="100"
+                            value={compressionQuality}
+                            onChange={(e) => setCompressionQuality(Number(e.target.value))}
+                            className="w-full accent-indigo-500 cursor-pointer"
+                          />
+                          <div className="flex justify-between text-[10px] text-slate-400 font-bold">
+                            <span>Small File</span>
+                            <span>High Quality</span>
+                          </div>
+                        </div>
+
+                        {/* Fit to A4 Page Checkbox */}
+                        <div className="p-3 rounded-xl bg-slate-950/80 border border-slate-800 space-y-1">
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="checkbox"
+                              id="fitA4Checkbox"
+                              checked={fitToA4Pdf}
+                              onChange={(e) => setFitToA4Pdf(e.target.checked)}
+                              className="w-4 h-4 rounded border-slate-700 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                            />
+                            <label htmlFor="fitA4Checkbox" className="text-xs font-bold text-slate-200 cursor-pointer select-none">
+                              Fit to A4 Page (PDF)
+                            </label>
+                          </div>
+                          <p className="text-[10px] text-slate-400 pl-6">
+                            Centers the card on a standard A4 sheet for easy printing.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* ACTION BUTTONS: DOWNLOAD IMAGE, DOWNLOAD PDF, PRINT */}
+                    <div className="space-y-2.5 pt-2">
+                      <button
+                        type="button"
+                        onClick={handleDownloadJpg}
+                        className="w-full py-3 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition cursor-pointer shadow border border-slate-700 active:scale-95"
+                      >
+                        <Download className="w-4 h-4 text-cyan-400" />
+                        <span>Download Image (JPG)</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={handleDownloadPdf}
+                        style={{ backgroundColor: '#059669', color: '#ffffff' }}
+                        className="w-full py-3 px-4 rounded-xl font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 hover:bg-emerald-700 transition cursor-pointer shadow-lg active:scale-95"
+                      >
+                        <Download className="w-4 h-4 text-white" />
+                        <span>Download PDF</span>
+                      </button>
+                    </div>
+
+                  </div>
+
                 </div>
               )}
 
@@ -1906,7 +2303,17 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
         </form>
       )}
 
+      {/* INTERACTIVE CROP MODAL (IMAGEMAGIC-STYLE AUTO EDGE DETECTION & ADJUSTMENT) */}
+      <IdCardCropModal
+        isOpen={cropModalOpen}
+        file={cropModalTargetFile}
+        side={cropModalSide}
+        onClose={() => setCropModalOpen(false)}
+        onApplyCrop={handleCropApplied}
+      />
+
     </div>
   );
 };
+
 
