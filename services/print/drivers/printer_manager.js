@@ -1,8 +1,36 @@
 const { execFile } = require('child_process');
 const path = require('path');
 const fs = require('fs');
+const net = require('net');
 const db = require('../../../data/local_db/index.js');
 const Logger = require('../../logs/logger.js');
+
+const HP_WIFI_STATIC_IP = '192.168.31.2';
+
+function checkHpWifiConnectivity(ip = HP_WIFI_STATIC_IP, timeoutMs = 1200) {
+    return new Promise((resolve) => {
+        const sock = new net.Socket();
+        sock.setTimeout(timeoutMs);
+        sock.connect(9100, ip, () => {
+            sock.destroy();
+            resolve(true);
+        });
+        sock.on('error', () => {
+            const sock80 = new net.Socket();
+            sock80.setTimeout(timeoutMs);
+            sock80.connect(80, ip, () => {
+                sock80.destroy();
+                resolve(true);
+            });
+            sock80.on('error', () => resolve(false));
+            sock80.on('timeout', () => { sock80.destroy(); resolve(false); });
+        });
+        sock.on('timeout', () => {
+            sock.destroy();
+            resolve(false);
+        });
+    });
+}
 
 function execPowerShell(script, timeoutMs = 25000) {
     return new Promise((resolve, reject) => {
@@ -18,6 +46,9 @@ let lastStatusFetchTime = 0;
 const CACHE_TTL_MS = 2500;
 
 const PrinterManager = {
+    HP_WIFI_IP: HP_WIFI_STATIC_IP,
+    checkHpWifiConnectivity,
+
     async getAllPrintersLiveStatus(forceRefresh = false) {
         const now = Date.now();
         if (!forceRefresh && cachedStatus && (now - lastStatusFetchTime < CACHE_TTL_MS)) {
@@ -26,6 +57,9 @@ const PrinterManager = {
 
         const script = `
             try {
+                # Auto-clear any stuck/error print jobs from Windows Spooler
+                Get-PrintJob -PrinterName * -ErrorAction SilentlyContinue | Where-Object { $_.JobStatus -like '*Error*' -or $_.JobStatus -like '*Retained*' } | Remove-PrintJob -ErrorAction SilentlyContinue
+
                 $printerMap = @{}
                 $gp = Get-Printer -ErrorAction SilentlyContinue
                 if ($gp) {
@@ -51,9 +85,8 @@ const PrinterManager = {
                     $workOffline = [bool]$w.WorkOffline
                     $printerStatus = [int]$w.PrinterStatus
                     $extendedStatus = [int]$w.ExtendedPrinterStatus
-                    $detectedError = [int]$w.DetectedErrorState
 
-                    # Auto-recover / clear WorkOffline if printer is connected & normal in spooler
+                    # Auto-recover WorkOffline if printer is ready
                     if ($workOffline -and ($gpStatus -eq 'Normal' -or $printerStatus -eq 3 -or $extendedStatus -eq 2 -or $extendedStatus -eq 3)) {
                         try {
                             $w.WorkOffline = $false
@@ -62,8 +95,6 @@ const PrinterManager = {
                         } catch {}
                     }
 
-                    # Robust hardware connectivity check:
-                    # Direct USB cable devices on USB001/USB002 with WorkOffline=false are 100% physically connected and ready
                     $isOnline = $false
                     if ($w.PortName -like 'USB*' -and -not $workOffline) {
                         $isOnline = $true
@@ -96,13 +127,33 @@ const PrinterManager = {
         `;
 
         try {
-            const out = await execPowerShell(script, 10000);
+            const [out, isHpWifiAlive] = await Promise.all([
+                execPowerShell(script, 10000),
+                checkHpWifiConnectivity()
+            ]);
+
             const statusMap = {};
             if (out) {
                 const parsed = JSON.parse(out);
                 const list = (Array.isArray(parsed) ? parsed : [parsed]).filter(Boolean);
                 
                 for (const item of list) {
+                    const lName = (item.name || '').toLowerCase();
+                    const isHpWifi = lName.includes('wi-fi') || item.portName === `IP_${HP_WIFI_STATIC_IP}` || item.portName?.includes('192.168.');
+                    const isHpUsb = (lName.includes('hp') || lName.includes('131') || lName.includes('135') || lName.includes('138')) && !isHpWifi;
+                    const isEpson = lName.includes('epson') || lName.includes('l3110');
+
+                    if (isHpWifi) {
+                        item.connection = `Wi-Fi (${HP_WIFI_STATIC_IP})`;
+                        item.isOnline = isHpWifiAlive && !item.workOffline;
+                        item.status = item.isOnline ? 'Ready (Wi-Fi)' : 'Offline (Wi-Fi Unreachable)';
+                    } else if (isHpUsb) {
+                        item.connection = 'USB (Fallback Cable)';
+                        if (item.isOnline) item.status = 'Ready (USB Cable)';
+                    } else if (isEpson) {
+                        item.connection = 'USB (Spooler)';
+                        if (item.isOnline) item.status = 'Ready (USB Spooler)';
+                    }
                     statusMap[item.name] = item;
                 }
             }
@@ -197,15 +248,20 @@ const PrinterManager = {
 
     async resolveActivePrinter(targetPrinter, options = {}) {
         try {
-            const statusMap = await this.getAllPrintersLiveStatus();
-            const installedList = Object.values(statusMap);
-            if (!installedList || installedList.length === 0) return targetPrinter || 'EPSON L3110 Series';
-
+            const settings = db.getSettings();
             const isColorRequested = Boolean(
                 options.colorMode === 'Color' || 
                 options.isColor === true || 
                 String(options.colorMode || '').toLowerCase().includes('color')
             );
+
+            if (!targetPrinter || targetPrinter === 'default' || targetPrinter === 'auto') {
+                targetPrinter = isColorRequested ? 'EPSON L3110 Series' : (settings.defaultPrinter || 'HP Laser MFP 131 133 135-138');
+            }
+
+            const statusMap = await this.getAllPrintersLiveStatus();
+            const installedList = Object.values(statusMap);
+            if (!installedList || installedList.length === 0) return targetPrinter || 'EPSON L3110 Series';
 
             // If Color is requested and no specific target or target is a monochrome laser, prioritize Epson L3110
             if (isColorRequested && (!targetPrinter || targetPrinter.toLowerCase().includes('hp') || targetPrinter.toLowerCase().includes('131') || targetPrinter.toLowerCase().includes('135'))) {
@@ -220,6 +276,24 @@ const PrinterManager = {
             const isHp = tLower.includes('hp') || tLower.includes('131') || tLower.includes('133') || tLower.includes('135') || tLower.includes('136') || tLower.includes('138') || tLower.includes('mfp');
             const isEpson = tLower.includes('epson') || tLower.includes('l3110');
 
+            if (isHp) {
+                // Check if HP Wi-Fi static IP (192.168.31.2) is pingable / reachable
+                const isWifiOnline = await checkHpWifiConnectivity();
+                if (isWifiOnline) {
+                    const wifiPrinter = installedList.find(p => p.name.includes('(Wi-Fi)') || p.portName === `IP_${HP_WIFI_STATIC_IP}`);
+                    if (wifiPrinter && (wifiPrinter.isOnline || (wifiPrinter.status && wifiPrinter.status.includes('Ready')))) {
+                        Logger.info('PRINTER_MANAGER', `HP Printer: Wi-Fi connectivity confirmed to ${HP_WIFI_STATIC_IP}. Routing job to [${wifiPrinter.name}].`);
+                        return wifiPrinter.name;
+                    }
+                }
+                // If Wi-Fi is unreachable, fallback to USB cable connection
+                const usbPrinter = installedList.find(p => (p.name.includes('HP Laser MFP') && !p.name.includes('(Wi-Fi)')) || p.portName === 'USB002');
+                if (usbPrinter) {
+                    Logger.info('PRINTER_MANAGER', `HP Printer: Wi-Fi unreachable. Routing job to direct USB cable fallback [${usbPrinter.name}] (USB002).`);
+                    return usbPrinter.name;
+                }
+            }
+
             // Step 1: Check if exact match is already Ready (Online)
             const exactMatch = installedList.find(p => p.name.toLowerCase() === tLower);
             if (exactMatch && exactMatch.status === 'Ready') {
@@ -229,7 +303,7 @@ const PrinterManager = {
             // Step 2: Search for any READY printer candidate belonging to the requested hardware family
             const onlineFamilyCandidate = installedList.find(p => {
                 const lName = (p.name || '').toLowerCase();
-                const isReady = p.status === 'Ready';
+                const isReady = p.status === 'Ready' || (p.status && p.status.includes('Ready'));
                 if (!isReady) return false;
                 if (isHp && (lName.includes('hp') || lName.includes('131') || lName.includes('133') || lName.includes('135') || lName.includes('136') || lName.includes('138') || lName.includes('mfp'))) return true;
                 if (isEpson && (lName.includes('epson') || lName.includes('l3110'))) return true;
@@ -513,6 +587,12 @@ const PrinterManager = {
             Logger.logPrinting(`Successfully spooled [${path.basename(filePath)}] directly to physical printer [${targetPrinter}] (${isColor ? 'Color' : 'B&W'})!`);
             return { success: true, printer: targetPrinter, copies, mode: isColor ? 'Color Direct Hardware Spooler' : 'B&W Direct Hardware Spooler' };
         } catch (error) {
+            // If HP Wi-Fi print failed, fall back immediately to the USB cable connection
+            if (targetPrinter.includes('(Wi-Fi)') && !options.isUsbFallback) {
+                Logger.warn('PRINTER_MANAGER', `HP Wi-Fi spool failed (${error.message}). Seamlessly switching to direct USB cable printer...`);
+                return await this.printFile(filePath, 'HP Laser MFP 131 133 135-138', copies, { ...options, isUsbFallback: true });
+            }
+
             // Try secondary printer before giving up only if secondary is defined and different
             const secondaryPrinter = settings.secondaryPrinter;
             if (secondaryPrinter && secondaryPrinter !== targetPrinter && !options.isFallbackAttempt) {

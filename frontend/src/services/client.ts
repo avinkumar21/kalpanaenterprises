@@ -1,5 +1,7 @@
-export const ACTIVE_PRODUCTION_TUNNEL = 'https://leader-appendix-mixer-jelsoft.trycloudflare.com';
-export const SHOP_LAN_BASE = 'http://192.168.31.233:8082';
+export const LOCAL_DAEMON_PORT = 5000;
+export const LOCAL_DAEMON_BASE = 'http://localhost:5000/api/prints';
+export const LOCAL_DAEMON_IP_BASE = 'http://127.0.0.1:5000/api/prints';
+export const SHOP_LAN_BASE = 'http://192.168.31.233:5000';
 export const RELAY_TOPIC = 'kalpana_enterprises_tunnel_v2';
 export const RELAY_POLL_URL = `https://ntfy.sh/${RELAY_TOPIC}/json?poll=1`;
 
@@ -17,7 +19,7 @@ export async function resolveLiveTunnelUrl(force = false): Promise<string | null
     try {
       const urlParams = new URLSearchParams(window.location.search);
       const tunnelParam = urlParams.get('tunnel') || urlParams.get('api');
-      if (tunnelParam && tunnelParam.trim() && tunnelParam.startsWith('http') && !tunnelParam.includes('political-abilities')) {
+      if (tunnelParam && tunnelParam.trim() && tunnelParam.startsWith('http') && !tunnelParam.includes('leader-appendix')) {
         const clean = tunnelParam.trim().replace(/\/+$/, '');
         cachedLiveTunnel = clean;
         lastLiveResolveTime = now;
@@ -39,7 +41,7 @@ export async function resolveLiveTunnelUrl(force = false): Promise<string | null
       for (let i = lines.length - 1; i >= 0; i--) {
         try {
           const parsed = JSON.parse(lines[i]);
-          if (parsed.message && parsed.message.startsWith('https://') && parsed.message.includes('trycloudflare.com')) {
+          if (parsed.message && parsed.message.startsWith('https://') && parsed.message.includes('trycloudflare.com') && !parsed.message.includes('leader-appendix')) {
             const liveUrl = parsed.message.trim().replace(/\/+$/, '');
             cachedLiveTunnel = liveUrl;
             lastLiveResolveTime = now;
@@ -61,7 +63,7 @@ export async function resolveLiveTunnelUrl(force = false): Promise<string | null
     clearTimeout(tId);
     if (res.ok) {
       const data = await res.json();
-      if (data.tunnelUrl && data.tunnelUrl.startsWith('https://') && data.tunnelUrl.includes('trycloudflare.com')) {
+      if (data.tunnelUrl && data.tunnelUrl.startsWith('https://') && data.tunnelUrl.includes('trycloudflare.com') && !data.tunnelUrl.includes('leader-appendix')) {
         const liveUrl = data.tunnelUrl.trim().replace(/\/+$/, '');
         cachedLiveTunnel = liveUrl;
         lastLiveResolveTime = now;
@@ -77,14 +79,14 @@ export async function resolveLiveTunnelUrl(force = false): Promise<string | null
   if (typeof window !== 'undefined') {
     try {
       const savedTunnel = window.localStorage?.getItem('arka_tunnel_url');
-      if (savedTunnel && savedTunnel.includes('trycloudflare.com') && !savedTunnel.includes('political-abilities')) {
+      if (savedTunnel && savedTunnel.includes('trycloudflare.com') && !savedTunnel.includes('leader-appendix')) {
         cachedLiveTunnel = savedTunnel.trim().replace(/\/+$/, '');
         return cachedLiveTunnel;
       }
     } catch {}
   }
 
-  return cachedLiveTunnel || ACTIVE_PRODUCTION_TUNNEL;
+  return cachedLiveTunnel;
 }
 
 export function getApiBase(): string {
@@ -95,7 +97,7 @@ export function getApiBase(): string {
     try {
       const urlParams = new URLSearchParams(window.location.search);
       const tunnelParam = urlParams.get('tunnel') || urlParams.get('api');
-      if (tunnelParam && tunnelParam.trim() && !tunnelParam.includes('political-abilities')) {
+      if (tunnelParam && tunnelParam.trim() && !tunnelParam.includes('leader-appendix')) {
         let trimmed = tunnelParam.trim().replace(/\/+$/, '');
         if (window.localStorage) {
           window.localStorage.setItem('arka_tunnel_url', trimmed);
@@ -108,44 +110,43 @@ export function getApiBase(): string {
       }
     } catch {}
 
-    // 2. When accessing on local LAN or localhost, use relative path
-    if (
-      hostname === 'localhost' ||
-      hostname === '127.0.0.1' ||
-      hostname.startsWith('192.168.') ||
-      hostname.startsWith('10.') ||
-      hostname.startsWith('172.')
-    ) {
-      return '/api/prints';
+    // 2. When accessing on local desktop, use direct local daemon Port 5000
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+      return LOCAL_DAEMON_BASE;
     }
 
-    // 3. When accessing over Cloudflare tunnel or external tunnel, use current origin
+    // 3. When accessing on shop Wi-Fi LAN
+    if (hostname.startsWith('192.168.') || hostname.startsWith('10.') || hostname.startsWith('172.')) {
+      return `http://${hostname}:5000/api/prints`;
+    }
+
+    // 4. When accessing over Cloudflare tunnel, use current origin
     if (hostname.includes('trycloudflare.com') || hostname.includes('loca.lt') || hostname.includes('tunnel')) {
       return `${window.location.origin}/api/prints`;
     }
 
-    // 4. Cached in-memory or saved active API or tunnel in localStorage
+    // 5. Cached in-memory or saved active tunnel in localStorage
     if (cachedLiveTunnel) {
       return `${cachedLiveTunnel.replace(/\/+$/, '')}/api/prints`;
     }
     try {
       const savedTunnel = window.localStorage?.getItem('arka_tunnel_url');
-      if (savedTunnel && savedTunnel.includes('trycloudflare.com') && !savedTunnel.includes('political-abilities') && !savedTunnel.includes('glad-examines') && !savedTunnel.includes('condition-draws')) {
+      if (savedTunnel && savedTunnel.includes('trycloudflare.com') && !savedTunnel.includes('leader-appendix')) {
         let trimmed = savedTunnel.trim().replace(/\/+$/, '');
         if (!trimmed.endsWith('/api/prints')) trimmed += '/api/prints';
         return trimmed;
       }
     } catch {}
 
-    // 5. When accessing from Vercel or public domain, use active Cloudflare tunnel
-    return `${ACTIVE_PRODUCTION_TUNNEL}/api/prints`;
+    // 6. Default to local daemon base (Port 5000)
+    return LOCAL_DAEMON_BASE;
   }
-  return `${ACTIVE_PRODUCTION_TUNNEL}/api/prints`;
+  return LOCAL_DAEMON_BASE;
 }
 
 export function setCustomApiBase(url: string | null): void {
   if (typeof window !== 'undefined' && window.localStorage) {
-    if (!url || !url.trim() || url.includes('political-abilities')) {
+    if (!url || !url.trim() || url.includes('leader-appendix')) {
       window.localStorage.removeItem('arka_api_url');
     } else {
       window.localStorage.setItem('arka_api_url', url.trim());
@@ -237,28 +238,30 @@ export interface LogEntry {
 }
 
 export async function fetchWithFallback(endpointPath: string, options?: RequestInit): Promise<Response> {
-  const isHttps = typeof window !== 'undefined' && window.location.protocol === 'https:';
-  const isLocalHost = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+  const isUpload = options?.body instanceof FormData || endpointPath.includes('upload') || endpointPath.includes('print');
+  const timeoutMs = (options as any)?.timeout || (isUpload ? 180000 : 8000);
 
-  // Resolve active dynamic live tunnel first
+  // 1. Resolve active dynamic live tunnel
   const liveTunnel = await resolveLiveTunnelUrl();
   const primaryBase = getApiBase();
   const candidateBases: string[] = [];
+
+  // 2. High-priority local desktop daemon endpoints (Port 5000 & 8082)
+  // These connect with 0ms latency when running on the shop desktop
+  candidateBases.push(
+    'http://localhost:5000/api/prints',
+    'http://127.0.0.1:5000/api/prints',
+    'http://localhost:8082/api/prints',
+    'http://127.0.0.1:8082/api/prints',
+    'http://192.168.31.233:5000/api/prints',
+    'http://192.168.31.233:8082/api/prints'
+  );
 
   if (liveTunnel) {
     candidateBases.push(`${liveTunnel.replace(/\/+$/, '')}/api/prints`);
   }
   candidateBases.push(primaryBase);
-  candidateBases.push(`${ACTIVE_PRODUCTION_TUNNEL}/api/prints`);
   candidateBases.push('/api/prints');
-
-  if (!isHttps || isLocalHost) {
-    candidateBases.push(
-      'http://192.168.31.233:8082/api/prints',
-      'http://localhost:8082/api/prints',
-      'http://127.0.0.1:8082/api/prints'
-    );
-  }
 
   if (typeof window !== 'undefined') {
     const origin = window.location.origin;
@@ -270,8 +273,6 @@ export async function fetchWithFallback(endpointPath: string, options?: RequestI
   const uniqueBases = Array.from(new Set(candidateBases.filter(Boolean).map(b => b.trim().replace(/\/+$/, ''))));
 
   let lastError: any = null;
-  const isUpload = options?.body instanceof FormData || endpointPath.includes('upload');
-  const timeoutMs = (options as any)?.timeout || (isUpload ? 180000 : 8000);
 
   for (const base of uniqueBases) {
     try {

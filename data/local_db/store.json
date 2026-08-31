@@ -1,102 +1,33 @@
 {
   "files": {},
   "history": {
-    "hist_1787561118922_stz1": {
-      "id": "hist_1787561118922_stz1",
-      "fileId": "doc_1787561115171",
-      "customerFile": "webupload_1787561115157_my7c_1c_BlackWhite_mandya_complaint__1_.pdf",
-      "originalPath": "D:\\Arka\\storage\\incoming\\1787561115162_webupload_1787561115157_my7c_1c_BlackWhite_mandya_complaint__1_.pdf",
-      "processedPath": "D:\\Arka\\storage\\processed\\optimized_1787561115164_1787561115162_webupload_1787561115157_my7c_1c_BlackWhite_mandya_complaint__1_.pdf",
+    "hist_1788160954846_tnef": {
+      "id": "hist_1788160954846_tnef",
+      "fileId": "doc_1788160952976",
+      "customerFile": "merged_id_1788160952479_horizontal.png",
+      "originalPath": "D:\\Arka\\kalpana-enterprises\\storage\\incoming\\1788160952929_merged_id_1788160952479_horizontal.png",
+      "processedPath": "D:\\Arka\\kalpana-enterprises\\storage\\processed\\copy_1788160952974_1788160952929_merged_id_1788160952479_horizontal.png",
       "pages": 1,
       "printerName": "HP Laser MFP 131 133 135-138",
       "colorMode": "BlackWhite",
-      "printTime": "2026-08-24T08:45:18.922Z",
+      "printTime": "2026-08-31T07:22:34.846Z",
       "status": "Success",
       "copies": 1,
       "retryCount": 1
     },
-    "hist_1787561984460_uyoe": {
-      "id": "hist_1787561984460_uyoe",
-      "fileId": "doc_1787561982127",
-      "customerFile": "webupload_1787561982122_86h4_1c_BlackWhite_final_verification.pdf",
-      "originalPath": "D:\\Arka\\storage\\incoming\\1787561982124_webupload_1787561982122_86h4_1c_BlackWhite_final_verification.pdf",
-      "processedPath": "D:\\Arka\\storage\\processed\\optimized_1787561982124_1787561982124_webupload_1787561982122_86h4_1c_BlackWhite_final_verification.pdf",
-      "pages": 1,
-      "printerName": "EPSON L3110 Series",
-      "colorMode": "BlackWhite",
-      "printTime": "2026-08-24T08:59:44.460Z",
-      "status": "Success",
-      "copies": 1,
-      "retryCount": 1
-    },
-    "hist_1787562234771_8vsw": {
-      "id": "hist_1787562234771_8vsw",
-      "fileId": "doc_1787562231322",
-      "customerFile": "webupload_1787562231313_6u0b_1c_BlackWhite_mandya_complaint__1_.pdf",
-      "originalPath": "D:\\Arka\\storage\\incoming\\1787562231317_webupload_1787562231313_6u0b_1c_BlackWhite_mandya_complaint__1_.pdf",
-      "processedPath": "D:\\Arka\\storage\\processed\\optimized_1787562231317_1787562231317_webupload_1787562231313_6u0b_1c_BlackWhite_mandya_complaint__1_.pdf",
+    "hist_1788160956663_dr5p": {
+      "id": "hist_1788160956663_dr5p",
+      "fileId": "doc_1788160953463",
+      "customerFile": "webupload_1788160952944_1c_BlackWhite_IDCard_horizontal.png",
+      "originalPath": "D:\\Arka\\kalpana-enterprises\\storage\\incoming\\1788160952946_webupload_1788160952944_1c_BlackWhite_IDCard_horizontal.png",
+      "processedPath": "D:\\Arka\\kalpana-enterprises\\storage\\processed\\enhanced_1788160952947_1788160952946_webupload_1788160952944_1c_BlackWhite_IDCard_horizontal.png",
       "pages": 1,
       "printerName": "HP Laser MFP 131 133 135-138",
       "colorMode": "BlackWhite",
-      "printTime": "2026-08-24T09:03:54.771Z",
+      "printTime": "2026-08-31T07:22:36.663Z",
       "status": "Success",
       "copies": 1,
       "retryCount": 1
-    },
-    "hist_1787563453207_oo92": {
-      "id": "hist_1787563453207_oo92",
-      "fileId": "doc_1787563450698",
-      "customerFile": "webupload_1787563450680_vh9w_1c_BlackWhite_live_customer_test.pdf",
-      "originalPath": "D:\\Arka\\storage\\incoming\\1787563450683_webupload_1787563450680_vh9w_1c_BlackWhite_live_customer_test.pdf",
-      "processedPath": "D:\\Arka\\storage\\processed\\optimized_1787563450684_1787563450683_webupload_1787563450680_vh9w_1c_BlackWhite_live_customer_test.pdf",
-      "pages": 1,
-      "printerName": "HP Laser MFP 131 133 135-138",
-      "colorMode": "BlackWhite",
-      "printTime": "2026-08-24T09:24:13.207Z",
-      "status": "Success",
-      "copies": 1,
-      "retryCount": 1
-    },
-    "hist_1787563518665_s2gg": {
-      "id": "hist_1787563518665_s2gg",
-      "fileId": "doc_1787563516020",
-      "customerFile": "webupload_1787563516006_pptr_1c_Color_live_colour_test.pdf",
-      "originalPath": "D:\\Arka\\storage\\incoming\\1787563516010_webupload_1787563516006_pptr_1c_Color_live_colour_test.pdf",
-      "processedPath": "D:\\Arka\\storage\\processed\\optimized_1787563516010_1787563516010_webupload_1787563516006_pptr_1c_Color_live_colour_test.pdf",
-      "pages": 1,
-      "printerName": "EPSON L3110 Series",
-      "colorMode": "Color",
-      "printTime": "2026-08-24T09:25:18.665Z",
-      "status": "Success",
-      "copies": 1,
-      "retryCount": 1
-    },
-    "hist_1787563931738_2ww7": {
-      "id": "hist_1787563931738_2ww7",
-      "fileId": "doc_1787563929554",
-      "customerFile": "webupload_1787563929541_6fta_1c_BlackWhite_e_drive_live_test.pdf",
-      "originalPath": "D:\\Arka\\storage\\incoming\\1787563929544_webupload_1787563929541_6fta_1c_BlackWhite_e_drive_live_test.pdf",
-      "processedPath": "D:\\Arka\\storage\\processed\\optimized_1787563929545_1787563929544_webupload_1787563929541_6fta_1c_BlackWhite_e_drive_live_test.pdf",
-      "pages": 1,
-      "printerName": "HP Laser MFP 131 133 135-138",
-      "colorMode": "BlackWhite",
-      "printTime": "2026-08-24T09:32:11.738Z",
-      "status": "Success",
-      "copies": 1,
-      "retryCount": 1
-    },
-    "hist_1788160615493_eghg": {
-      "id": "hist_1788160615493_eghg",
-      "fileId": "doc_1788160609465",
-      "customerFile": "webupload_1788160609458_rk40_1c_BlackWhite_test_mobile_print.pdf",
-      "originalPath": "D:\\Arka\\kalpana-enterprises\\storage\\incoming\\1788160609460_webupload_1788160609458_rk40_1c_BlackWhite_test_mobile_print.pdf",
-      "processedPath": "D:\\Arka\\kalpana-enterprises\\storage\\processed\\optimized_1788160609462_1788160609460_webupload_1788160609458_rk40_1c_BlackWhite_test_mobile_print.pdf",
-      "pages": 1,
-      "printerName": "HP Laser MFP 131 133 135-138",
-      "printTime": "2026-08-31T07:16:55.493Z",
-      "status": "Failed",
-      "copies": 1,
-      "retryCount": 4
     }
   },
   "printers": {
@@ -170,12 +101,12 @@
       "id": "epson_l3110_series",
       "name": "EPSON L3110 Series",
       "driverName": "EPSON L3110 Series",
-      "status": "Ready",
+      "status": "Ready (USB Spooler)",
       "isDefault": false,
       "isPrimary": false,
       "isSecondary": true,
       "isFallback": true,
-      "lastChecked": "2026-08-31T07:13:32.786Z"
+      "lastChecked": "2026-08-31T09:25:12.129Z"
     },
     "hp_laser_mfp_131_133_135_138": {
       "id": "hp_laser_mfp_131_133_135_138",
@@ -187,6 +118,17 @@
       "isSecondary": false,
       "isFallback": false,
       "lastChecked": "2026-08-31T07:13:32.786Z"
+    },
+    "hp_laser_mfp_131_133_135_138__wi_fi_": {
+      "id": "hp_laser_mfp_131_133_135_138__wi_fi_",
+      "name": "HP Laser MFP 131 133 135-138 (Wi-Fi)",
+      "driverName": "HP Laser MFP 131 133 135-138",
+      "status": "Offline (Wi-Fi Unreachable)",
+      "isDefault": false,
+      "isPrimary": false,
+      "isSecondary": false,
+      "isFallback": false,
+      "lastChecked": "2026-08-31T09:25:12.129Z"
     }
   },
   "settings": {
@@ -210,7 +152,7 @@
     "pollingIntervalMs": 2000,
     "port": 8082,
     "adminPasswordHash": "admin",
-    "publicTunnelUrl": "https://registry-length-window-injection.trycloudflare.com"
+    "publicTunnelUrl": "https://demanding-rear-james-explorer.trycloudflare.com"
   },
   "logs": [
     {
@@ -5599,117 +5541,37 @@
     }
   ],
   "queue": {
-    "job_1787561115171_9yljm": {
-      "id": "job_1787561115171_9yljm",
-      "fileId": "doc_1787561115171",
+    "job_1788160952977_rquqv": {
+      "id": "job_1788160952977_rquqv",
+      "fileId": "doc_1788160952976",
       "customerName": "Customer Print",
-      "fileName": "webupload_1787561115157_my7c_1c_BlackWhite_mandya_complaint__1_.pdf",
-      "processedPath": "D:\\Arka\\storage\\processed\\optimized_1787561115164_1787561115162_webupload_1787561115157_my7c_1c_BlackWhite_mandya_complaint__1_.pdf",
-      "originalPath": "D:\\Arka\\storage\\incoming\\1787561115162_webupload_1787561115157_my7c_1c_BlackWhite_mandya_complaint__1_.pdf",
-      "printer": "EPSON L3110 Series",
-      "copies": 1,
-      "colorMode": "BlackWhite",
-      "status": "Completed",
-      "priority": 1,
-      "attempts": 1,
-      "createdAt": "2026-08-24T08:45:15.171Z",
-      "updatedAt": "2026-08-24T08:45:18.918Z"
-    },
-    "job_1787561982127_3fmmn": {
-      "id": "job_1787561982127_3fmmn",
-      "fileId": "doc_1787561982127",
-      "customerName": "Customer Print",
-      "fileName": "webupload_1787561982122_86h4_1c_BlackWhite_final_verification.pdf",
-      "processedPath": "D:\\Arka\\storage\\processed\\optimized_1787561982124_1787561982124_webupload_1787561982122_86h4_1c_BlackWhite_final_verification.pdf",
-      "originalPath": "D:\\Arka\\storage\\incoming\\1787561982124_webupload_1787561982122_86h4_1c_BlackWhite_final_verification.pdf",
-      "printer": "EPSON L3110 Series",
-      "copies": 1,
-      "colorMode": "BlackWhite",
-      "status": "Completed",
-      "priority": 1,
-      "attempts": 1,
-      "createdAt": "2026-08-24T08:59:42.127Z",
-      "updatedAt": "2026-08-24T08:59:44.458Z"
-    },
-    "job_1787562231322_cwuvb": {
-      "id": "job_1787562231322_cwuvb",
-      "fileId": "doc_1787562231322",
-      "customerName": "Customer Print",
-      "fileName": "webupload_1787562231313_6u0b_1c_BlackWhite_mandya_complaint__1_.pdf",
-      "processedPath": "D:\\Arka\\storage\\processed\\optimized_1787562231317_1787562231317_webupload_1787562231313_6u0b_1c_BlackWhite_mandya_complaint__1_.pdf",
-      "originalPath": "D:\\Arka\\storage\\incoming\\1787562231317_webupload_1787562231313_6u0b_1c_BlackWhite_mandya_complaint__1_.pdf",
-      "printer": "EPSON L3110 Series",
-      "copies": 1,
-      "colorMode": "BlackWhite",
-      "status": "Completed",
-      "priority": 1,
-      "attempts": 1,
-      "createdAt": "2026-08-24T09:03:51.322Z",
-      "updatedAt": "2026-08-24T09:03:54.769Z"
-    },
-    "job_1787563450698_ybbrl": {
-      "id": "job_1787563450698_ybbrl",
-      "fileId": "doc_1787563450698",
-      "customerName": "Customer Print",
-      "fileName": "webupload_1787563450680_vh9w_1c_BlackWhite_live_customer_test.pdf",
-      "processedPath": "D:\\Arka\\storage\\processed\\optimized_1787563450684_1787563450683_webupload_1787563450680_vh9w_1c_BlackWhite_live_customer_test.pdf",
-      "originalPath": "D:\\Arka\\storage\\incoming\\1787563450683_webupload_1787563450680_vh9w_1c_BlackWhite_live_customer_test.pdf",
+      "fileName": "merged_id_1788160952479_horizontal.png",
+      "processedPath": "D:\\Arka\\kalpana-enterprises\\storage\\processed\\copy_1788160952974_1788160952929_merged_id_1788160952479_horizontal.png",
+      "originalPath": "D:\\Arka\\kalpana-enterprises\\storage\\incoming\\1788160952929_merged_id_1788160952479_horizontal.png",
       "printer": "HP Laser MFP 131 133 135-138",
       "copies": 1,
       "colorMode": "BlackWhite",
       "status": "Completed",
       "priority": 1,
       "attempts": 1,
-      "createdAt": "2026-08-24T09:24:10.698Z",
-      "updatedAt": "2026-08-24T09:24:13.203Z"
+      "createdAt": "2026-08-31T07:22:32.977Z",
+      "updatedAt": "2026-08-31T07:22:34.844Z"
     },
-    "job_1787563516020_go90o": {
-      "id": "job_1787563516020_go90o",
-      "fileId": "doc_1787563516020",
+    "job_1788160953464_hx4k2": {
+      "id": "job_1788160953464_hx4k2",
+      "fileId": "doc_1788160953463",
       "customerName": "Customer Print",
-      "fileName": "webupload_1787563516006_pptr_1c_Color_live_colour_test.pdf",
-      "processedPath": "D:\\Arka\\storage\\processed\\optimized_1787563516010_1787563516010_webupload_1787563516006_pptr_1c_Color_live_colour_test.pdf",
-      "originalPath": "D:\\Arka\\storage\\incoming\\1787563516010_webupload_1787563516006_pptr_1c_Color_live_colour_test.pdf",
-      "printer": "EPSON L3110 Series",
-      "copies": 1,
-      "colorMode": "Color",
-      "status": "Completed",
-      "priority": 1,
-      "attempts": 1,
-      "createdAt": "2026-08-24T09:25:16.020Z",
-      "updatedAt": "2026-08-24T09:25:18.661Z"
-    },
-    "job_1787563929554_7p0y6": {
-      "id": "job_1787563929554_7p0y6",
-      "fileId": "doc_1787563929554",
-      "customerName": "Customer Print",
-      "fileName": "webupload_1787563929541_6fta_1c_BlackWhite_e_drive_live_test.pdf",
-      "processedPath": "D:\\Arka\\storage\\processed\\optimized_1787563929545_1787563929544_webupload_1787563929541_6fta_1c_BlackWhite_e_drive_live_test.pdf",
-      "originalPath": "D:\\Arka\\storage\\incoming\\1787563929544_webupload_1787563929541_6fta_1c_BlackWhite_e_drive_live_test.pdf",
+      "fileName": "webupload_1788160952944_1c_BlackWhite_IDCard_horizontal.png",
+      "processedPath": "D:\\Arka\\kalpana-enterprises\\storage\\processed\\enhanced_1788160952947_1788160952946_webupload_1788160952944_1c_BlackWhite_IDCard_horizontal.png",
+      "originalPath": "D:\\Arka\\kalpana-enterprises\\storage\\incoming\\1788160952946_webupload_1788160952944_1c_BlackWhite_IDCard_horizontal.png",
       "printer": "HP Laser MFP 131 133 135-138",
       "copies": 1,
       "colorMode": "BlackWhite",
       "status": "Completed",
       "priority": 1,
       "attempts": 1,
-      "createdAt": "2026-08-24T09:32:09.554Z",
-      "updatedAt": "2026-08-24T09:32:11.735Z"
-    },
-    "job_1788160609466_rpe8n": {
-      "id": "job_1788160609466_rpe8n",
-      "fileId": "doc_1788160609465",
-      "customerName": "Customer Print",
-      "fileName": "webupload_1788160609458_rk40_1c_BlackWhite_test_mobile_print.pdf",
-      "processedPath": "D:\\Arka\\kalpana-enterprises\\storage\\processed\\optimized_1788160609462_1788160609460_webupload_1788160609458_rk40_1c_BlackWhite_test_mobile_print.pdf",
-      "originalPath": "D:\\Arka\\kalpana-enterprises\\storage\\incoming\\1788160609460_webupload_1788160609458_rk40_1c_BlackWhite_test_mobile_print.pdf",
-      "printer": "HP Laser MFP 131 133 135-138",
-      "copies": 1,
-      "colorMode": "BlackWhite",
-      "status": "Failed",
-      "priority": 1,
-      "attempts": 4,
-      "createdAt": "2026-08-31T07:16:49.466Z",
-      "updatedAt": "2026-08-31T07:16:55.491Z"
+      "createdAt": "2026-08-31T07:22:33.464Z",
+      "updatedAt": "2026-08-31T07:22:36.661Z"
     }
   },
   "statistics": {
@@ -5764,9 +5626,9 @@
     },
     "2026-08-31": {
       "date": "2026-08-31",
-      "totalReceived": 1,
-      "totalProcessed": 1,
-      "totalPrinted": 0,
+      "totalReceived": 3,
+      "totalProcessed": 3,
+      "totalPrinted": 2,
       "totalFailed": 1
     }
   }
