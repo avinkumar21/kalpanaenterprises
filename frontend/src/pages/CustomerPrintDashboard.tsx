@@ -408,9 +408,9 @@ export const CustomerPrintDashboard: React.FC = () => {
 
           {/* PRINTER 1: EPSON L3110 (USB Only) */}
           {(() => {
-            const epsonOnline = printerStatus[EPSON_NAME] === 'Online' ||
-              printerStatus['EPSON L3110 Series'] === 'Online' ||
-              Object.keys(printerStatus).some(k => k.toLowerCase().includes('epson') && printerStatus[k] === 'Online');
+            const epsonOnline = (printerStatus[EPSON_NAME] === 'Online' || printerStatus['EPSON L3110 Series'] === 'Online') &&
+              printerStatus[EPSON_NAME] !== 'Offline' &&
+              printerStatus['EPSON L3110 Series'] !== 'Offline';
             return (
               <div
                 style={epsonOnline
@@ -426,7 +426,7 @@ export const CustomerPrintDashboard: React.FC = () => {
                     </div>
                     <div>
                       <h3 className="font-black text-slate-950 text-lg">EPSON L3110 Series</h3>
-                      <p className="text-xs font-black text-slate-600">🔌 USB Only — Color Sublimation Inkjet</p>
+                      <p className="text-xs font-black text-slate-600">🔌 USB Only — Color Sublimation Inkjet (Shop Desktop USB001)</p>
                     </div>
                   </div>
                   <span className={`px-3 py-1.5 rounded-lg text-xs font-black uppercase shadow-sm border flex items-center gap-1.5 ${epsonOnline
@@ -439,7 +439,7 @@ export const CustomerPrintDashboard: React.FC = () => {
 
                 <div className="mt-2">
                   <span className={`px-2.5 py-1 rounded text-xs font-bold uppercase ${epsonOnline ? 'text-emerald-800 bg-emerald-100 border-2 border-emerald-500 shadow-sm font-black' : 'text-red-800 bg-red-100 border border-red-400 font-black'}`}>
-                    {epsonOnline ? '🟢 ONLINE USB PRINTER (READY)' : '🔴 OFFLINE (POWERED OFF / CABLE DISCONNECTED)'}
+                    {epsonOnline ? '🟢 ONLINE USB PRINTER (READY)' : '🔴 OFFLINE (USB CABLE DISCONNECTED FROM DESKTOP)'}
                   </span>
                 </div>
 
@@ -480,10 +480,10 @@ export const CustomerPrintDashboard: React.FC = () => {
 
           {/* PRINTER 2: HP LASER MFP (USB + Wi-Fi) */}
           {(() => {
-            const hpOnline = printerStatus[HP_NAME] === 'Online' ||
+            const hpOnline = (printerStatus[HP_NAME] === 'Online' ||
               printerStatus['HP Laser MFP 131 133 135-138'] === 'Online' ||
-              printerStatus['HP508140DE1D63(HP Laser MFP 131 133 135-138)'] === 'Online' ||
-              Object.keys(printerStatus).some(k => (k.toLowerCase().includes('hp') || k.toLowerCase().includes('131') || k.toLowerCase().includes('135')) && printerStatus[k] === 'Online');
+              printerStatus['HP Laser MFP 131 133 135-138 (Wi-Fi)'] === 'Online') &&
+              printerStatus['HP Laser MFP 131 133 135-138'] !== 'Offline';
             return (
               <div
                 style={hpOnline
@@ -512,7 +512,7 @@ export const CustomerPrintDashboard: React.FC = () => {
 
                 <div className="mt-2">
                   <span className={`px-2.5 py-1 rounded text-xs font-bold uppercase ${hpOnline ? 'text-emerald-800 bg-emerald-100 border-2 border-emerald-500 shadow-sm font-black' : 'text-red-800 bg-red-100 border border-red-400 font-black'}`}>
-                    {hpOnline ? '⭐ PRIMARY ACTIVE LASER PRINTER (READY)' : '🔴 OFFLINE (POWERED OFF / CABLE DISCONNECTED)'}
+                    {hpOnline ? '⭐ ACTIVE LASER PRINTER (WI-FI / USB READY)' : '🔴 OFFLINE (DISCONNECTED / POWERED OFF)'}
                   </span>
                 </div>
 

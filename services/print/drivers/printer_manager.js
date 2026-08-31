@@ -74,6 +74,9 @@ const PrinterManager = {
                     }
                 }
 
+                # Real-time hardware check: Query PnP Device Manager for physical device presence
+                $pnpPrinters = Get-PnpDevice -Class 'Printer' -ErrorAction SilentlyContinue
+
                 $wmiPrinters = Get-WmiObject -Class Win32_Printer -ErrorAction SilentlyContinue
 
                 $results = @{}
@@ -86,18 +89,22 @@ const PrinterManager = {
                     $printerStatus = [int]$w.PrinterStatus
                     $extendedStatus = [int]$w.ExtendedPrinterStatus
 
-                    # Auto-recover WorkOffline if printer is ready
-                    if ($workOffline -and ($gpStatus -eq 'Normal' -or $printerStatus -eq 3 -or $extendedStatus -eq 2 -or $extendedStatus -eq 3)) {
-                        try {
-                            $w.WorkOffline = $false
-                            $null = $w.Put()
-                            $workOffline = $false
-                        } catch {}
+                    $isUsb = $w.PortName -like 'USB*'
+                    $pnpPresent = $false
+                    if ($isUsb) {
+                        $matchedPnp = $pnpPrinters | Where-Object { 
+                            ($_.FriendlyName -eq $name -or $_.InstanceId -like "*$name*" -or $_.InstanceId -like "*$($w.PortName)*") -and $_.Present -eq $true 
+                        }
+                        $pnpPresent = [bool]$matchedPnp
                     }
 
+                    # Physical connection rule:
+                    # USB devices MUST have PnP hardware presence ($pnpPresent == $true) AND not in WorkOffline state
                     $isOnline = $false
-                    if ($w.PortName -like 'USB*' -and -not $workOffline) {
-                        $isOnline = $true
+                    if ($isUsb) {
+                        $isOnline = $pnpPresent -and (-not $workOffline)
+                    } elseif ($w.PortName -like 'IP_*' -or $w.PortName -like '192.168.*' -or $name -like '*(Wi-Fi)*') {
+                        $isOnline = (-not $workOffline) -and ($gpStatus -ne 'Offline')
                     } elseif ($workOffline -eq $true -or $gpStatus -eq 'Offline') {
                         $isOnline = $false
                     } elseif ($extendedStatus -in @(7, 9, 11) -or $printerStatus -in @(2, 4, 7)) {
@@ -113,6 +120,7 @@ const PrinterManager = {
                         location = $location
                         status = if ($isOnline) { "Ready" } else { "Offline" }
                         isOnline = $isOnline
+                        pnpPresent = $pnpPresent
                         isDefault = [bool]$w.Default
                         workOffline = $workOffline
                         gpStatus = $gpStatus
@@ -145,14 +153,16 @@ const PrinterManager = {
 
                     if (isHpWifi) {
                         item.connection = `Wi-Fi (${HP_WIFI_STATIC_IP})`;
-                        item.isOnline = isHpWifiAlive && !item.workOffline;
+                        item.isOnline = Boolean(isHpWifiAlive && !item.workOffline);
                         item.status = item.isOnline ? 'Ready (Wi-Fi)' : 'Offline (Wi-Fi Unreachable)';
                     } else if (isHpUsb) {
                         item.connection = 'USB (Fallback Cable)';
-                        if (item.isOnline) item.status = 'Ready (USB Cable)';
+                        item.isOnline = Boolean(item.pnpPresent && !item.workOffline);
+                        item.status = item.isOnline ? 'Ready (USB Cable)' : 'Offline (USB Disconnected)';
                     } else if (isEpson) {
                         item.connection = 'USB (Spooler)';
-                        if (item.isOnline) item.status = 'Ready (USB Spooler)';
+                        item.isOnline = Boolean(item.pnpPresent && !item.workOffline);
+                        item.status = item.isOnline ? 'Ready (USB Spooler)' : 'Offline (USB Disconnected)';
                     }
                     statusMap[item.name] = item;
                 }
@@ -207,7 +217,9 @@ const PrinterManager = {
             let list = Array.from(seenFamilies.values()).map(p => ({
                 name: p.name || 'Unknown Printer',
                 driverName: p.driverName || 'Standard Driver',
-                status: p.status || 'Ready',
+                status: p.isOnline ? (p.status || 'Ready') : 'Offline',
+                isOnline: Boolean(p.isOnline),
+                connection: p.connection || 'USB',
                 isDefault: Boolean(p.isDefault),
                 isPrimary: false,
                 isSecondary: false,
@@ -340,7 +352,7 @@ const PrinterManager = {
             
             let isOnline = false;
             if (matched) {
-                isOnline = Boolean(matched.isOnline || matched.status === 'Ready');
+                isOnline = Boolean(matched.isOnline === true);
             } else {
                 const tLower = (printerName || '').toLowerCase();
                 const isEpson = tLower.includes('epson') || tLower.includes('l3110');
@@ -352,7 +364,7 @@ const PrinterManager = {
                     return false;
                 });
                 if (fallbackCandidate) {
-                    isOnline = Boolean(fallbackCandidate.isOnline || fallbackCandidate.status === 'Ready');
+                    isOnline = Boolean(fallbackCandidate.isOnline === true);
                 }
             }
 

@@ -110,28 +110,29 @@ router.get('/printer-status', async (req, res) => {
         const allPrinters = Object.values(statusMap);
 
         const epsonPrinters = allPrinters.filter(p => (p.name || '').toLowerCase().includes('epson') || (p.name || '').toLowerCase().includes('l3110'));
-        const epsonReady = epsonPrinters.find(p => p.isOnline || p.status === 'Ready');
-        const epsonInfo = epsonReady || epsonPrinters[0] || { isOnline: false };
+        const epsonOnline = Boolean(epsonPrinters.some(p => p.isOnline === true));
 
-        const hpPrinters = allPrinters.filter(p => (p.name || '').toLowerCase().includes('hp') || (p.name || '').includes('131') || (p.name || '').includes('135') || (p.name || '').includes('138') || (p.name || '').toLowerCase().includes('mfp'));
-        const hpReady = hpPrinters.find(p => p.isOnline || p.status === 'Ready');
-        const hpInfo = hpReady || hpPrinters[0] || { isOnline: false };
+        const hpWifiPrinter = allPrinters.find(p => p.name.includes('(Wi-Fi)') || p.portName === `IP_${PrinterManager.HP_WIFI_IP}`);
+        const hpWifiOnline = Boolean(hpWifiPrinter && hpWifiPrinter.isOnline === true);
 
-        const epsonOnline = Boolean(epsonReady || epsonInfo.isOnline || epsonInfo.status === 'Ready');
-        const hpOnline = Boolean(hpReady || hpInfo.isOnline || hpInfo.status === 'Ready');
+        const hpUsbPrinters = allPrinters.filter(p => (p.name || '').toLowerCase().includes('hp') && !p.name.includes('(Wi-Fi)'));
+        const hpUsbOnline = Boolean(hpUsbPrinters.some(p => p.isOnline === true));
+
+        const hpOnline = hpWifiOnline || hpUsbOnline;
 
         const result = {
             [epsonName]: epsonOnline ? 'Online' : 'Offline',
             [hpName]: hpOnline ? 'Online' : 'Offline',
             'EPSON L3110 Series': epsonOnline ? 'Online' : 'Offline',
             'HP Laser MFP 131 133 135-138': hpOnline ? 'Online' : 'Offline',
+            'HP Laser MFP 131 133 135-138 (Wi-Fi)': hpWifiOnline ? 'Online' : 'Offline',
             messages: {
                 [epsonName]: epsonOnline 
                     ? `✅ Printer [EPSON L3110 Series] is Online, powered on, and ready to print via USB Cable!` 
-                    : `⚠️ Printer [EPSON L3110 Series] is currently powered off or disconnected. Please turn on printer power switch or connect cable.`,
+                    : `⚠️ Printer [EPSON L3110 Series] is currently disconnected or powered off. USB cable is not connected to the shop desktop.`,
                 [hpName]: hpOnline 
-                    ? `✅ Printer [HP Laser MFP 131 133 135-138] is Online, powered on, and ready to print via USB Cable!` 
-                    : `⚠️ Printer [HP Laser MFP 131 133 135-138] is currently powered off or disconnected. Please turn on printer power switch or connect cable.`
+                    ? (hpWifiOnline ? `✅ Printer [HP Laser MFP 131 133 135-138] is Online via ARKA Wi-Fi (${PrinterManager.HP_WIFI_IP})!` : `✅ Printer [HP Laser MFP 131 133 135-138] is Online via direct USB cable!`)
+                    : `⚠️ Printer [HP Laser MFP 131 133 135-138] is currently offline or disconnected.`
             },
             timestamp: new Date().toISOString()
         };
@@ -150,6 +151,17 @@ router.get('/printer-status', async (req, res) => {
             timestamp: new Date().toISOString(),
             error: error.message
         });
+    }
+});
+
+// POST & GET /api/prints/test-printer - Real-time connectivity test for specific printer
+router.all('/test-printer', async (req, res) => {
+    try {
+        const printerName = req.body?.printer || req.query?.printer || 'EPSON L3110 Series';
+        const result = await PrinterManager.testPrinter(printerName);
+        res.json(result);
+    } catch (err) {
+        res.status(500).json({ success: false, status: 'OFFLINE', error: err.message });
     }
 });
 

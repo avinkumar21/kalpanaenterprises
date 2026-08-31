@@ -101,12 +101,14 @@
       "id": "epson_l3110_series",
       "name": "EPSON L3110 Series",
       "driverName": "EPSON L3110 Series",
-      "status": "Ready (USB Spooler)",
-      "isDefault": false,
+      "status": "Offline",
+      "isOnline": false,
+      "connection": "USB (Spooler)",
+      "isDefault": true,
       "isPrimary": false,
       "isSecondary": true,
       "isFallback": true,
-      "lastChecked": "2026-08-31T09:25:12.129Z"
+      "lastChecked": "2026-08-31T09:37:42.145Z"
     },
     "hp_laser_mfp_131_133_135_138": {
       "id": "hp_laser_mfp_131_133_135_138",
@@ -123,12 +125,14 @@
       "id": "hp_laser_mfp_131_133_135_138__wi_fi_",
       "name": "HP Laser MFP 131 133 135-138 (Wi-Fi)",
       "driverName": "HP Laser MFP 131 133 135-138",
-      "status": "Offline (Wi-Fi Unreachable)",
+      "status": "Offline",
+      "isOnline": false,
+      "connection": "Wi-Fi (192.168.31.2)",
       "isDefault": false,
       "isPrimary": false,
       "isSecondary": false,
       "isFallback": false,
-      "lastChecked": "2026-08-31T09:25:12.129Z"
+      "lastChecked": "2026-08-31T09:37:42.144Z"
     }
   },
   "settings": {
@@ -152,7 +156,7 @@
     "pollingIntervalMs": 2000,
     "port": 8082,
     "adminPasswordHash": "admin",
-    "publicTunnelUrl": "https://demanding-rear-james-explorer.trycloudflare.com"
+    "publicTunnelUrl": "https://bedroom-mrs-dev-placed.trycloudflare.com"
   },
   "logs": [
     {
