@@ -146,17 +146,35 @@ switch ($Action.ToLower()) {
     "install" { Install-Service; Get-ServiceStatus }
     "start"   { 
         $task = Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
-        if (-not $task) { Install-Service } 
-        else { 
+        if ($task) {
             Start-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue | Out-Null
-            $ptask = Get-ScheduledTask -TaskName $printTaskName -ErrorAction SilentlyContinue
-            if (-not $ptask -and (Test-Path $printInstaller)) {
-                powershell.exe -NoProfile -ExecutionPolicy Bypass -File $printInstaller -Action install
-            } elseif ($ptask) {
-                Start-ScheduledTask -TaskName $printTaskName -ErrorAction SilentlyContinue | Out-Null
-            }
-            Start-Sleep -Seconds 4
         }
+        $ptask = Get-ScheduledTask -TaskName $printTaskName -ErrorAction SilentlyContinue
+        if ($ptask) {
+            Start-ScheduledTask -TaskName $printTaskName -ErrorAction SilentlyContinue | Out-Null
+        }
+
+        # Ensure Print Engine is active in background
+        $port8082Active = $false
+        try {
+            $tcp = New-Object System.Net.Sockets.TcpClient
+            $conn = $tcp.BeginConnect("127.0.0.1", 8082, $null, $null)
+            if ($conn.AsyncWaitHandle.WaitOne(600, $false)) { $tcp.EndConnect($conn); $tcp.Close(); $port8082Active = $true }
+        } catch {}
+
+        if (-not $port8082Active) {
+            Write-Host "Launching ARKA Print Engine on Port 8082..." -ForegroundColor Cyan
+            $printDir = Join-Path $root "backend"
+            Start-Process -FilePath "cmd.exe" -ArgumentList "/c ""cd /d ""$printDir"" && node.exe src/server.js > ""$(Join-Path $root 'logs\print_engine_out.log')"" 2>&1""" -WindowStyle Hidden
+        }
+
+        # Launch persistent Watchdog loop if not running
+        $watchdogRunning = Get-WmiObject Win32_Process -ErrorAction SilentlyContinue | Where-Object { $_.CommandLine -like "*kalpana_watchdog.ps1*" }
+        if (-not $watchdogRunning) {
+            Start-Process -FilePath "powershell.exe" -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File ""$watchdogScript""" -WindowStyle Hidden
+        }
+
+        Start-Sleep -Seconds 4
         Get-ServiceStatus 
     }
     "stop"      { Stop-AllServices; Get-ServiceStatus }
@@ -172,14 +190,9 @@ switch ($Action.ToLower()) {
         Stop-AllServices; Start-Sleep -Seconds 2
         Write-Host "Rebooting entire Kalpana Enterprise application suite (Frontend, Backend, and Print Engine)..." -ForegroundColor Cyan
         
-        # Explicitly boot all 3 core application servers in background
-        $uiDir = Join-Path $root "gravity_web_ui"
+        # Explicitly boot core application servers in background
+        $uiDir = Join-Path $root "frontend"
         Start-Process -FilePath "cmd.exe" -ArgumentList "/c ""cd /d ""$uiDir"" && npm.cmd run dev > ""$(Join-Path $root 'logs\frontend_out.log')"" 2>&1""" -WindowStyle Hidden
-        
-        $backendScript = Join-Path $root "kalpan_data\server.ps1"
-        if (Test-Path $backendScript) {
-            Start-Process -FilePath "powershell.exe" -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File ""$backendScript""" -WindowStyle Hidden
-        }
 
         $printDir = Join-Path $root "backend"
         Start-Process -FilePath "cmd.exe" -ArgumentList "/c ""cd /d ""$printDir"" && node.exe src/server.js > ""$(Join-Path $root 'logs\print_engine_out.log')"" 2>&1""" -WindowStyle Hidden

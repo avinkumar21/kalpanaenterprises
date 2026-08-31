@@ -135,6 +135,11 @@ module.exports = {
             });
             return res;
         } else {
+            try {
+                if (fs.existsSync(jsonStorePath)) {
+                    jsonStore = JSON.parse(fs.readFileSync(jsonStorePath, 'utf8'));
+                }
+            } catch {}
             return { ...defaultSettings, ...jsonStore.settings };
         }
     },
@@ -286,6 +291,11 @@ module.exports = {
         if (useSqlite) {
             return db.prepare("SELECT * FROM printers").all();
         } else {
+            try {
+                if (fs.existsSync(jsonStorePath)) {
+                    jsonStore = JSON.parse(fs.readFileSync(jsonStorePath, 'utf8'));
+                }
+            } catch {}
             return Object.values(jsonStore.printers);
         }
     },

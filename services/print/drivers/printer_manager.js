@@ -173,8 +173,8 @@ const PrinterManager = {
 
             if (!list || list.length === 0) {
                 list = [
-                    { name: 'EPSON L3110 Series', driverName: 'EPSON L3110 Series', status: 'Ready', isDefault: true, isPrimary: true, isSecondary: false, isFallback: false },
-                    { name: 'HP508140DE1D63(HP Laser MFP 131 133 135-138)', driverName: 'HP Laser MFP 131 133 135-138', status: 'Ready', isDefault: false, isPrimary: false, isSecondary: true, isFallback: false }
+                    { name: 'EPSON L3110 Series', driverName: 'EPSON L3110 Series', status: 'Ready', isDefault: false, isPrimary: false, isSecondary: true, isFallback: false },
+                    { name: 'HP Laser MFP 131 133 135-138', driverName: 'HP Laser MFP 131 133 135-138', status: 'Ready', isDefault: true, isPrimary: true, isSecondary: false, isFallback: false }
                 ];
             }
 
@@ -186,8 +186,8 @@ const PrinterManager = {
             let list = db.getPrinters();
             if (list.length === 0) {
                 list = [
-                    { name: 'EPSON L3110 Series', driverName: 'EPSON L3110 Series', status: 'Ready', isDefault: true, isPrimary: true, isSecondary: false, isFallback: false },
-                    { name: 'HP508140DE1D63(HP Laser MFP 131 133 135-138)', driverName: 'HP Laser MFP 131 133 135-138', status: 'Ready', isDefault: false, isPrimary: false, isSecondary: true, isFallback: false }
+                    { name: 'EPSON L3110 Series', driverName: 'EPSON L3110 Series', status: 'Ready', isDefault: false, isPrimary: false, isSecondary: true, isFallback: false },
+                    { name: 'HP Laser MFP 131 133 135-138', driverName: 'HP Laser MFP 131 133 135-138', status: 'Ready', isDefault: true, isPrimary: true, isSecondary: false, isFallback: false }
                 ];
                 db.savePrinters(list);
             }

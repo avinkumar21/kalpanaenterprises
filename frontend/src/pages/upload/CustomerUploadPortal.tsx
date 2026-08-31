@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { api, setCustomApiBase } from '../../services/client';
+import { api, setCustomApiBase, resolveLiveTunnelUrl } from '../../services/client';
 import { Upload, FileText, CheckCircle2, AlertCircle, Printer, Sparkles, QrCode, RefreshCw, Layers, Palette, Monitor } from 'lucide-react';
 import QRCode from 'react-qr-code';
 
@@ -70,7 +70,7 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
         }
       } catch {}
     }
-    return 'https://leader-appendix-mixer-jelsoft.trycloudflare.com';
+    return 'https://visiting-orlando-broadcast-parties.trycloudflare.com';
   });
   const [shopEmail, setShopEmail] = useState('print@kalpanaenterprise.com');
   const [channelHealth, setChannelHealth] = useState<any>(null);
@@ -79,10 +79,14 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
   // Distinct Channel 1: Wi-Fi Direct (Direct port 8082 to Express)
   const wifiUrl = `http://${shopLanIp || '192.168.31.233'}:8082/prints?kiosk=true#upload`;
 
-  // Distinct Channel 2: 4G/5G Mobile Cellular Web Tunnel (Cloudflare HTTPS)
+  // Distinct Channel 2: 4G/5G Mobile Cellular Web Tunnel (Clean Vercel Domain with embedded active tunnel param)
+  const targetHost = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname.startsWith('192.168.'))
+    ? 'https://kalpanaenterprises.vercel.app'
+    : (typeof window !== 'undefined' ? window.location.origin : 'https://kalpanaenterprises.vercel.app');
+
   const mobileUrl = publicTunnelUrl && publicTunnelUrl.trim()
-    ? `${publicTunnelUrl.trim().replace(/\/+$/, '')}/prints?kiosk=true#upload`
-    : 'https://leader-appendix-mixer-jelsoft.trycloudflare.com/prints?kiosk=true#upload';
+    ? `${targetHost}/prints?tunnel=${encodeURIComponent(publicTunnelUrl.trim().replace(/\/+$/, ''))}&kiosk=true#upload`
+    : `${targetHost}/prints?kiosk=true#upload`;
 
   // Distinct Channel 3: 4G/5G Email Intake Drop (Native mailto trigger)
   const emailUrl = `mailto:${shopEmail}?subject=Customer%20Print%20Order&body=Please%20attach%20your%20document%20(PDF,%20Photos)%20and%20tap%20Send.%20Our%20shop%20engine%20will%20print%20it%20automatically.`;
@@ -115,6 +119,10 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
     let isMounted = true;
     const syncStatusAndDiagnostics = async () => {
       try {
+        const liveTunnel = await resolveLiveTunnelUrl();
+        if (isMounted && liveTunnel && !liveTunnel.includes('political-abilities')) {
+          setPublicTunnelUrl(liveTunnel);
+        }
         const status = await api.fetchStatus();
         if (isMounted && status) {
           if (status.publicTunnelUrl && status.publicTunnelUrl.startsWith('http') && !status.publicTunnelUrl.includes('political-abilities')) {
@@ -131,7 +139,7 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
       } catch { /* ignore fallback */ }
     };
     syncStatusAndDiagnostics();
-    const interval = setInterval(syncStatusAndDiagnostics, 3000);
+    const interval = setInterval(syncStatusAndDiagnostics, 4000);
     return () => {
       isMounted = false;
       clearInterval(interval);
@@ -457,9 +465,12 @@ export const CustomerUploadPortal: React.FC<CustomerUploadPortalProps> = ({ isCu
     setUploading(true);
     try {
       if (connectionMode === 'mobile') {
-        if (publicTunnelUrl && !publicTunnelUrl.includes('political-abilities')) {
-          setCustomApiBase(publicTunnelUrl);
-          api.setCustomApiBase(publicTunnelUrl);
+        const freshTunnel = await resolveLiveTunnelUrl(true);
+        const activeTunnel = freshTunnel || publicTunnelUrl;
+        if (activeTunnel && !activeTunnel.includes('political-abilities')) {
+          setCustomApiBase(activeTunnel);
+          api.setCustomApiBase(activeTunnel);
+          setPublicTunnelUrl(activeTunnel);
         }
       } else if (connectionMode === 'wifi') {
         const isLocalHost = typeof window !== 'undefined' && (window.location.hostname.includes('192.168.') || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');

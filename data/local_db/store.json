@@ -84,6 +84,19 @@
       "status": "Success",
       "copies": 1,
       "retryCount": 1
+    },
+    "hist_1788160615493_eghg": {
+      "id": "hist_1788160615493_eghg",
+      "fileId": "doc_1788160609465",
+      "customerFile": "webupload_1788160609458_rk40_1c_BlackWhite_test_mobile_print.pdf",
+      "originalPath": "D:\\Arka\\kalpana-enterprises\\storage\\incoming\\1788160609460_webupload_1788160609458_rk40_1c_BlackWhite_test_mobile_print.pdf",
+      "processedPath": "D:\\Arka\\kalpana-enterprises\\storage\\processed\\optimized_1788160609462_1788160609460_webupload_1788160609458_rk40_1c_BlackWhite_test_mobile_print.pdf",
+      "pages": 1,
+      "printerName": "HP Laser MFP 131 133 135-138",
+      "printTime": "2026-08-31T07:16:55.493Z",
+      "status": "Failed",
+      "copies": 1,
+      "retryCount": 4
     }
   },
   "printers": {
@@ -158,22 +171,22 @@
       "name": "EPSON L3110 Series",
       "driverName": "EPSON L3110 Series",
       "status": "Ready",
-      "isDefault": true,
+      "isDefault": false,
       "isPrimary": false,
-      "isSecondary": false,
-      "isFallback": false,
-      "lastChecked": "2026-08-24T09:31:41.017Z"
+      "isSecondary": true,
+      "isFallback": true,
+      "lastChecked": "2026-08-31T07:13:32.786Z"
     },
     "hp_laser_mfp_131_133_135_138": {
       "id": "hp_laser_mfp_131_133_135_138",
       "name": "HP Laser MFP 131 133 135-138",
       "driverName": "HP Laser MFP 131 133 135-138",
       "status": "Ready",
-      "isDefault": false,
+      "isDefault": true,
       "isPrimary": true,
-      "isSecondary": true,
+      "isSecondary": false,
       "isFallback": false,
-      "lastChecked": "2026-08-24T09:31:41.017Z"
+      "lastChecked": "2026-08-31T07:13:32.786Z"
     }
   },
   "settings": {
@@ -187,8 +200,8 @@
     "enableEnhancement": true,
     "defaultPrinter": "HP Laser MFP 131 133 135-138",
     "primaryPrinter": "HP Laser MFP 131 133 135-138",
-    "secondaryPrinter": "HP Laser MFP 131 133 135-138",
-    "fallbackPrinter": "Microsoft Print to PDF",
+    "secondaryPrinter": "EPSON L3110 Series",
+    "fallbackPrinter": "EPSON L3110 Series",
     "copies": 1,
     "margins": "Minimal",
     "paperSize": "A4",
@@ -197,7 +210,7 @@
     "pollingIntervalMs": 2000,
     "port": 8082,
     "adminPasswordHash": "admin",
-    "publicTunnelUrl": "https://leader-appendix-mixer-jelsoft.trycloudflare.com"
+    "publicTunnelUrl": "https://registry-length-window-injection.trycloudflare.com"
   },
   "logs": [
     {
@@ -5681,6 +5694,22 @@
       "attempts": 1,
       "createdAt": "2026-08-24T09:32:09.554Z",
       "updatedAt": "2026-08-24T09:32:11.735Z"
+    },
+    "job_1788160609466_rpe8n": {
+      "id": "job_1788160609466_rpe8n",
+      "fileId": "doc_1788160609465",
+      "customerName": "Customer Print",
+      "fileName": "webupload_1788160609458_rk40_1c_BlackWhite_test_mobile_print.pdf",
+      "processedPath": "D:\\Arka\\kalpana-enterprises\\storage\\processed\\optimized_1788160609462_1788160609460_webupload_1788160609458_rk40_1c_BlackWhite_test_mobile_print.pdf",
+      "originalPath": "D:\\Arka\\kalpana-enterprises\\storage\\incoming\\1788160609460_webupload_1788160609458_rk40_1c_BlackWhite_test_mobile_print.pdf",
+      "printer": "HP Laser MFP 131 133 135-138",
+      "copies": 1,
+      "colorMode": "BlackWhite",
+      "status": "Failed",
+      "priority": 1,
+      "attempts": 4,
+      "createdAt": "2026-08-31T07:16:49.466Z",
+      "updatedAt": "2026-08-31T07:16:55.491Z"
     }
   },
   "statistics": {
@@ -5732,6 +5761,13 @@
       "totalProcessed": 14,
       "totalPrinted": 11,
       "totalFailed": 3
+    },
+    "2026-08-31": {
+      "date": "2026-08-31",
+      "totalReceived": 1,
+      "totalProcessed": 1,
+      "totalPrinted": 0,
+      "totalFailed": 1
     }
   }
 }

@@ -1,10 +1,95 @@
 export const ACTIVE_PRODUCTION_TUNNEL = 'https://leader-appendix-mixer-jelsoft.trycloudflare.com';
 export const SHOP_LAN_BASE = 'http://192.168.31.233:8082';
+export const RELAY_TOPIC = 'kalpana_enterprises_tunnel_v2';
+export const RELAY_POLL_URL = `https://ntfy.sh/${RELAY_TOPIC}/json?poll=1`;
+
+let cachedLiveTunnel: string | null = null;
+let lastLiveResolveTime = 0;
+
+export async function resolveLiveTunnelUrl(force = false): Promise<string | null> {
+  const now = Date.now();
+  if (!force && cachedLiveTunnel && (now - lastLiveResolveTime < 60000)) {
+    return cachedLiveTunnel;
+  }
+
+  // 1. Explicit query parameter ?tunnel=... or ?api=...
+  if (typeof window !== 'undefined') {
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      const tunnelParam = urlParams.get('tunnel') || urlParams.get('api');
+      if (tunnelParam && tunnelParam.trim() && tunnelParam.startsWith('http') && !tunnelParam.includes('political-abilities')) {
+        const clean = tunnelParam.trim().replace(/\/+$/, '');
+        cachedLiveTunnel = clean;
+        lastLiveResolveTime = now;
+        window.localStorage?.setItem('arka_tunnel_url', clean);
+        return clean;
+      }
+    } catch {}
+  }
+
+  // 2. Fetch live broadcast from ntfy relay topic
+  try {
+    const controller = new AbortController();
+    const tId = setTimeout(() => controller.abort(), 3500);
+    const res = await fetch(RELAY_POLL_URL, { signal: controller.signal });
+    clearTimeout(tId);
+    if (res.ok) {
+      const text = await res.text();
+      const lines = text.trim().split('\n').filter(Boolean);
+      for (let i = lines.length - 1; i >= 0; i--) {
+        try {
+          const parsed = JSON.parse(lines[i]);
+          if (parsed.message && parsed.message.startsWith('https://') && parsed.message.includes('trycloudflare.com')) {
+            const liveUrl = parsed.message.trim().replace(/\/+$/, '');
+            cachedLiveTunnel = liveUrl;
+            lastLiveResolveTime = now;
+            if (typeof window !== 'undefined') {
+              window.localStorage?.setItem('arka_tunnel_url', liveUrl);
+            }
+            return liveUrl;
+          }
+        } catch {}
+      }
+    }
+  } catch {}
+
+  // 3. Check public/active_tunnel.json on same origin
+  try {
+    const controller = new AbortController();
+    const tId = setTimeout(() => controller.abort(), 2000);
+    const res = await fetch('/active_tunnel.json', { signal: controller.signal, cache: 'no-store' });
+    clearTimeout(tId);
+    if (res.ok) {
+      const data = await res.json();
+      if (data.tunnelUrl && data.tunnelUrl.startsWith('https://') && data.tunnelUrl.includes('trycloudflare.com')) {
+        const liveUrl = data.tunnelUrl.trim().replace(/\/+$/, '');
+        cachedLiveTunnel = liveUrl;
+        lastLiveResolveTime = now;
+        if (typeof window !== 'undefined') {
+          window.localStorage?.setItem('arka_tunnel_url', liveUrl);
+        }
+        return liveUrl;
+      }
+    }
+  } catch {}
+
+  // 4. Saved active tunnel in localStorage
+  if (typeof window !== 'undefined') {
+    try {
+      const savedTunnel = window.localStorage?.getItem('arka_tunnel_url');
+      if (savedTunnel && savedTunnel.includes('trycloudflare.com') && !savedTunnel.includes('political-abilities')) {
+        cachedLiveTunnel = savedTunnel.trim().replace(/\/+$/, '');
+        return cachedLiveTunnel;
+      }
+    } catch {}
+  }
+
+  return cachedLiveTunnel || ACTIVE_PRODUCTION_TUNNEL;
+}
 
 export function getApiBase(): string {
   if (typeof window !== 'undefined') {
     const hostname = window.location.hostname || '';
-    const protocol = window.location.protocol || 'http:';
 
     // 1. Explicit query parameter ?tunnel=... or ?api=...
     try {
@@ -39,7 +124,10 @@ export function getApiBase(): string {
       return `${window.location.origin}/api/prints`;
     }
 
-    // 4. Saved active API or tunnel in localStorage
+    // 4. Cached in-memory or saved active API or tunnel in localStorage
+    if (cachedLiveTunnel) {
+      return `${cachedLiveTunnel.replace(/\/+$/, '')}/api/prints`;
+    }
     try {
       const savedTunnel = window.localStorage?.getItem('arka_tunnel_url');
       if (savedTunnel && savedTunnel.includes('trycloudflare.com') && !savedTunnel.includes('political-abilities') && !savedTunnel.includes('glad-examines') && !savedTunnel.includes('condition-draws')) {
@@ -152,12 +240,17 @@ export async function fetchWithFallback(endpointPath: string, options?: RequestI
   const isHttps = typeof window !== 'undefined' && window.location.protocol === 'https:';
   const isLocalHost = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
 
+  // Resolve active dynamic live tunnel first
+  const liveTunnel = await resolveLiveTunnelUrl();
   const primaryBase = getApiBase();
-  const candidateBases: string[] = [
-    primaryBase,
-    `${ACTIVE_PRODUCTION_TUNNEL}/api/prints`,
-    '/api/prints'
-  ];
+  const candidateBases: string[] = [];
+
+  if (liveTunnel) {
+    candidateBases.push(`${liveTunnel.replace(/\/+$/, '')}/api/prints`);
+  }
+  candidateBases.push(primaryBase);
+  candidateBases.push(`${ACTIVE_PRODUCTION_TUNNEL}/api/prints`);
+  candidateBases.push('/api/prints');
 
   if (!isHttps || isLocalHost) {
     candidateBases.push(
@@ -169,7 +262,7 @@ export async function fetchWithFallback(endpointPath: string, options?: RequestI
 
   if (typeof window !== 'undefined') {
     const origin = window.location.origin;
-    if (origin && origin !== 'null') {
+    if (origin && origin !== 'null' && !origin.includes('vercel.app')) {
       candidateBases.push(`${origin}/api/prints`);
     }
   }

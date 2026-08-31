@@ -87,6 +87,29 @@ function monitorCloudflareTunnel() {
     setInterval(check, 4000);
 }
 
+function ensureCloudflareTunnel() {
+    const tunnelScript = path.resolve(__dirname, '../../tools/tunnel_manager.js');
+    if (!fs.existsSync(tunnelScript)) return;
+
+    const { exec } = require('child_process');
+    exec('tasklist /FI "IMAGENAME eq cloudflared.exe"', (err, stdout) => {
+        if (!stdout || !stdout.includes('cloudflared.exe')) {
+            console.log('[SERVER] Booting integrated Cloudflare 4G/5G Tunnel Manager...');
+            try {
+                const child = require('child_process').spawn('node.exe', [tunnelScript], {
+                    detached: false,
+                    stdio: 'inherit'
+                });
+                child.unref();
+            } catch (e) {
+                console.error('[SERVER] Failed to spawn tunnel manager:', e.message);
+            }
+        } else {
+            console.log('[SERVER] Cloudflare Tunnel is already running in background.');
+        }
+    });
+}
+
 const ChannelHealthService = require('../../services/watchers/channel_health_service.js');
 
 const server = app.listen(PORT, '0.0.0.0', async () => {
@@ -98,6 +121,7 @@ const server = app.listen(PORT, '0.0.0.0', async () => {
     EmailWatcher.start();
     ChannelHealthService.start(20000);
     monitorCloudflareTunnel();
+    ensureCloudflareTunnel();
 });
 
 // Graceful Shutdown for PM2
