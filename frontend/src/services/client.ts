@@ -481,6 +481,20 @@ class PrintsApi {
     return await res.json();
   }
 
+  async detectBorders(jobId: string): Promise<any> {
+    try {
+      const res = await fetchWithFallback('/detect-borders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jobId })
+      });
+      if (!res.ok) return { success: false };
+      return await res.json();
+    } catch {
+      return { success: false };
+    }
+  }
+
   async uploadFile(file: File): Promise<any> {
     const formData = new FormData();
     formData.append('file', file);

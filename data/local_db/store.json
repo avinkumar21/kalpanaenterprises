@@ -28,6 +28,104 @@
       "status": "Success",
       "copies": 1,
       "retryCount": 1
+    },
+    "hist_1788169495574_znfe": {
+      "id": "hist_1788169495574_znfe",
+      "fileId": "doc_1788160953463",
+      "customerFile": "docscan_1788169489439_1788160952946_webupload_1788160952944_1c_BlackWhite_IDCard_horizontal.png",
+      "originalPath": "D:\\Arka\\kalpana-enterprises\\storage\\incoming\\1788160952946_webupload_1788160952944_1c_BlackWhite_IDCard_horizontal.png",
+      "processedPath": "D:\\Arka\\kalpana-enterprises\\storage\\processed\\docscan_1788169489439_1788160952946_webupload_1788160952944_1c_BlackWhite_IDCard_horizontal.png",
+      "pages": 1,
+      "printerName": "HP Laser MFP 131 133 135-138",
+      "colorMode": "BlackWhite",
+      "printTime": "2026-08-31T09:44:55.574Z",
+      "status": "Success",
+      "copies": 1,
+      "retryCount": 2
+    },
+    "hist_1788169540584_5t6h": {
+      "id": "hist_1788169540584_5t6h",
+      "fileId": "doc_1788160953463",
+      "customerFile": "docscan_1788169534208_1788160952946_webupload_1788160952944_1c_BlackWhite_IDCard_horizontal.png",
+      "originalPath": "D:\\Arka\\kalpana-enterprises\\storage\\incoming\\1788160952946_webupload_1788160952944_1c_BlackWhite_IDCard_horizontal.png",
+      "processedPath": "D:\\Arka\\kalpana-enterprises\\storage\\processed\\docscan_1788169534208_1788160952946_webupload_1788160952944_1c_BlackWhite_IDCard_horizontal.png",
+      "pages": 1,
+      "printerName": "HP Laser MFP 131 133 135-138",
+      "colorMode": "BlackWhite",
+      "printTime": "2026-08-31T09:45:40.584Z",
+      "status": "Success",
+      "copies": 1,
+      "retryCount": 3
+    },
+    "hist_1788169625145_4adq": {
+      "id": "hist_1788169625145_4adq",
+      "fileId": "doc_1788169617404",
+      "customerFile": "merged_id_1788169616974_horizontal.png",
+      "originalPath": "D:\\Arka\\kalpana-enterprises\\storage\\incoming\\1788169617369_merged_id_1788169616974_horizontal.png",
+      "processedPath": "D:\\Arka\\kalpana-enterprises\\storage\\processed\\copy_1788169617402_1788169617369_merged_id_1788169616974_horizontal.png",
+      "pages": 1,
+      "printerName": "HP Laser MFP 131 133 135-138",
+      "colorMode": "BlackWhite",
+      "printTime": "2026-08-31T09:47:05.145Z",
+      "status": "Success",
+      "copies": 1,
+      "retryCount": 1
+    },
+    "hist_1788169630771_7a8n": {
+      "id": "hist_1788169630771_7a8n",
+      "fileId": "doc_1788169617863",
+      "customerFile": "webupload_1788169617378_1c_BlackWhite_IDCard_horizontal.png",
+      "originalPath": "D:\\Arka\\kalpana-enterprises\\storage\\incoming\\1788169617380_webupload_1788169617378_1c_BlackWhite_IDCard_horizontal.png",
+      "processedPath": "D:\\Arka\\kalpana-enterprises\\storage\\processed\\enhanced_1788169617380_1788169617380_webupload_1788169617378_1c_BlackWhite_IDCard_horizontal.png",
+      "pages": 1,
+      "printerName": "HP Laser MFP 131 133 135-138",
+      "colorMode": "BlackWhite",
+      "printTime": "2026-08-31T09:47:10.771Z",
+      "status": "Success",
+      "copies": 1,
+      "retryCount": 1
+    },
+    "hist_1788169638328_n1yt": {
+      "id": "hist_1788169638328_n1yt",
+      "fileId": "doc_1788169617863",
+      "customerFile": "docscan_1788169634200_1788169617380_webupload_1788169617378_1c_BlackWhite_IDCard_horizontal.png",
+      "originalPath": "D:\\Arka\\kalpana-enterprises\\storage\\incoming\\1788169617380_webupload_1788169617378_1c_BlackWhite_IDCard_horizontal.png",
+      "processedPath": "D:\\Arka\\kalpana-enterprises\\storage\\processed\\docscan_1788169634200_1788169617380_webupload_1788169617378_1c_BlackWhite_IDCard_horizontal.png",
+      "pages": 1,
+      "printerName": "HP Laser MFP 131 133 135-138",
+      "colorMode": "BlackWhite",
+      "printTime": "2026-08-31T09:47:18.328Z",
+      "status": "Success",
+      "copies": 1,
+      "retryCount": 2
+    },
+    "hist_1788172676563_73iw": {
+      "id": "hist_1788172676563_73iw",
+      "fileId": "doc_1788169617863",
+      "customerFile": "docscan_1788172667884_1788169617380_webupload_1788169617378_1c_BlackWhite_IDCard_horizontal.png",
+      "originalPath": "D:\\Arka\\kalpana-enterprises\\storage\\incoming\\1788169617380_webupload_1788169617378_1c_BlackWhite_IDCard_horizontal.png",
+      "processedPath": "D:\\Arka\\kalpana-enterprises\\storage\\processed\\docscan_1788172667884_1788169617380_webupload_1788169617378_1c_BlackWhite_IDCard_horizontal.png",
+      "pages": 1,
+      "printerName": "HP Laser MFP 131 133 135-138",
+      "colorMode": "BlackWhite",
+      "printTime": "2026-08-31T10:37:56.563Z",
+      "status": "Success",
+      "copies": 1,
+      "retryCount": 3
+    },
+    "hist_1788173520590_07gt": {
+      "id": "hist_1788173520590_07gt",
+      "fileId": "doc_1788169617863",
+      "customerFile": "docscan_1788173513802_1788169617380_webupload_1788169617378_1c_BlackWhite_IDCard_horizontal.png",
+      "originalPath": "D:\\Arka\\kalpana-enterprises\\storage\\incoming\\1788169617380_webupload_1788169617378_1c_BlackWhite_IDCard_horizontal.png",
+      "processedPath": "D:\\Arka\\kalpana-enterprises\\storage\\processed\\docscan_1788173513802_1788169617380_webupload_1788169617378_1c_BlackWhite_IDCard_horizontal.png",
+      "pages": 1,
+      "printerName": "HP Laser MFP 131 133 135-138",
+      "colorMode": "BlackWhite",
+      "printTime": "2026-08-31T10:52:00.590Z",
+      "status": "Success",
+      "copies": 1,
+      "retryCount": 4
     }
   },
   "printers": {
@@ -104,11 +202,11 @@
       "status": "Offline",
       "isOnline": false,
       "connection": "USB (Spooler)",
-      "isDefault": true,
+      "isDefault": false,
       "isPrimary": false,
       "isSecondary": true,
       "isFallback": true,
-      "lastChecked": "2026-08-31T09:37:42.145Z"
+      "lastChecked": "2026-08-31T10:51:45.955Z"
     },
     "hp_laser_mfp_131_133_135_138": {
       "id": "hp_laser_mfp_131_133_135_138",
@@ -132,7 +230,7 @@
       "isPrimary": false,
       "isSecondary": false,
       "isFallback": false,
-      "lastChecked": "2026-08-31T09:37:42.144Z"
+      "lastChecked": "2026-08-31T10:51:45.955Z"
     }
   },
   "settings": {
@@ -156,7 +254,7 @@
     "pollingIntervalMs": 2000,
     "port": 8082,
     "adminPasswordHash": "admin",
-    "publicTunnelUrl": "https://bedroom-mrs-dev-placed.trycloudflare.com"
+    "publicTunnelUrl": "https://theatre-vocabulary-sussex-lane.trycloudflare.com"
   },
   "logs": [
     {
@@ -5565,17 +5663,49 @@
       "id": "job_1788160953464_hx4k2",
       "fileId": "doc_1788160953463",
       "customerName": "Customer Print",
-      "fileName": "webupload_1788160952944_1c_BlackWhite_IDCard_horizontal.png",
-      "processedPath": "D:\\Arka\\kalpana-enterprises\\storage\\processed\\enhanced_1788160952947_1788160952946_webupload_1788160952944_1c_BlackWhite_IDCard_horizontal.png",
+      "fileName": "docscan_1788169534208_1788160952946_webupload_1788160952944_1c_BlackWhite_IDCard_horizontal.png",
+      "processedPath": "D:\\Arka\\kalpana-enterprises\\storage\\processed\\docscan_1788169534208_1788160952946_webupload_1788160952944_1c_BlackWhite_IDCard_horizontal.png",
       "originalPath": "D:\\Arka\\kalpana-enterprises\\storage\\incoming\\1788160952946_webupload_1788160952944_1c_BlackWhite_IDCard_horizontal.png",
       "printer": "HP Laser MFP 131 133 135-138",
       "copies": 1,
       "colorMode": "BlackWhite",
       "status": "Completed",
       "priority": 1,
-      "attempts": 1,
+      "attempts": 3,
       "createdAt": "2026-08-31T07:22:33.464Z",
-      "updatedAt": "2026-08-31T07:22:36.661Z"
+      "updatedAt": "2026-08-31T09:45:40.581Z"
+    },
+    "job_1788169617404_y3xqk": {
+      "id": "job_1788169617404_y3xqk",
+      "fileId": "doc_1788169617404",
+      "customerName": "Customer Print",
+      "fileName": "merged_id_1788169616974_horizontal.png",
+      "processedPath": "D:\\Arka\\kalpana-enterprises\\storage\\processed\\copy_1788169617402_1788169617369_merged_id_1788169616974_horizontal.png",
+      "originalPath": "D:\\Arka\\kalpana-enterprises\\storage\\incoming\\1788169617369_merged_id_1788169616974_horizontal.png",
+      "printer": "HP Laser MFP 131 133 135-138",
+      "copies": 1,
+      "colorMode": "BlackWhite",
+      "status": "Completed",
+      "priority": 1,
+      "attempts": 1,
+      "createdAt": "2026-08-31T09:46:57.404Z",
+      "updatedAt": "2026-08-31T09:47:05.142Z"
+    },
+    "job_1788169617864_4j2e0": {
+      "id": "job_1788169617864_4j2e0",
+      "fileId": "doc_1788169617863",
+      "customerName": "Customer Print",
+      "fileName": "docscan_1788173513802_1788169617380_webupload_1788169617378_1c_BlackWhite_IDCard_horizontal.png",
+      "processedPath": "D:\\Arka\\kalpana-enterprises\\storage\\processed\\docscan_1788173513802_1788169617380_webupload_1788169617378_1c_BlackWhite_IDCard_horizontal.png",
+      "originalPath": "D:\\Arka\\kalpana-enterprises\\storage\\incoming\\1788169617380_webupload_1788169617378_1c_BlackWhite_IDCard_horizontal.png",
+      "printer": "HP Laser MFP 131 133 135-138",
+      "copies": 1,
+      "colorMode": "BlackWhite",
+      "status": "Completed",
+      "priority": 1,
+      "attempts": 4,
+      "createdAt": "2026-08-31T09:46:57.864Z",
+      "updatedAt": "2026-08-31T10:52:00.588Z"
     }
   },
   "statistics": {
@@ -5630,9 +5760,9 @@
     },
     "2026-08-31": {
       "date": "2026-08-31",
-      "totalReceived": 3,
-      "totalProcessed": 3,
-      "totalPrinted": 2,
+      "totalReceived": 5,
+      "totalProcessed": 5,
+      "totalPrinted": 9,
       "totalFailed": 1
     }
   }

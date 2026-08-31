@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { api, type QueueJob, type PrinterInfo } from '../services/client';
-import { Printer, RotateCw, Trash2, CheckCircle2, Upload, FileText, AlertCircle, Wifi, Check, Scissors, Sun, Contrast, RefreshCw, ArrowUpDown, Sparkles } from 'lucide-react';
+import { Printer, RotateCw, Trash2, CheckCircle2, Upload, FileText, AlertCircle, Wifi, Check, Scissors, Sun, Contrast, RefreshCw, ArrowUpDown, Sparkles, Maximize2 } from 'lucide-react';
 
 const EPSON_NAME = 'EPSON L3110 Series';
 const HP_NAME = 'HP Laser MFP 131 133 135-138';
@@ -28,6 +28,8 @@ export const CustomerPrintDashboard: React.FC = () => {
   const [copies, setCopies] = useState(1);
   const [activeColorMode, setActiveColorMode] = useState<'Color' | 'BlackWhite'>('BlackWhite');
   const [activePrinterName, setActivePrinterName] = useState(EPSON_NAME);
+  const [previewNonce, setPreviewNonce] = useState<number>(Date.now());
+  const [isAutoDetecting, setIsAutoDetecting] = useState<boolean>(false);
   const [applying, setApplying] = useState(false);
   const [printSuccessMsg, setPrintSuccessMsg] = useState<string | null>(null);
   const [testResultMsg, setTestResultMsg] = useState<{ [key: string]: string }>({});
@@ -54,6 +56,31 @@ export const CustomerPrintDashboard: React.FC = () => {
   const [draggingEdge, setDraggingEdge] = useState<string | null>(null);
   const imgContainerRef = useRef<HTMLDivElement | null>(null);
   const activePointerIdRef = useRef<number | null>(null);
+
+  // Auto-detect and snap crop handles to document boundaries without applying
+  const handleAutoDetectBorders = async () => {
+    if (!selectedJob) return;
+    setIsAutoDetecting(true);
+    try {
+      const res = await api.detectBorders(selectedJob.id);
+      if (res.success && res.borders && res.borders.hasSignificantBorders) {
+        setCropTop(res.borders.topPct);
+        setCropBottom(res.borders.bottomPct);
+        setCropLeft(res.borders.leftPct);
+        setCropRight(res.borders.rightPct);
+        setShowCropBox(true);
+        setPrintSuccessMsg(`📐 AI Auto-Framed Document: Top -${res.borders.topPct}%, Bottom -${res.borders.bottomPct}%, Left -${res.borders.leftPct}%, Right -${res.borders.rightPct}%. Click "APPLY EDGE CROP" or adjust handles.`);
+        setTimeout(() => setPrintSuccessMsg(null), 5000);
+      } else {
+        setPrintSuccessMsg(`📄 Document already covers standard frame. 2% minimal border detected.`);
+        setTimeout(() => setPrintSuccessMsg(null), 4000);
+      }
+    } catch (e: any) {
+      console.error("Auto-detect failed:", e);
+    } finally {
+      setIsAutoDetecting(false);
+    }
+  };
 
   // Start dragging: capture the pointer so events are tracked globally
   const startDrag = (e: React.PointerEvent, edge: string) => {
@@ -301,19 +328,30 @@ export const CustomerPrintDashboard: React.FC = () => {
       });
       if (res.success && res.job) {
         setSelectedJob(res.job);
+        setPreviewNonce(Date.now());
         if (options.overrideRotate !== undefined) setRotate(0);
         let msg = '✨ Applied image adjustments successfully!';
         if (options.reset) {
           msg = '🔄 Reverted image back to original clean scan!';
           setCropTop(0); setCropBottom(0); setCropLeft(0); setCropRight(0);
         }
-        else if (options.autoCrop) msg = '✨ doc_scanner_kit AI Edge Detection isolated document paper from background!';
+        else if (options.autoCrop) {
+          setCropTop(0); setCropBottom(0); setCropLeft(0); setCropRight(0);
+          if (res.borders && res.borders.hasSignificantBorders) {
+            msg = `✂️ AI Auto Edge Crop: Removed ${res.borders.topPct}% top, ${res.borders.bottomPct}% bottom, ${res.borders.leftPct}% left, ${res.borders.rightPct}% right margins! Refitted onto A4 sheet.`;
+          } else {
+            msg = '✨ AI Auto Edge Crop: Document isolated and framed onto A4 sheet!';
+          }
+        }
         else if (options.overrideRotate !== undefined) msg = '🔄 Rotated document by 90° cleanly!';
         else if (options.filterType === 'magic_color') msg = '🌟 doc_scanner_kit Magic Color: Whitened background and sharpened text!';
         else if (options.filterType === 'bw_scan') msg = '📄 doc_scanner_kit B&W Scan: Converted to pure high-contrast document!';
         else if (options.filterType === 'clean_noise') msg = '🧹 doc_scanner_kit Cleaned camera sensor noise and desk table texture!';
         else if (options.filterType === 'grayscale') msg = '✨ Applied professional smoothed grayscale scan mode!';
-        else if (options.trimTopPct || options.trimBottomPct || options.trimLeftPct || options.trimRightPct || options.trimAllPct) msg = '✂️ Applied precise doc_scanner_kit boundary frame cut!';
+        else if (options.trimTopPct || options.trimBottomPct || options.trimLeftPct || options.trimRightPct || options.trimAllPct) {
+          setCropTop(0); setCropBottom(0); setCropLeft(0); setCropRight(0);
+          msg = '✂️ Applied precise doc_scanner_kit boundary frame cut!';
+        }
         setPrintSuccessMsg(msg);
         setTimeout(() => setPrintSuccessMsg(null), 4500);
       }
@@ -863,9 +901,20 @@ export const CustomerPrintDashboard: React.FC = () => {
                               onClick={() => handleApplyAdjustments({ autoCrop: true })}
                               style={{ backgroundColor: '#0284c7', color: '#ffffff', border: '2px solid #38bdf8' }}
                               className="px-4 py-2 rounded-xl font-black text-xs uppercase tracking-tight hover:opacity-95 shadow-lg cursor-pointer flex items-center gap-2 transform active:scale-95 transition"
-                              title="AI automatically detect paper edges against table surfaces"
+                              title="AI automatically detect paper edges against table surfaces and enlarge onto A4"
                             >
                               <span>🤖 AI Auto Edge Crop</span>
+                            </button>
+
+                            <button
+                              onClick={handleAutoDetectBorders}
+                              disabled={isAutoDetecting}
+                              style={{ backgroundColor: '#0f766e', color: '#ffffff', border: '2px solid #2dd4bf' }}
+                              className="px-3.5 py-2 rounded-xl font-black text-xs uppercase tracking-tight shadow-lg cursor-pointer flex items-center gap-1.5 transition hover:opacity-90 disabled:opacity-50"
+                              title="Automatically snap interactive crop handles to document borders"
+                            >
+                              <Maximize2 className="w-3.5 h-3.5 text-teal-300" />
+                              <span>{isAutoDetecting ? 'Detecting...' : '🔍 Auto-Fit Frame'}</span>
                             </button>
 
                             <button
@@ -1003,7 +1052,7 @@ export const CustomerPrintDashboard: React.FC = () => {
                     <div className="w-full flex items-center justify-center overflow-auto max-h-[680px] py-6 relative select-none">
                       <div className="relative inline-block max-w-full select-none" ref={imgContainerRef}>
                         <img
-                          src={`${api.getPreviewUrl(selectedJob.id)}?t=${Date.now()}`}
+                          src={`${api.getPreviewUrl(selectedJob.id)}?t=${previewNonce}`}
                           alt="Customer File Live Preview"
                           className="max-h-[490px] w-auto object-contain rounded-lg shadow-2xl transition-all duration-200 border-4 border-slate-300 p-1 block select-none pointer-events-none"
                           style={{ backgroundColor: '#ffffff' }}

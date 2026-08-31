@@ -42,5 +42,6 @@ async function processDocument(inputPath, outputDir, options = {}) {
 }
 
 const { mergeIdCards } = require('./id_card_merger');
+const { detectDocumentBorders, autoCropDocument } = require('./auto_crop');
 
-module.exports = { processDocument, mergeIdCards };
+module.exports = { processDocument, mergeIdCards, detectDocumentBorders, autoCropDocument };

@@ -3,6 +3,8 @@ const path = require('path');
 const fs = require('fs');
 const Logger = require('../logs/logger');
 
+const { detectDocumentBorders } = require('./auto_crop');
+
 // A4 dimensions at 300 DPI
 const A4_WIDTH = 2480;
 const A4_HEIGHT = 3508;
@@ -15,7 +17,7 @@ async function processImage(inputPath, outputDir, options = {}) {
     Logger.logEnhancement(`Starting image enhancement for [${fileName}]`, { options });
     
     try {
-        let instance = sharp(inputPath);
+        let instance = sharp(inputPath, { failOnError: false });
         const metadata = await instance.metadata();
         
         // Auto-rotation based on EXIF orientation
@@ -24,90 +26,35 @@ async function processImage(inputPath, outputDir, options = {}) {
         // Intelligent Automatic Document & Subject Isolation (Slices away wooden tables, bedsheets, floors around ID cards & receipts)
         if (options.autoCrop !== false) {
             try {
-                // Downsample to 200x200 raw greyscale buffer for rapid contrast boundary analysis
-                const thumbBuffer = await sharp(inputPath).rotate().resize(200, 200, { fit: 'fill' }).greyscale().raw().toBuffer();
-                
-                // Calculate reference ambient background lightness from outermost edges (the table/floor)
-                let topBg = 0, bottomBg = 0, leftBg = 0, rightBg = 0;
-                for (let x = 0; x < 200; x++) {
-                    topBg += thumbBuffer[x];
-                    bottomBg += thumbBuffer[199 * 200 + x];
-                }
-                topBg /= 200; bottomBg /= 200;
-                for (let y = 0; y < 200; y++) {
-                    leftBg += thumbBuffer[y * 200];
-                    rightBg += thumbBuffer[y * 200 + 199];
-                }
-                leftBg /= 200; rightBg /= 200;
-                
-                // Scan inwards to detect actual bright paper document boundaries (Aadhar card, PAN, tax receipt)
-                let startY = 0, endY = 200, startX = 0, endX = 200;
-                for (let y = 0; y < 90; y++) {
-                    let diffCount = 0;
-                    for (let x = 10; x < 190; x++) {
-                        const val = thumbBuffer[y * 200 + x];
-                        if (Math.abs(val - topBg) > 16 || val > 175) diffCount++;
-                    }
-                    if (diffCount > 18) { startY = y; break; }
-                }
-                for (let y = 199; y > 110; y--) {
-                    let diffCount = 0;
-                    for (let x = 10; x < 190; x++) {
-                        const val = thumbBuffer[y * 200 + x];
-                        if (Math.abs(val - bottomBg) > 16 || val > 175) diffCount++;
-                    }
-                    if (diffCount > 18) { endY = y; break; }
-                }
-                for (let x = 0; x < 90; x++) {
-                    let diffCount = 0;
-                    for (let y = 10; y < 190; y++) {
-                        const val = thumbBuffer[y * 200 + x];
-                        if (Math.abs(val - leftBg) > 16 || val > 175) diffCount++;
-                    }
-                    if (diffCount > 18) { startX = x; break; }
-                }
-                for (let x = 199; x > 110; x--) {
-                    let diffCount = 0;
-                    for (let y = 10; y < 190; y++) {
-                        const val = thumbBuffer[y * 200 + x];
-                        if (Math.abs(val - rightBg) > 16 || val > 175) diffCount++;
-                    }
-                    if (diffCount > 18) { endX = x; break; }
-                }
-
-                // If a clean document subject bounding box is isolated inside table boundaries
-                const docWidth = endX - startX;
-                const docHeight = endY - startY;
+                const borders = await detectDocumentBorders(inputPath);
                 const origW = metadata.width || 1000;
                 const origH = metadata.height || 1000;
 
-                if (docWidth > 30 && docHeight > 30 && (startX > 2 || startY > 2 || endX < 198 || endY < 198)) {
-                    const leftPct = Math.max(0, (startX - 2)) / 200;
-                    const topPct = Math.max(0, (startY - 2)) / 200;
-                    const widthPct = Math.min(1 - leftPct, (docWidth + 4) / 200);
-                    const heightPct = Math.min(1 - topPct, (docHeight + 4) / 200);
-                    
-                    const extractLeft = Math.floor(origW * leftPct);
-                    const extractTop = Math.floor(origH * topPct);
-                    const extractW = Math.floor(origW * widthPct);
-                    const extractH = Math.floor(origH * heightPct);
+                if (borders.hasSignificantBorders) {
+                    const cutLeft = Math.floor(origW * (borders.leftPct / 100));
+                    const cutRight = Math.floor(origW * (borders.rightPct / 100));
+                    const cutTop = Math.floor(origH * (borders.topPct / 100));
+                    const cutBottom = Math.floor(origH * (borders.bottomPct / 100));
 
-                    if (extractW > 100 && extractH > 100 && (extractLeft + extractW <= origW) && (extractTop + extractH <= origH)) {
-                        instance = instance.extract({ left: extractLeft, top: extractTop, width: extractW, height: extractH });
-                        Logger.logEnhancement(`Accurately isolated document subject (${extractW}x${extractH}) from surrounding table background.`);
+                    const extractW = Math.max(100, origW - cutLeft - cutRight);
+                    const extractH = Math.max(100, origH - cutTop - cutBottom);
+
+                    if (extractW > 100 && extractH > 100 && (cutLeft + extractW <= origW) && (cutTop + extractH <= origH)) {
+                        instance = instance.extract({ left: cutLeft, top: cutTop, width: extractW, height: extractH });
+                        Logger.logEnhancement(`Accurately isolated document (${extractW}x${extractH}) from surrounding table/desk (Borders cut: T:${borders.topPct}%, B:${borders.bottomPct}%, L:${borders.leftPct}%, R:${borders.rightPct}%).`);
                     }
                 } else {
-                    // Fallback automatic trim of outer table margins
-                    const extractLeft = Math.floor(origW * 0.04);
-                    const extractTop = Math.floor(origH * 0.04);
-                    const extractW = Math.floor(origW * 0.92);
-                    const extractH = Math.floor(origH * 0.92);
-                    if (extractW > 100 && extractH > 100 && (extractLeft + extractW <= origW) && (extractTop + extractH <= origH)) {
-                        instance = instance.extract({ left: extractLeft, top: extractTop, width: extractW, height: extractH });
+                    // Subtle trim of outer camera sensor slivers (2% on each side)
+                    const cutLeft = Math.floor(origW * 0.02);
+                    const cutTop = Math.floor(origH * 0.02);
+                    const extractW = Math.floor(origW * 0.96);
+                    const extractH = Math.floor(origH * 0.96);
+                    if (extractW > 100 && extractH > 100 && (cutLeft + extractW <= origW) && (cutTop + extractH <= origH)) {
+                        instance = instance.extract({ left: cutLeft, top: cutTop, width: extractW, height: extractH });
                     }
                 }
             } catch (e) {
-                try { instance = instance.trim({ threshold: 35 }); } catch (err) {}
+                Logger.warn('IMAGE_PROCESSOR', `Auto-crop error ignored: ${e.message}`);
             }
         }
 

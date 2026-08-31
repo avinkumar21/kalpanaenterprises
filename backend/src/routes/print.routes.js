@@ -9,7 +9,7 @@ const PrinterManager = require('../../../services/print/drivers/printer_manager.
 const PrintQueue = require('../../../services/print/queue/print_queue.js');
 const FolderWatcher = require('../../../services/watchers/folder_watcher.js');
 const EmailWatcher = require('../../../services/watchers/email_watcher.js');
-const { processDocument, mergeIdCards } = require('../../../services/image_processor/index.js');
+const { processDocument, mergeIdCards, detectDocumentBorders, autoCropDocument } = require('../../../services/image_processor/index.js');
 
 const router = express.Router();
 
@@ -417,90 +417,34 @@ router.post('/override-image', async (req, res) => {
         const w = meta.width || 1000;
         const h = meta.height || 1000;
         let instance = sharp(cleanBuffer, { failOnError: false });
-        
+        let detectedBorders = null;
+
         if (!reset) {
             // Intelligent doc_scanner_kit AI Auto-Crop (Detects document boundaries on wooden desk/table backgrounds)
             if (autoCrop && !trimAllPct && !trimVerticalPct && !trimHorizontalPct && !trimTopPct && !trimBottomPct && !trimLeftPct && !trimRightPct) {
                 try {
-                    // Downsample sanitized buffer for precise row/column edge luminance segmentation
-                    const thumb = await sharp(cleanBuffer, { failOnError: false })
-                        .resize(200, 200, { fit: 'fill' })
-                        .greyscale()
-                        .raw()
-                        .toBuffer();
-                    
-                    // Calculate reference brightness of top, bottom, left, and right tabletop borders
-                    let topBg = 0, bottomBg = 0, leftBg = 0, rightBg = 0;
-                    for (let x = 0; x < 200; x++) {
-                        topBg += thumb[x];
-                        bottomBg += thumb[199 * 200 + x];
-                    }
-                    topBg /= 200; bottomBg /= 200;
-                    for (let y = 0; y < 200; y++) {
-                        leftBg += thumb[y * 200];
-                        rightBg += thumb[y * 200 + 199];
-                    }
-                    leftBg /= 200; rightBg /= 200;
-                    
-                    // Scan inwards to locate actual paper document boundaries (Aadhar card, PAN, tax receipt)
-                    let startY = 0, endY = 200, startX = 0, endX = 200;
-                    for (let y = 0; y < 90; y++) {
-                        let diffCount = 0;
-                        for (let x = 10; x < 190; x++) {
-                            const val = thumb[y * 200 + x];
-                            if (Math.abs(val - topBg) > 16 || val > 175) diffCount++;
-                        }
-                        if (diffCount > 18) { startY = y; break; }
-                    }
-                    for (let y = 199; y > 110; y--) {
-                        let diffCount = 0;
-                        for (let x = 10; x < 190; x++) {
-                            const val = thumb[y * 200 + x];
-                            if (Math.abs(val - bottomBg) > 16 || val > 175) diffCount++;
-                        }
-                        if (diffCount > 18) { endY = y; break; }
-                    }
-                    for (let x = 0; x < 90; x++) {
-                        let diffCount = 0;
-                        for (let y = 10; y < 190; y++) {
-                            const val = thumb[y * 200 + x];
-                            if (Math.abs(val - leftBg) > 16 || val > 175) diffCount++;
-                        }
-                        if (diffCount > 18) { startX = x; break; }
-                    }
-                    for (let x = 199; x > 110; x--) {
-                        let diffCount = 0;
-                        for (let y = 10; y < 190; y++) {
-                            const val = thumb[y * 200 + x];
-                            if (Math.abs(val - rightBg) > 16 || val > 175) diffCount++;
-                        }
-                        if (diffCount > 18) { endX = x; break; }
-                    }
+                    detectedBorders = await detectDocumentBorders(cleanBuffer);
+                    if (detectedBorders.hasSignificantBorders) {
+                        const cutLeft = Math.floor(w * (detectedBorders.leftPct / 100));
+                        const cutRight = Math.floor(w * (detectedBorders.rightPct / 100));
+                        const cutTop = Math.floor(h * (detectedBorders.topPct / 100));
+                        const cutBottom = Math.floor(h * (detectedBorders.bottomPct / 100));
 
-                    const docW = endX - startX;
-                    const docH = endY - startY;
-                    if (docW > 30 && docH > 30 && (startX > 2 || startY > 2 || endX < 198 || endY < 198)) {
-                        const leftPct = Math.max(0, (startX - 2)) / 200;
-                        const topPct = Math.max(0, (startY - 2)) / 200;
-                        const widthPct = Math.min(1 - leftPct, (docW + 4) / 200);
-                        const heightPct = Math.min(1 - topPct, (docH + 4) / 200);
-                        
-                        const extLeft = Math.floor(w * leftPct);
-                        const extTop = Math.floor(h * topPct);
-                        const extW = Math.floor(w * widthPct);
-                        const extH = Math.floor(h * heightPct);
-                        if (extW > 100 && extH > 100 && (extLeft + extW <= w) && (extTop + extH <= h)) {
-                            instance = instance.extract({ left: extLeft, top: extTop, width: extW, height: extH });
-                            Logger.info('DOC_SCANNER', `doc_scanner_kit AI edge detection isolated bounding box: [${extW}x${extH}] at (${extLeft}, ${extTop})`);
+                        const extractW = Math.max(50, w - cutLeft - cutRight);
+                        const extractH = Math.max(50, h - cutTop - cutBottom);
+
+                        if (extractW > 50 && extractH > 50 && (cutLeft + extractW <= w) && (cutTop + extractH <= h)) {
+                            instance = instance.extract({ left: cutLeft, top: cutTop, width: extractW, height: extractH });
+                            Logger.info('DOC_SCANNER', `doc_scanner_kit AI edge detection isolated bounding box: [${extractW}x${extractH}] at (${cutLeft}, ${cutTop}) (Borders cut: T:${detectedBorders.topPct}%, B:${detectedBorders.bottomPct}%, L:${detectedBorders.leftPct}%, R:${detectedBorders.rightPct}%)`);
                         }
                     } else {
-                        // Fallback auto-crop: slice 4% off all edges to remove tabletop slivers if contrast gradient is subtle
-                        const extLeft = Math.floor(w * 0.04);
-                        const extTop = Math.floor(h * 0.04);
-                        const extW = Math.floor(w * 0.92);
-                        const extH = Math.floor(h * 0.92);
-                        instance = instance.extract({ left: extLeft, top: extTop, width: extW, height: extH });
-                        Logger.info('DOC_SCANNER', `Applied clean fallback edge crop [${extW}x${extH}]`);
+                        // Subtle fallback edge crop
+                        const cutLeft = Math.floor(w * 0.02);
+                        const cutTop = Math.floor(h * 0.02);
+                        const extractW = Math.floor(w * 0.96);
+                        const extractH = Math.floor(h * 0.96);
+                        instance = instance.extract({ left: cutLeft, top: cutTop, width: extractW, height: extractH });
+                        Logger.info('DOC_SCANNER', `Applied subtle fallback edge crop [${extractW}x${extractH}]`);
                     }
                 } catch (errCrop) {
                     Logger.warn('DOC_SCANNER', `Auto-crop error ignored: ${errCrop.message}`);
@@ -544,32 +488,45 @@ router.post('/override-image', async (req, res) => {
             }
         }
 
-        // Always format and fit adjusted image onto standard 300 DPI A4 Sheet Paper canvas
-        const A4_PORTRAIT_W = 2480;
-        const A4_PORTRAIT_H = 3508;
-        const intermediateBuffer = await instance.png().toBuffer();
-        const outMeta = await sharp(intermediateBuffer).metadata();
-        const isLandscape = (outMeta.width || 0) > (outMeta.height || 0);
-        const targetA4Width = isLandscape ? A4_PORTRAIT_H : A4_PORTRAIT_W;
-        const targetA4Height = isLandscape ? A4_PORTRAIT_W : A4_PORTRAIT_H;
+        const isCropped = Boolean(
+            (detectedBorders && detectedBorders.hasSignificantBorders) ||
+            trimAllPct > 0 || trimVerticalPct > 0 || trimHorizontalPct > 0 || trimTopPct > 0 || trimBottomPct > 0 || trimLeftPct > 0 || trimRightPct > 0
+        );
 
-        await sharp(intermediateBuffer)
-            .resize({
-                width: Math.floor(targetA4Width * 0.95),
-                height: Math.floor(targetA4Height * 0.95),
-                fit: 'contain',
-                background: { r: 255, g: 255, b: 255, alpha: 1 }
-            })
-            .extend({
-                top: Math.floor(targetA4Height * 0.025),
-                bottom: Math.floor(targetA4Height * 0.025),
-                left: Math.floor(targetA4Width * 0.025),
-                right: Math.floor(targetA4Width * 0.025),
-                background: { r: 255, g: 255, b: 255, alpha: 1 }
-            })
-            .withMetadata({ density: 300 })
-            .png({ quality: 100 })
-            .toFile(tempPath);
+        if (isCropped) {
+            // Save pure cropped document so preview and print reflect exact document boundaries
+            await instance
+                .withMetadata({ density: 300 })
+                .png({ quality: 100 })
+                .toFile(tempPath);
+        } else {
+            // Always format and fit adjusted image onto standard 300 DPI A4 Sheet Paper canvas
+            const A4_PORTRAIT_W = 2480;
+            const A4_PORTRAIT_H = 3508;
+            const intermediateBuffer = await instance.png().toBuffer();
+            const outMeta = await sharp(intermediateBuffer).metadata();
+            const isLandscape = (outMeta.width || 0) > (outMeta.height || 0);
+            const targetA4Width = isLandscape ? A4_PORTRAIT_H : A4_PORTRAIT_W;
+            const targetA4Height = isLandscape ? A4_PORTRAIT_W : A4_PORTRAIT_H;
+
+            await sharp(intermediateBuffer)
+                .resize({
+                    width: Math.floor(targetA4Width * 0.95),
+                    height: Math.floor(targetA4Height * 0.95),
+                    fit: 'contain',
+                    background: { r: 255, g: 255, b: 255, alpha: 1 }
+                })
+                .extend({
+                    top: Math.floor(targetA4Height * 0.025),
+                    bottom: Math.floor(targetA4Height * 0.025),
+                    left: Math.floor(targetA4Width * 0.025),
+                    right: Math.floor(targetA4Width * 0.025),
+                    background: { r: 255, g: 255, b: 255, alpha: 1 }
+                })
+                .withMetadata({ density: 300 })
+                .png({ quality: 100 })
+                .toFile(tempPath);
+        }
         
         // Update job item references
         if (item) {
@@ -587,10 +544,50 @@ router.post('/override-image', async (req, res) => {
         }
 
         Logger.info('OPERATOR_DASHBOARD', `Operator applied custom image adjustments to job [${jobId}] formatted for A4 sheet`);
-        res.json({ success: true, job: item || { id: jobId, fileName: path.basename(tempPath), processedPath: tempPath } });
+        res.json({ 
+            success: true, 
+            job: item || { id: jobId, fileName: path.basename(tempPath), processedPath: tempPath },
+            borders: detectedBorders
+        });
     } catch (e) {
         Logger.error('DOC_SCANNER', `Image modification failed: ${e.message}\n${e.stack}`);
         res.status(500).json({ error: `Image modification failed: ${e.message}` });
+    }
+});
+
+// POST /api/prints/detect-borders - Pre-flight document boundary detection without modifying file
+router.post('/detect-borders', async (req, res) => {
+    const { jobId } = req.body;
+    const queue = db.getQueue();
+    const history = db.getHistory(500);
+    const item = queue.find(q => q.id === jobId || q.fileId === jobId || q.fileName === jobId) || history.find(h => h.id === jobId || h.fileId === jobId || h.customerFile === jobId);
+    
+    let sourcePath = '';
+    if (item) {
+        const candidatePaths = [
+            item.processedPath,
+            item.originalPath,
+            path.join(incomingDir, item.fileName || ''),
+            path.join(processedDir, item.fileName || '')
+        ].filter(Boolean);
+        for (const p of candidatePaths) {
+            if (fs.existsSync(p)) { sourcePath = p; break; }
+        }
+    }
+    if (!sourcePath && jobId) {
+        const directCandidate = path.join(incomingDir, jobId);
+        if (fs.existsSync(directCandidate)) sourcePath = directCandidate;
+    }
+
+    if (!sourcePath || !fs.existsSync(sourcePath)) {
+        return res.status(404).json({ error: "Job file not found on disk." });
+    }
+
+    try {
+        const borders = await detectDocumentBorders(sourcePath);
+        res.json({ success: true, borders });
+    } catch (e) {
+        res.status(500).json({ success: false, error: e.message });
     }
 });
 

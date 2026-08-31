@@ -3,6 +3,8 @@ const path = require('path');
 const fs = require('fs');
 const Logger = require('../logs/logger');
 
+const { detectDocumentBorders } = require('./auto_crop');
+
 // 300 DPI Standard A4 dimensions (pixels)
 const A4_PORTRAIT_W = 2480;
 const A4_PORTRAIT_H = 3508;
@@ -38,7 +40,29 @@ async function mergeIdCards(frontPath, backPath, outputDir, options = {}) {
 
     // Helper to process individual card side with crisp text & border
     async function prepareCardBuffer(filePath) {
-        let inst = sharp(filePath).rotate();
+        let inst = sharp(filePath, { failOnError: false }).rotate();
+        const meta = await inst.metadata();
+        const w = meta.width || 1000;
+        const h = meta.height || 1000;
+
+        // Auto-isolate card boundary from table / bedsheet / desk backgrounds
+        try {
+            const borders = await detectDocumentBorders(filePath);
+            if (borders.hasSignificantBorders) {
+                const cutLeft = Math.floor(w * (borders.leftPct / 100));
+                const cutRight = Math.floor(w * (borders.rightPct / 100));
+                const cutTop = Math.floor(h * (borders.topPct / 100));
+                const cutBottom = Math.floor(h * (borders.bottomPct / 100));
+
+                const extractW = Math.max(50, w - cutLeft - cutRight);
+                const extractH = Math.max(50, h - cutTop - cutBottom);
+
+                inst = inst.extract({ left: cutLeft, top: cutTop, width: extractW, height: extractH });
+                Logger.info('IMAGE_PROCESSOR', `Auto-cropped ID card side (${extractW}x${extractH}) at (${cutLeft}, ${cutTop})`);
+            }
+        } catch (e) {
+            Logger.warn('IMAGE_PROCESSOR', `Auto-crop card error: ${e.message}`);
+        }
 
         if (colorMode === 'BlackWhite') {
             inst = inst.greyscale();

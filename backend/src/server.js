@@ -11,6 +11,7 @@ const PrinterManager = require('../../services/print/drivers/printer_manager.js'
 const PrintQueue = require('../../services/print/queue/print_queue.js');
 const FolderWatcher = require('../../services/watchers/folder_watcher.js');
 const EmailWatcher = require('../../services/watchers/email_watcher.js');
+const { autoCropDocument } = require('../../services/image_processor/auto_crop.js');
 const apiRouter = require('./routes/print.routes.js');
 
 const multer = require('multer');
@@ -97,7 +98,23 @@ app.post('/print', upload.single('file'), async (req, res) => {
 
         console.log(`[DAEMON /print] Received job: [${originalName}] => Routed to: [${resolvedPrinter}] (${copies} copies, Mode: ${colorMode}, Conn: ${connectionUsed})`);
 
-        await PrinterManager.printFile(filePath, resolvedPrinter, copies, { colorMode });
+        // Auto-crop document if an image is sent for printing (isolates document from table/desk margins)
+        const ext = path.extname(filePath).toLowerCase();
+        let printTargetFile = filePath;
+        if (['.png', '.jpg', '.jpeg', '.bmp', '.webp'].includes(ext)) {
+            try {
+                const croppedOut = path.join(processedDir, `autocrop_${Date.now()}_${path.basename(filePath)}`);
+                const cropRes = await autoCropDocument(filePath, croppedOut, { colorMode });
+                if (cropRes && cropRes.success) {
+                    printTargetFile = croppedOut;
+                    console.log(`[DAEMON /print] Auto-cropped document boundaries:`, cropRes.borders);
+                }
+            } catch (errCrop) {
+                console.warn(`[DAEMON /print] Auto-crop fallback: ${errCrop.message}`);
+            }
+        }
+
+        await PrinterManager.printFile(printTargetFile, resolvedPrinter, copies, { colorMode });
 
         res.json({
             success: true,
